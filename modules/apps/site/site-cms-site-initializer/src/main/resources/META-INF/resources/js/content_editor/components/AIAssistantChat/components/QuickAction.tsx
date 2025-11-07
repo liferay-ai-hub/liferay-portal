@@ -8,14 +8,14 @@ import ClayIcon from '@clayui/icon';
 import ClayLayout from "@clayui/layout";
 import React from "react";
 
-const QuickActions: React.FC<{action: string}> = ({ action }) => {
+const QuickActions: React.FC<{action: string, setSelectedAction: (action: string) => void}> = ({ action, setSelectedAction }) => {
 
     return (
         <ClayLayout.ContentCol className="mr-2">
             <ClayButton
                 className="ai-assistant-chat__quick-actions-button pl-2 pr-2"
                 displayType="unstyled"
-                onClick={() => alert(`${action} clicked`)}
+                onClick={() => setSelectedAction(action)}
                 small
             >
                 <ClayIcon
