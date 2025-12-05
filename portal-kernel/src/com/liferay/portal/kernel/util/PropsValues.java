@@ -2503,6 +2503,24 @@ public class PropsValues {
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.VERIFY_DATABASE_TRANSACTIONS_DISABLED));
 
+	public static final String VERTEX_AI_GOOGLE_CLOUD_CLIENT_EMAIL =
+		PropsUtil.get(PropsKeys.VERTEX_AI_GOOGLE_CLOUD_SERVICE_ACCOUNT);
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_CLIENT_ID = PropsUtil.get(
+		PropsKeys.VERTEX_AI_GOOGLE_CLOUD_CLIENT_ID);
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_CLIENT_X509_CERT_URL =
+		PropsUtil.get(PropsKeys.VERTEX_AI_GOOGLE_CLOUD_CLIENT_X509_CERT_URL);
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_PRIVATE_KEY =
+		PropsUtil.get(PropsKeys.VERTEX_AI_GOOGLE_CLOUD_PRIVATE_KEY);
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_PRIVATE_KEY_ID =
+		PropsUtil.get(PropsKeys.VERTEX_AI_GOOGLE_CLOUD_PRIVATE_KEY_ID);
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_PROJECT_ID =
+		PropsUtil.get(PropsKeys.VERTEX_AI_GOOGLE_CLOUD_PROJECT_ID);
+
 	public static String VIRTUAL_HOSTS_DEFAULT_SITE_NAME = PropsUtil.get(
 		PropsKeys.VIRTUAL_HOSTS_DEFAULT_SITE_NAME);
 

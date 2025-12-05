@@ -17,6 +17,8 @@ dependencies {
 	compileInclude group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk7", version: "1.8.21"
 	compileInclude group: "org.jetbrains.kotlin", name: "kotlin-stdlib-jdk8", version: "1.8.21"
 	compileInclude group: "org.jspecify", name: "jspecify", version: "1.0.0"
+	compileOnly group: "com.google.auth", name: "google-auth-library-credentials", version: "1.31.0"
+	compileOnly group: "com.google.auth", name: "google-auth-library-oauth2-http", version: "1.31.0"
 	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	compileOnly group: "com.liferay", name: "jakarta.ws.rs", version: "3.1.0.LIFERAY-PATCHED-1"
 	compileOnly group: "com.liferay.jakarta.portlet", name: "com.liferay.jakarta.portlet-api", version: "4.0.0"

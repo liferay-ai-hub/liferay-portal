@@ -2862,6 +2862,24 @@ public interface PropsKeys {
 	public static final String VERIFY_DATABASE_TRANSACTIONS_DISABLED =
 		"verify.database.transactions.disabled";
 
+	public static final String VERTEX_AI_GOOGLE_CLOUD_CLIENT_ID =
+		"vertex.ai.google.cloud.client.id";
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_CLIENT_X509_CERT_URL =
+		"vertex.ai.google.cloud.client.x509.cert.url";
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_PRIVATE_KEY =
+		"vertex.ai.google.cloud.private.key";
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_PRIVATE_KEY_ID =
+		"vertex.ai.google.cloud.private.key.id";
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_PROJECT_ID =
+		"vertex.ai.google.cloud.project.id";
+
+	public static final String VERTEX_AI_GOOGLE_CLOUD_SERVICE_ACCOUNT =
+		"vertex.ai.google.cloud.service.account";
+
 	public static final String VIRTUAL_HOSTS_DEFAULT_SITE_NAME =
 		"virtual.hosts.default.site.name";
 
