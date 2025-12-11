@@ -296,7 +296,26 @@ const AIAssistantChat: React.FC = () => {
 								adjustTextareaHeight(event.target);
 							}}
 							onKeyDown={(event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-								event.stopPropagation();
+								if (event.key === 'Enter') {
+                                    if (!event.shiftKey) {
+                                        event.preventDefault();
+
+                                        const form = (event.target as HTMLElement).closest('form') as HTMLFormElement | null;
+
+                                        if (form?.requestSubmit) {
+                                            form.requestSubmit();
+                                        }
+                                        else {
+                                            form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                                        }
+                                    }
+                                    else {
+                                        setTimeout(() => adjustTextareaHeight(event.target as HTMLTextAreaElement), 0);
+                                    }
+                                }
+                                else {
+                                    event.stopPropagation();
+                                }
 							}}
 							placeholder="Ask me anything..."
 							ref={textareaRef}
