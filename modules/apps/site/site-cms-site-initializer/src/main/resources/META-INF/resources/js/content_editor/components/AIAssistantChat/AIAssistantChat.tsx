@@ -52,7 +52,7 @@ const AIAssistantChat: React.FC = () => {
 				messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
 			}, 0);
 
-			return [...previousMessages, { sender: 'user', text: message }];
+			return [...previousMessages, {sender: 'user', text: message}];
 		});
 
 		setMessage('');
@@ -80,22 +80,24 @@ const AIAssistantChat: React.FC = () => {
 		if (!textarea) {
 			return;
 		}
-		
+
 		const style = window.getComputedStyle(textarea);
-		const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2;
+		const lineHeight =
+			parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2;
 		const maxHeight = lineHeight * 4;
 
 		textarea.style.height = 'auto';
 		const newHeight = Math.min(textarea.scrollHeight, maxHeight);
 		textarea.style.height = `${newHeight}px`;
-		textarea.style.overflowY = textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
+		textarea.style.overflowY =
+			textarea.scrollHeight > maxHeight ? 'auto' : 'hidden';
 	}
 
 	function handleSelectAction(action: string) {
-        setMessage(`${action}, `);
-        adjustTextareaHeight(textareaRef.current as HTMLTextAreaElement);
-        textareaRef.current?.focus();
-    }
+		setMessage(`${action}, `);
+		adjustTextareaHeight(textareaRef.current as HTMLTextAreaElement);
+		textareaRef.current?.focus();
+	}
 
 	function getContextElements() {
 		let form = document.querySelector('.lfr-main-form-container');
@@ -262,11 +264,7 @@ const AIAssistantChat: React.FC = () => {
 						</div>
 					)}
 
-					{
-						error && (
-							<RegenerateButton onClick={() => {}} />
-						)
-					}
+					{error && <RegenerateButton onClick={() => {}} />}
 
 					<div ref={messagesEndRef} />
 				</div>
@@ -275,7 +273,8 @@ const AIAssistantChat: React.FC = () => {
 					className="flex-shrink-0 p-3"
 					onSubmit={(event) => onSubmit(event)}
 				>
-					{!messages.length && (
+
+					{/* {!messages.length && (
 						<>
 							{Liferay.Language.get('quick-actions')}
 							<ClayLayout.ContentRow className="align-items-center mb-3 mt-2">	
@@ -284,38 +283,55 @@ const AIAssistantChat: React.FC = () => {
 								))}
 							</ClayLayout.ContentRow>
 						</>
-					)}
+					)} */}
 
 					<div className="align-items-end border-top d-flex flex-row pt-4">
 						<textarea
 							className="ai-assistant-chat__input form-control mr-2"
 							disabled={isGenerating}
-							id='assistant-user-input'
+							id="assistant-user-input"
 							onChange={(event) => {
 								setMessage(event.target.value);
 								adjustTextareaHeight(event.target);
 							}}
-							onKeyDown={(event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+							onKeyDown={(
+								event: React.KeyboardEvent<HTMLTextAreaElement>
+							) => {
 								if (event.key === 'Enter') {
-                                    if (!event.shiftKey) {
-                                        event.preventDefault();
+									if (!event.shiftKey) {
+										event.preventDefault();
 
-                                        const form = (event.target as HTMLElement).closest('form') as HTMLFormElement | null;
+										const form = (
+											event.target as HTMLElement
+										).closest(
+											'form'
+										) as HTMLFormElement | null;
 
-                                        if (form?.requestSubmit) {
-                                            form.requestSubmit();
-                                        }
-                                        else {
-                                            form?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                                        }
-                                    }
-                                    else {
-                                        setTimeout(() => adjustTextareaHeight(event.target as HTMLTextAreaElement), 0);
-                                    }
-                                }
-                                else {
-                                    event.stopPropagation();
-                                }
+										if (form?.requestSubmit) {
+											form.requestSubmit();
+										}
+										else {
+											form?.dispatchEvent(
+												new Event('submit', {
+													bubbles: true,
+													cancelable: true,
+												})
+											);
+										}
+									}
+									else {
+										setTimeout(
+											() =>
+												adjustTextareaHeight(
+													event.target as HTMLTextAreaElement
+												),
+											0
+										);
+									}
+								}
+								else {
+									event.stopPropagation();
+								}
 							}}
 							placeholder="Ask me anything..."
 							ref={textareaRef}
@@ -323,11 +339,17 @@ const AIAssistantChat: React.FC = () => {
 							value={message}
 						/>
 
-						<ClayButton disabled={!message.trim()} displayType="primary" type="submit">
+						<ClayButton
+							disabled={!message.trim()}
+							displayType="primary"
+							type="submit"
+						>
 							<ClayIcon
 								height={12}
 								spritemap={Liferay.Icons.spritemap}
-								symbol={isGenerating ? "square" : "order-arrow-up"}
+								symbol={
+									isGenerating ? 'square' : 'order-arrow-up'
+								}
 								width={12}
 							/>
 						</ClayButton>
