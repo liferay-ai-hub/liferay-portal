@@ -323,7 +323,7 @@ const AIAssistantChat: React.FC = () => {
 							value={message}
 						/>
 
-						<ClayButton displayType="primary" type="submit">
+						<ClayButton disabled={!message.trim()} displayType="primary" type="submit">
 							<ClayIcon
 								height={12}
 								spritemap={Liferay.Icons.spritemap}
