@@ -76,8 +76,8 @@ public class JWTTokenUtil {
 				_log.debug(exception);
 			}
 
-			if (exception instanceof SystemException) {
-				throw (SystemException)exception;
+			if (exception instanceof SystemException systemException) {
+				throw systemException;
 			}
 
 			throw new SystemException(
