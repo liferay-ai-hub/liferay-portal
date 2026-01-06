@@ -5,13 +5,17 @@
 
 package com.liferay.ai.hub.internal.security.auth.verifier;
 
+import com.liferay.ai.hub.configuration.AIHubConfiguration;
 import com.liferay.ai.hub.util.JWTTokenUtil;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.AccessControlContext;
 import com.liferay.portal.kernel.security.auth.AuthException;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifier;
 import com.liferay.portal.kernel.security.auth.verifier.AuthVerifierResult;
+import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Properties;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Rafael Praxedes
@@ -47,6 +52,18 @@ public class AIHubRequestAuthVerifier implements AuthVerifier {
 			accessControlContext.getRequest();
 
 		try {
+			AIHubConfiguration aiHubConfiguration =
+				_configurationProvider.getCompanyConfiguration(
+					AIHubConfiguration.class,
+					_portal.getCompanyId(httpServletRequest));
+
+			if (!StringUtil.equals(
+					String.valueOf(httpServletRequest.getRequestURL()),
+					aiHubConfiguration.serviceURL())) {
+
+				return authVerifierResult;
+			}
+
 			String token = httpServletRequest.getHeader(
 				"Liferay-AI-Hub-Authorization");
 
@@ -78,5 +95,11 @@ public class AIHubRequestAuthVerifier implements AuthVerifier {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AIHubRequestAuthVerifier.class);
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
+
+	@Reference
+	private Portal _portal;
 
 }
