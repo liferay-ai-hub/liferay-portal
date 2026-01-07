@@ -96,8 +96,10 @@ export default function WritingAssistantActions({
 								disabled={child.disabled}
 								key={child.name}
 								onClick={() => {
-									handleActionClick(child.type);
 									setIsLoading({type: child.type});
+									handleActionClick(child.type).finally(() =>
+										setIsLoading({type: ''})
+									);
 								}}
 								spritemap={
 									Liferay.ThemeDisplay.getPathThemeImages() +
