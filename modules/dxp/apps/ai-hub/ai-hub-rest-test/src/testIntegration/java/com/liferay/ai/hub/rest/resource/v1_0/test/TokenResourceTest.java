@@ -88,6 +88,7 @@ public class TokenResourceTest extends BaseTokenResourceTestCase {
 			null, "ai-hub/v1.0/tokens", Http.Method.POST);
 
 		Assert.assertTrue(jsonObject.has("accessToken"));
+		Assert.assertTrue(jsonObject.has("liferayAIHubAuthorizationToken"));
 		Assert.assertTrue(jsonObject.has("scope"));
 
 		Assert.assertNotNull(
