@@ -8,11 +8,14 @@ package com.liferay.ai.hub.rest.internal.resource.v1_0;
 import com.liferay.ai.hub.configuration.AIHubConfiguration;
 import com.liferay.ai.hub.rest.dto.v1_0.Token;
 import com.liferay.ai.hub.rest.resource.v1_0.TokenResource;
+import com.liferay.ai.hub.util.JWTTokenUtil;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.util.Http;
+
+import java.util.concurrent.TimeUnit;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -38,6 +41,12 @@ public class TokenResourceImpl extends BaseTokenResourceImpl {
 
 		Http.Options options = new Http.Options();
 
+		String authorizationToken = JWTTokenUtil.generateToken(
+			contextCompany.getCompanyId(), TimeUnit.MINUTES.toMillis(1),
+			contextUser.getFullName(), contextUser.getUserId());
+
+		options.addHeader("Liferay-AI-Hub-Authorization", authorizationToken);
+
 		AIHubConfiguration aiHubConfiguration =
 			_configurationProvider.getCompanyConfiguration(
 				AIHubConfiguration.class, contextCompany.getCompanyId());
@@ -56,6 +65,7 @@ public class TokenResourceImpl extends BaseTokenResourceImpl {
 		return new Token() {
 			{
 				setAccessToken(() -> jsonObject.getString("access_token"));
+				setLiferayAIHubAuthorizationToken(() -> authorizationToken);
 				setScope(() -> jsonObject.getString("scope"));
 			}
 		};

@@ -51,6 +51,9 @@ components:
                 accessToken:
                     readOnly: true
                     type: string
+                liferayAIHubAuthorizationToken:
+                    readOnly: true
+                    type: string
                 scope:
                     readOnly: true
                     type: string
