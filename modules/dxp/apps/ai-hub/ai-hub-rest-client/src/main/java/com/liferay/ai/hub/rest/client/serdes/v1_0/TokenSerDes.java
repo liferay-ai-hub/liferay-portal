@@ -58,6 +58,20 @@ public class TokenSerDes {
 			sb.append("\"");
 		}
 
+		if (token.getLiferayAIHubAuthorizationToken() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"liferayAIHubAuthorizationToken\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(token.getLiferayAIHubAuthorizationToken()));
+
+			sb.append("\"");
+		}
+
 		if (token.getScope() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -97,6 +111,15 @@ public class TokenSerDes {
 			map.put("accessToken", String.valueOf(token.getAccessToken()));
 		}
 
+		if (token.getLiferayAIHubAuthorizationToken() == null) {
+			map.put("liferayAIHubAuthorizationToken", null);
+		}
+		else {
+			map.put(
+				"liferayAIHubAuthorizationToken",
+				String.valueOf(token.getLiferayAIHubAuthorizationToken()));
+		}
+
 		if (token.getScope() == null) {
 			map.put("scope", null);
 		}
@@ -124,6 +147,12 @@ public class TokenSerDes {
 			if (Objects.equals(jsonParserFieldName, "accessToken")) {
 				return false;
 			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"liferayAIHubAuthorizationToken")) {
+
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "scope")) {
 				return false;
 			}
@@ -139,6 +168,15 @@ public class TokenSerDes {
 			if (Objects.equals(jsonParserFieldName, "accessToken")) {
 				if (jsonParserFieldValue != null) {
 					token.setAccessToken((String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName,
+						"liferayAIHubAuthorizationToken")) {
+
+				if (jsonParserFieldValue != null) {
+					token.setLiferayAIHubAuthorizationToken(
+						(String)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "scope")) {

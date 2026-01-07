@@ -88,6 +88,51 @@ public class Token implements Serializable {
 	private Supplier<String> _accessTokenSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public String getLiferayAIHubAuthorizationToken() {
+		if (_liferayAIHubAuthorizationTokenSupplier != null) {
+			liferayAIHubAuthorizationToken =
+				_liferayAIHubAuthorizationTokenSupplier.get();
+
+			_liferayAIHubAuthorizationTokenSupplier = null;
+		}
+
+		return liferayAIHubAuthorizationToken;
+	}
+
+	public void setLiferayAIHubAuthorizationToken(
+		String liferayAIHubAuthorizationToken) {
+
+		this.liferayAIHubAuthorizationToken = liferayAIHubAuthorizationToken;
+
+		_liferayAIHubAuthorizationTokenSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setLiferayAIHubAuthorizationToken(
+		UnsafeSupplier<String, Exception>
+			liferayAIHubAuthorizationTokenUnsafeSupplier) {
+
+		_liferayAIHubAuthorizationTokenSupplier = () -> {
+			try {
+				return liferayAIHubAuthorizationTokenUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String liferayAIHubAuthorizationToken;
+
+	@JsonIgnore
+	private Supplier<String> _liferayAIHubAuthorizationTokenSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	public String getScope() {
 		if (_scopeSupplier != null) {
 			scope = _scopeSupplier.get();
@@ -167,6 +212,23 @@ public class Token implements Serializable {
 			sb.append("\"");
 
 			sb.append(_escape(accessToken));
+
+			sb.append("\"");
+		}
+
+		String liferayAIHubAuthorizationToken =
+			getLiferayAIHubAuthorizationToken();
+
+		if (liferayAIHubAuthorizationToken != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"liferayAIHubAuthorizationToken\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(liferayAIHubAuthorizationToken));
 
 			sb.append("\"");
 		}

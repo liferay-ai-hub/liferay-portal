@@ -166,6 +166,7 @@ public abstract class BaseTokenResourceTestCase {
 		Token token = randomToken();
 
 		token.setAccessToken(regex);
+		token.setLiferayAIHubAuthorizationToken(regex);
 		token.setScope(regex);
 
 		String json = TokenSerDes.toJSON(token);
@@ -175,6 +176,7 @@ public abstract class BaseTokenResourceTestCase {
 		token = TokenSerDes.toDTO(json);
 
 		Assert.assertEquals(regex, token.getAccessToken());
+		Assert.assertEquals(regex, token.getLiferayAIHubAuthorizationToken());
 		Assert.assertEquals(regex, token.getScope());
 	}
 
@@ -265,6 +267,17 @@ public abstract class BaseTokenResourceTestCase {
 
 			if (Objects.equals("accessToken", additionalAssertFieldName)) {
 				if (token.getAccessToken() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"liferayAIHubAuthorizationToken",
+					additionalAssertFieldName)) {
+
+				if (token.getLiferayAIHubAuthorizationToken() == null) {
 					valid = false;
 				}
 
@@ -397,6 +410,20 @@ public abstract class BaseTokenResourceTestCase {
 			if (Objects.equals("accessToken", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						token1.getAccessToken(), token2.getAccessToken())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"liferayAIHubAuthorizationToken",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						token1.getLiferayAIHubAuthorizationToken(),
+						token2.getLiferayAIHubAuthorizationToken())) {
 
 					return false;
 				}
@@ -565,6 +592,52 @@ public abstract class BaseTokenResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("liferayAIHubAuthorizationToken")) {
+			Object object = token.getLiferayAIHubAuthorizationToken();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("scope")) {
 			Object object = token.getScope();
 
@@ -657,6 +730,8 @@ public abstract class BaseTokenResourceTestCase {
 		return new Token() {
 			{
 				accessToken = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				liferayAIHubAuthorizationToken = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				scope = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}

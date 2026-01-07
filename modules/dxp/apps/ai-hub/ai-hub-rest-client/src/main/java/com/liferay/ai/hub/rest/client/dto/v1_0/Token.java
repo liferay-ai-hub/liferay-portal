@@ -46,6 +46,31 @@ public class Token implements Cloneable, Serializable {
 
 	protected String accessToken;
 
+	public String getLiferayAIHubAuthorizationToken() {
+		return liferayAIHubAuthorizationToken;
+	}
+
+	public void setLiferayAIHubAuthorizationToken(
+		String liferayAIHubAuthorizationToken) {
+
+		this.liferayAIHubAuthorizationToken = liferayAIHubAuthorizationToken;
+	}
+
+	public void setLiferayAIHubAuthorizationToken(
+		UnsafeSupplier<String, Exception>
+			liferayAIHubAuthorizationTokenUnsafeSupplier) {
+
+		try {
+			liferayAIHubAuthorizationToken =
+				liferayAIHubAuthorizationTokenUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String liferayAIHubAuthorizationToken;
+
 	public String getScope() {
 		return scope;
 	}
