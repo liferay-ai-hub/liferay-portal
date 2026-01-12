@@ -9,9 +9,9 @@ import {fetch} from 'frontend-js-web';
 import {EActionType} from './types';
 
 export async function createEventSource() {
-	const token = await postToken();
+	const tokens = await postToken();
 
-	if (!token) {
+	if (!tokens) {
 		return;
 	}
 
@@ -20,8 +20,9 @@ export async function createEventSource() {
 			fetch(input as RequestInfo, {
 				...init,
 				headers: new Headers({
-					Accept: 'text/event-stream',
-					Authorization: `Bearer ${token}`,
+					'Accept': 'text/event-stream',
+					'Authorization': `Bearer ${tokens.accessToken}`,
+					'Liferay-AI-Hub-Authorization': `Bearer ${tokens.liferayAIHubAuthorizationToken}`,
 				}),
 			}),
 		withCredentials: true,
@@ -39,10 +40,14 @@ async function postToken() {
 		const data = await response.json();
 
 		if (!data?.accessToken) {
-			throw new Error('Unable to generate token.');
+			throw new Error('Unable to generate access token.');
 		}
 
-		return data.accessToken;
+		if (!data?.liferayAIHubAuthorizationToken) {
+			throw new Error('Unable to generate AI Hub Auth token.');
+		}
+
+		return data;
 	}
 	catch (error) {
 		console.warn((error as Error).message);
@@ -54,9 +59,9 @@ export async function postByExternalReferenceCodeTask(
 	eventSourceReference: string,
 	type: EActionType
 ) {
-	const token = await postToken();
+	const tokens = await postToken();
 
-	if (!token) {
+	if (!tokens) {
 		return;
 	}
 
@@ -74,8 +79,9 @@ export async function postByExternalReferenceCodeTask(
 			}),
 			headers: new Headers({
 				'Accept': 'application/json',
-				'Authorization': `Bearer ${token}`,
+				'Authorization': `Bearer ${tokens.accessToken}`,
 				'Content-Type': 'application/json',
+				'Liferay-AI-Hub-Authorization': `Bearer ${tokens.liferayAIHubAuthorizationToken}`,
 			}),
 			method: 'POST',
 		}
