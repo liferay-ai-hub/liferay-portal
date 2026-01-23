@@ -17,6 +17,7 @@ import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
 import com.liferay.portal.workflow.constants.WorkflowPortletKeys;
 
 import jakarta.portlet.PortletMode;
@@ -55,7 +56,8 @@ public class TaskDefinitionDisplayContext {
 				dropdownItem.setHref(
 					HttpComponentsUtil.addParameter(
 						_getBaseURL(_themeDisplay.getCompany(), namespace),
-						namespace + "scope", "ai"));
+						namespace + "scope",
+						WorkflowDefinitionConstants.SCOPE_AI));
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "new-workflow"));
 			}
