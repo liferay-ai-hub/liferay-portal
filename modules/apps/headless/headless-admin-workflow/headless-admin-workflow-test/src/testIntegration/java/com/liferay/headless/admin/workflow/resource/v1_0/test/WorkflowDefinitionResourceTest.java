@@ -9,6 +9,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.headless.admin.workflow.client.dto.v1_0.Node;
 import com.liferay.headless.admin.workflow.client.dto.v1_0.Transition;
 import com.liferay.headless.admin.workflow.client.dto.v1_0.WorkflowDefinition;
+import com.liferay.headless.admin.workflow.client.problem.Problem;
 import com.liferay.headless.admin.workflow.client.serdes.v1_0.WorkflowDefinitionSerDes;
 import com.liferay.headless.admin.workflow.resource.v1_0.test.util.WorkflowDefinitionTestUtil;
 import com.liferay.petra.io.StreamUtil;
@@ -236,6 +237,8 @@ public class WorkflowDefinitionResourceTest
 			WorkflowDefinitionContentUtil.toJSON(
 				workflowDefinitionJSONObject.getString("content")),
 			true);
+
+		_testPostWorkflowDefinitionDeployWithAIScope();
 	}
 
 	@Override
@@ -253,6 +256,8 @@ public class WorkflowDefinitionResourceTest
 
 		assertEquals(randomWorkflowDefinition, postWorkflowDefinition);
 		assertValid(postWorkflowDefinition);
+
+		_testPostWorkflowDefinitionSaveWithAIScope();
 	}
 
 	@Override
@@ -535,6 +540,32 @@ public class WorkflowDefinitionResourceTest
 			workflowDefinitionJSONObject.toString(),
 			"headless-admin-workflow/v1.0/workflow-definitions",
 			Http.Method.POST);
+	}
+
+	private void _testPostWorkflowDefinitionDeployWithAIScope()
+		throws Exception {
+
+		WorkflowDefinition workflowDefinition = randomWorkflowDefinition();
+
+		workflowDefinition.setGroupExternalReferenceCode(StringPool.BLANK);
+		workflowDefinition.setScope(WorkflowDefinitionConstants.SCOPE_AI);
+
+		Assert.assertThrows(
+			Problem.ProblemException.class,
+			() -> testPostWorkflowDefinitionDeploy_addWorkflowDefinition(
+				workflowDefinition));
+	}
+
+	private void _testPostWorkflowDefinitionSaveWithAIScope() throws Exception {
+		WorkflowDefinition workflowDefinition = randomWorkflowDefinition();
+
+		workflowDefinition.setGroupExternalReferenceCode(StringPool.BLANK);
+		workflowDefinition.setScope(WorkflowDefinitionConstants.SCOPE_AI);
+
+		Assert.assertThrows(
+			Problem.ProblemException.class,
+			() -> testPostWorkflowDefinitionDeploy_addWorkflowDefinition(
+				workflowDefinition));
 	}
 
 	private static com.liferay.portal.kernel.workflow.WorkflowDefinition
