@@ -1,4 +1,17 @@
 {
+	"dependencies": {
+		"@clayui/alert": "*",
+		"@clayui/button": "*",
+		"@clayui/form": "*",
+		"@clayui/icon": "*",
+		"@clayui/layout": "*",
+		"@clayui/link": "*",
+		"@clayui/panel": "*",
+		"@clayui/provider": "*",
+		"@clayui/toolbar": "*",
+		"react": "18.2.0",
+		"react-dom": "18.2.0"
+	},
 	"main": "js/index.ts",
 	"name": "@liferay/ai-hub-web",
 	"scripts": {
