@@ -1,0 +1,55 @@
+{
+	"pageElement": {
+		"id": "7d9457a5-d37f-dad1-d409-391be6cff534",
+		"pageElements": [
+			{
+				"definition": {
+					"fragment": {
+						"key": ""
+					},
+					"fragmentConfig": {
+					},
+					"fragmentFields": [
+					],
+					"indexed": true
+				},
+				"id": "7dae1d9f-3bf1-4883-8f80-deb5a320d77f",
+				"type": "Fragment"
+			},
+			{
+				"definition": {
+					"fragmentSettings": {
+						"unallowedFragments": [
+							{
+								"key": "page-bar"
+							},
+							{
+								"key": "sidebar"
+							},
+							{
+								"key": "sidebar-trigger"
+							},
+							{
+								"key": "vertical-navigation"
+							}
+						]
+					}
+				},
+				"id": "2392e8c1-3805-8e93-f3f7-9836cfa64177",
+				"type": "DropZone"
+			}
+		],
+		"type": "Root"
+	},
+	"settings": {
+		"colorSchemeName": "01",
+		"themeName": "CMS",
+		"themeSettings": {
+			"lfr-theme:regular:show-footer": "false",
+			"lfr-theme:regular:show-header": "false",
+			"lfr-theme:regular:show-header-search": "false",
+			"lfr-theme:regular:wrap-widget-page-content": "false"
+		}
+	},
+	"version": 1
+}
