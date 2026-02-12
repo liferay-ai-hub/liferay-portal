@@ -54,7 +54,7 @@ public class TaskDefinitionDisplayContext {
 		return CreationMenuBuilder.addDropdownItem(
 			dropdownItem -> {
 				dropdownItem.setHref(
-					_getBaseURL(_themeDisplay.getCompany(), namespace));
+					getCreateAgentURL(_themeDisplay.getCompany()));
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "new-workflow"));
 			}
@@ -96,10 +96,29 @@ public class TaskDefinitionDisplayContext {
 	private String _getBaseURL(Company company, String namespace)
 		throws Exception {
 
-			       String basePortalURL = company.getPortalURL(GroupConstants.DEFAULT_PARENT_GROUP_ID);
-			       String path = "/web/ai-hub/create-agent";
+		String url = StringBundler.concat(
+			company.getPortalURL(GroupConstants.DEFAULT_PARENT_GROUP_ID),
+			PropsValues.LAYOUT_FRIENDLY_URL_PRIVATE_GROUP_SERVLET_MAPPING,
+			GroupConstants.CONTROL_PANEL_FRIENDLY_URL,
+			PropsValues.CONTROL_PANEL_LAYOUT_FRIENDLY_URL);
 
-			       return basePortalURL + path;
+		return HttpComponentsUtil.addParameters(
+			url, "p_p_id", WorkflowPortletKeys.KALEO_DESIGNER, "p_p_lifecycle",
+			"0", "p_p_state", WindowState.MAXIMIZED.toString(), "p_p_mode",
+			PortletMode.VIEW.toString(), namespace + "mvcPath",
+			"/designer/edit_workflow_definition.jsp", namespace + "redirect",
+			_portal.getPortalURL(_httpServletRequest) +
+				_portal.getCurrentURL(_httpServletRequest),
+			namespace + "clearSessionMessage", true, namespace + "scope",
+			WorkflowDefinitionConstants.SCOPE_AI);
+	}
+
+	private String getCreateAgentURL(Company company) throws Exception {
+		String basePortalURL = company.getPortalURL(
+			GroupConstants.DEFAULT_PARENT_GROUP_ID);
+		String path = "/web/ai-hub/create-agent";
+
+		return basePortalURL + path;
 	}
 
 	private final HttpServletRequest _httpServletRequest;
