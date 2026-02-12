@@ -48,6 +48,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -214,6 +215,8 @@ public class WorkflowDefinitionResourceImpl
 			WorkflowDefinition workflowDefinition)
 		throws Exception {
 
+		_validateWorkflowDefinition(workflowDefinition);
+
 		String content = workflowDefinition.getContent();
 
 		return _toWorkflowDefinition(
@@ -234,6 +237,12 @@ public class WorkflowDefinitionResourceImpl
 			WorkflowDefinition workflowDefinition)
 		throws Exception {
 
+		String scope = GetterUtil.getString(
+			workflowDefinition.getScope(),
+			WorkflowDefinitionConstants.SCOPE_ALL);
+
+		_validateWorkflowDefinition(workflowDefinition);
+
 		String content = workflowDefinition.getContent();
 
 		return _toWorkflowDefinition(
@@ -242,11 +251,7 @@ public class WorkflowDefinitionResourceImpl
 				contextCompany.getCompanyId(),
 				_getGroupId(workflowDefinition.getGroupExternalReferenceCode()),
 				contextUser.getUserId(), _getTitle(workflowDefinition),
-				workflowDefinition.getName(),
-				GetterUtil.getString(
-					workflowDefinition.getScope(),
-					WorkflowDefinitionConstants.SCOPE_ALL),
-				content.getBytes()));
+				workflowDefinition.getName(), scope, content.getBytes()));
 	}
 
 	@Override
@@ -276,8 +281,12 @@ public class WorkflowDefinitionResourceImpl
 			return 0;
 		}
 
-		Group group = _groupLocalService.getGroupByExternalReferenceCode(
+		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
 			externalReferenceCode, contextCompany.getCompanyId());
+
+		if (group == null) {
+			return 0;
+		}
 
 		return group.getGroupId();
 	}
@@ -425,6 +434,22 @@ public class WorkflowDefinitionResourceImpl
 			workflowDefinition) {
 
 		return _toWorkflowDefinition(null, workflowDefinition);
+	}
+
+	private void _validateWorkflowDefinition(
+		WorkflowDefinition workflowDefinition) {
+
+		if (!ArrayUtil.contains(
+				WorkflowDefinitionConstants.SYSTEM_WORKFLOW_DEFINITION_NAMES,
+				workflowDefinition.getName()) &&
+			Objects.equals(
+				workflowDefinition.getScope(),
+				WorkflowDefinitionConstants.SCOPE_AI) &&
+			Validator.isNull(
+				workflowDefinition.getGroupExternalReferenceCode())) {
+
+			throw new UnsupportedOperationException();
+		}
 	}
 
 	private static final EntityModel _entityModel =
