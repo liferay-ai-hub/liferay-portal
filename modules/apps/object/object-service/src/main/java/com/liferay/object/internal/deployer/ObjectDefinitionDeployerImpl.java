@@ -457,8 +457,8 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 			PortletResourcePermissionFactory.create(
 				objectDefinition.getResourceName(),
 				new ObjectEntryPortletResourcePermissionLogic(
-					_accountEntryLocalService, _groupLocalService,
-					_objectDefinitionLocalService, _organizationLocalService));
+					_groupLocalService, _objectDefinitionLocalService,
+					_organizationLocalService));
 
 		ModelResourcePermission<ObjectEntry> modelResourcePermission =
 			new ObjectEntryModelResourcePermission(

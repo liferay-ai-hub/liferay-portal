@@ -19,4 +19,5 @@ dependencies {
 	compileOnly project(":apps:site:site-api")
 	compileOnly project(":core:petra:petra-function")
 	compileOnly project(":core:petra:petra-string")
+	compileOnly project(":dxp:apps:ai-hub:ai-hub-api")
 }

@@ -138,10 +138,10 @@ public class KaleoWorkflowModelConverterImpl
 		defaultWorkflowDefinition.setExternalReferenceCode(
 			kaleoDefinition.getExternalReferenceCode());
 
-		Group group = _groupLocalService.fetchGroup(
-			kaleoDefinition.getGroupId());
+		if (kaleoDefinition.getGroupId() != 0) {
+			Group group = _groupLocalService.fetchGroup(
+				kaleoDefinition.getGroupId());
 
-		if (group != null) {
 			defaultWorkflowDefinition.setGroupExternalReferenceCode(
 				group.getExternalReferenceCode());
 			defaultWorkflowDefinition.setGroupId(group.getGroupId());
@@ -244,10 +244,10 @@ public class KaleoWorkflowModelConverterImpl
 		defaultWorkflowDefinition.setDescription(
 			kaleoDefinitionVersion.getDescription());
 
-		Group group = _groupLocalService.fetchGroup(
-			kaleoDefinitionVersion.getGroupId());
+		if (kaleoDefinitionVersion.getGroupId() != 0) {
+			Group group = _groupLocalService.fetchGroup(
+				kaleoDefinitionVersion.getGroupId());
 
-		if (group != null) {
 			defaultWorkflowDefinition.setGroupExternalReferenceCode(
 				group.getExternalReferenceCode());
 			defaultWorkflowDefinition.setGroupId(group.getGroupId());

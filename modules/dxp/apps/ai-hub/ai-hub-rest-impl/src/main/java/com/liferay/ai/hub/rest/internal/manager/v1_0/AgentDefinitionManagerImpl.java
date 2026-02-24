@@ -5,10 +5,12 @@
 
 package com.liferay.ai.hub.rest.internal.manager.v1_0;
 
+import com.liferay.account.model.AccountEntry;
 import com.liferay.ai.hub.rest.dto.v1_0.AgentDefinition;
 import com.liferay.ai.hub.rest.dto.v1_0.Variable;
 import com.liferay.ai.hub.rest.internal.resource.v1_0.AgentDefinitionResourceImpl;
 import com.liferay.ai.hub.rest.manager.v1_0.AgentDefinitionManager;
+import com.liferay.ai.hub.util.AccountEntryUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
@@ -199,6 +201,10 @@ public class AgentDefinitionManagerImpl implements AgentDefinitionManager {
 								GetterUtil.getString(
 									objectEntry.getPropertyValue(
 										"outputVariable")),
+								"r_accountToAIHubAgentDefinitions_" +
+									"accountEntryId",
+								_getUserAccountEntryId(
+									dtoConverterContext.getUserId()),
 								"title_i18n", title, "workflowDefinitionName",
 								workflowDefinitionName));
 					}
@@ -229,6 +235,17 @@ public class AgentDefinitionManagerImpl implements AgentDefinitionManager {
 
 		return _objectDefinitionLocalService.getObjectDefinition(
 			companyId, "AIHubAgentDefinition");
+	}
+
+	private long _getUserAccountEntryId(long userId) throws Exception {
+		AccountEntry accountEntry = AccountEntryUtil.getUserAccountEntry(
+			userId);
+
+		if (accountEntry == null) {
+			return 0L;
+		}
+
+		return accountEntry.getAccountEntryId();
 	}
 
 	private AgentDefinition _toAgentDefinition(

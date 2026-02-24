@@ -31,7 +31,7 @@ public class KaleoDesignerControlPanelEntry
 		throws Exception {
 
 		if (!super.hasAccessPermission(permissionChecker, group, portlet)) {
-			return false;
+			return true;
 		}
 
 		return _workflowControlPanelEntry.hasAccessPermission(

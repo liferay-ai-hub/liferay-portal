@@ -5,6 +5,10 @@
 
 package com.liferay.portal.workflow.kaleo.service.test;
 
+import com.liferay.account.constants.AccountConstants;
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.service.AccountEntryLocalService;
+import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -17,6 +21,7 @@ import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.randomizerbumpers.NumericStringRandomizerBumper;
@@ -122,6 +127,25 @@ public class KaleoDefinitionServiceImplTest {
 				" permission for null "),
 			this::_addKaleoDefinition);
 
+		AccountEntry accountEntry = _accountEntryLocalService.addAccountEntry(
+			StringPool.BLANK, _companyAdminUser.getUserId(),
+			AccountConstants.PARENT_ACCOUNT_ENTRY_ID_DEFAULT,
+			RandomTestUtil.randomString(), null, null,
+			RandomTestUtil.randomString() + "@liferay.com", null, null,
+			AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
+			WorkflowConstants.STATUS_APPROVED, _serviceContext);
+
+		long originalServiceContextGroupId = _serviceContext.getScopeGroupId();
+
+		_serviceContext.setScopeGroupId(accountEntry.getAccountEntryGroupId());
+
+		_accountEntryUserRelLocalService.addAccountEntryUserRel(
+			accountEntry.getAccountEntryId(), _companyAdminUser.getUserId());
+
+		Assert.assertNotNull(_addKaleoDefinition());
+
+		_serviceContext.setScopeGroupId(originalServiceContextGroupId);
+
 		// Administrator with "company.administrator.can.publish" enabled
 
 		ConfigurationTestUtil.saveConfiguration(
@@ -148,6 +172,27 @@ public class KaleoDefinitionServiceImplTest {
 				"administrator to perform the action"),
 			() -> _kaleoDefinitionService.getKaleoDefinition(
 				kaleoDefinition.getKaleoDefinitionId()));
+
+		AccountEntry accountEntry = _accountEntryLocalService.addAccountEntry(
+			StringPool.BLANK, _companyAdminUser.getUserId(),
+			AccountConstants.PARENT_ACCOUNT_ENTRY_ID_DEFAULT,
+			RandomTestUtil.randomString(), null, null,
+			RandomTestUtil.randomString() + "@liferay.com", null, null,
+			AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
+			WorkflowConstants.STATUS_APPROVED, _serviceContext);
+
+		long originalServiceContextGroupId = _serviceContext.getScopeGroupId();
+
+		_serviceContext.setScopeGroupId(accountEntry.getAccountEntryGroupId());
+
+		_accountEntryUserRelLocalService.addAccountEntryUserRel(
+			accountEntry.getAccountEntryId(), _companyAdminUser.getUserId());
+
+		Assert.assertNotNull(
+			_kaleoDefinitionService.getKaleoDefinition(
+				kaleoDefinition.getKaleoDefinitionId()));
+
+		_serviceContext.setScopeGroupId(originalServiceContextGroupId);
 
 		_setUpPermissionThreadLocal(_companyAdminUser);
 
@@ -277,6 +322,15 @@ public class KaleoDefinitionServiceImplTest {
 
 	@Inject
 	private static ConfigurationAdmin _configurationAdmin;
+
+	@Inject
+	private AccountEntryLocalService _accountEntryLocalService;
+
+	@Inject
+	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
+
+	@Inject
+	private GroupLocalService _groupLocalService;
 
 	@Inject
 	private KaleoDefinitionLocalService _kaleoDefinitionLocalService;

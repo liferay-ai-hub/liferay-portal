@@ -5,12 +5,10 @@
 
 package com.liferay.object.internal.security.permission.resource;
 
-import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
-import com.liferay.account.service.AccountEntryLocalService;
+import com.liferay.account.util.AccountEntryPermissionUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -22,7 +20,6 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.util.List;
 
@@ -33,12 +30,10 @@ public class ObjectEntryPortletResourcePermissionLogic
 	implements PortletResourcePermissionLogic {
 
 	public ObjectEntryPortletResourcePermissionLogic(
-		AccountEntryLocalService accountEntryLocalService,
 		GroupLocalService groupLocalService,
 		ObjectDefinitionLocalService objectDefinitionLocalService,
 		OrganizationLocalService organizationLocalService) {
 
-		_accountEntryLocalService = accountEntryLocalService;
 		_groupLocalService = groupLocalService;
 		_objectDefinitionLocalService = objectDefinitionLocalService;
 		_organizationLocalService = organizationLocalService;
@@ -77,15 +72,10 @@ public class ObjectEntryPortletResourcePermissionLogic
 			return false;
 		}
 
-		List<AccountEntry> accountEntries =
-			_accountEntryLocalService.getUserAccountEntries(
-				permissionChecker.getUserId(),
-				AccountConstants.PARENT_ACCOUNT_ENTRY_ID_DEFAULT, null,
-				AccountConstants.ACCOUNT_ENTRY_TYPES_DEFAULT_ALLOWED_TYPES,
-				WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
-				QueryUtil.ALL_POS);
+		for (AccountEntry accountEntry :
+				AccountEntryPermissionUtil.getUserAccountEntries(
+					permissionChecker.getUserId())) {
 
-		for (AccountEntry accountEntry : accountEntries) {
 			if (permissionChecker.hasPermission(
 					accountEntry.getAccountEntryGroupId(), name, 0, actionId)) {
 
@@ -115,7 +105,6 @@ public class ObjectEntryPortletResourcePermissionLogic
 	private static final Log _log = LogFactoryUtil.getLog(
 		ObjectEntryPortletResourcePermissionLogic.class);
 
-	private final AccountEntryLocalService _accountEntryLocalService;
 	private final GroupLocalService _groupLocalService;
 	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
 	private final OrganizationLocalService _organizationLocalService;

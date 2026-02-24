@@ -5,10 +5,9 @@
 
 package com.liferay.object.internal.security.permission.resource;
 
-import com.liferay.account.constants.AccountConstants;
-import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
+import com.liferay.account.util.AccountEntryPermissionUtil;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.internal.security.permission.util.ObjectEntryPermissionUtil;
@@ -20,7 +19,6 @@ import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Role;
@@ -34,13 +32,11 @@ import com.liferay.portal.kernel.security.permission.resource.PortletResourcePer
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
@@ -210,26 +206,14 @@ public class ObjectEntryModelResourcePermission
 			return true;
 		}
 
-		AccountEntry accountEntry = _accountEntryLocalService.getAccountEntry(
-			accountEntryId);
-
 		if (Objects.equals(actionId, ActionKeys.VIEW)) {
-			return ArrayUtil.contains(
-				ListUtil.toLongArray(
-					_accountEntryLocalService.getUserAccountEntries(
-						permissionChecker.getUserId(),
-						AccountConstants.PARENT_ACCOUNT_ENTRY_ID_DEFAULT, null,
-						AccountConstants.
-							ACCOUNT_ENTRY_TYPES_DEFAULT_ALLOWED_TYPES,
-						WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
-						QueryUtil.ALL_POS),
-					AccountEntry::getAccountEntryId),
-				accountEntryId);
+			return AccountEntryPermissionUtil.isUserAccountEntry(
+				accountEntryId, permissionChecker.getUserId());
 		}
 
 		return ObjectEntryPermissionUtil.hasAccountEntryPermission(
-			accountEntry, actionId, objectDefinition.getClassName(),
-			permissionChecker);
+			_accountEntryLocalService.getAccountEntry(accountEntryId), actionId,
+			objectDefinition.getClassName(), permissionChecker);
 	}
 
 	@Override
