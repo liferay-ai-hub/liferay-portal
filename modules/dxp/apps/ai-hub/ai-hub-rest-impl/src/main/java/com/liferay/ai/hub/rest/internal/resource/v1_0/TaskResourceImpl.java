@@ -6,12 +6,10 @@
 package com.liferay.ai.hub.rest.internal.resource.v1_0;
 
 import com.liferay.ai.hub.rest.dto.v1_0.Task;
-import com.liferay.ai.hub.rest.internal.resource.v1_0.util.GroupUtil;
 import com.liferay.ai.hub.rest.internal.resource.v1_0.util.WorkflowContextUtil;
 import com.liferay.ai.hub.rest.resource.v1_0.TaskResource;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowInstance;
 import com.liferay.portal.kernel.workflow.WorkflowInstanceManager;
@@ -73,10 +71,7 @@ public class TaskResourceImpl extends BaseTaskResourceImpl {
 
 		WorkflowInstance workflowInstance =
 			_workflowInstanceManager.startWorkflowInstance(
-				contextCompany.getCompanyId(),
-				GroupUtil.getGroupId(
-					contextCompany.getCompanyId(), _groupService,
-					task.getScope()),
+				contextCompany.getCompanyId(), workflowDefinition.getGroupId(),
 				contextUser.getUserId(), task.getType(),
 				workflowDefinition.getVersion(), null, workflowContext);
 
@@ -90,9 +85,6 @@ public class TaskResourceImpl extends BaseTaskResourceImpl {
 			}
 		};
 	}
-
-	@Reference
-	private GroupService _groupService;
 
 	@Context
 	private Sse _sse;
