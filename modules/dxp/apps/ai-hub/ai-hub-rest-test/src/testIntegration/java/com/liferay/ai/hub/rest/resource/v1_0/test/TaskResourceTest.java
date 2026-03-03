@@ -241,6 +241,7 @@ public class TaskResourceTest extends BaseTaskResourceTestCase {
 		_testPostTaskWithTypeAIDecisionNodeWithToolWorkflowDefinition();
 		_testPostTaskWithTypeAIDecisionNodeWorkflowDefinition();
 		_testPostTaskWithTypeFixSpellingAndGrammar();
+		_testPostTaskWithTypeMakeLonger();
 		_testPostTaskWithTypeLLMNodeWithRAGWorkflowDefinition();
 		_testPostTaskWithTypeLLMNodeWithRAGWorkflowDefinitionWithRestrictedUser();
 		_testPostTaskWithTypeLLMNodeWithToolWorkflowDefinition();
@@ -288,6 +289,33 @@ public class TaskResourceTest extends BaseTaskResourceTestCase {
 		Assert.assertEquals(
 			"This is the text to be fixed: Thi text ix wrong.",
 			workflowContext.get("userMessageInput"));
+	}
+
+	private void _assertWorkflowLogsMakeLonger(
+			long workflowInstanceId, String expectedInputTokensCount,
+			String expectedOutput, String expectedPrompt,
+			String expectedUserMessageInput)
+		throws Exception {
+
+		List<WorkflowLog> workflowLogs =
+			_workflowLogManager.getWorkflowLogsByWorkflowInstance(
+				TestPropsValues.getCompanyId(), workflowInstanceId,
+				List.of(WorkflowLog.NODE_USAGE_METADATA), QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, null);
+
+		Assert.assertEquals(workflowLogs.toString(), 1, workflowLogs.size());
+
+		WorkflowLog workflowLog = workflowLogs.get(0);
+
+		Map<String, Serializable> workflowContext = WorkflowContextUtil.convert(
+			workflowLog.getWorkflowContext());
+
+		Assert.assertEquals(
+			expectedInputTokensCount, workflowContext.get("inputTokensCount"));
+		Assert.assertEquals(expectedOutput, workflowContext.get("output"));
+		Assert.assertEquals(expectedPrompt, workflowContext.get("promptInput"));
+		Assert.assertEquals(
+			expectedUserMessageInput, workflowContext.get("userMessageInput"));
 	}
 
 	private String _generateToken(long userId) throws Exception {
@@ -752,6 +780,79 @@ public class TaskResourceTest extends BaseTaskResourceTestCase {
 
 		Assert.assertTrue(response, response.contains("\"nodename\":\"llm\""));
 		Assert.assertTrue(response, response.contains("yes"));
+
+		SseUtil.closeAll();
+	}
+
+	private void _testPostTaskWithTypeMakeLonger() throws Exception {
+		CountDownLatch countDownLatch = new CountDownLatch(4);
+		List<String> lines = new ArrayList<>();
+
+		String sseEventSinkKey = SseEventSourceTestUtil.open(
+			List.of(countDownLatch), lines, "tasks/subscribe");
+
+		String inputText = "Small";
+
+		JSONObject jsonObject = HTTPTestUtil.invokeToJSONObject(
+			JSONUtil.put(
+				"context", JSONUtil.put("text", inputText)
+			).put(
+				"sseEventSinkKey", sseEventSinkKey
+			).put(
+				"type", WorkflowDefinitionConstants.NAME_MAKE_LONGER
+			).toString(),
+			"ai-hub/v1.0/tasks",
+			HashMapBuilder.put(
+				"Liferay-AI-Hub-On-Behalf-Of",
+				_generateToken(TestPropsValues.getUserId())
+			).build(),
+			Http.Method.POST);
+
+		Assert.assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
+
+		Assert.assertEquals(lines.toString(), 4, lines.size());
+		Assert.assertEquals("event: Make Longer", lines.get(2));
+
+		JSONObject outputJSONObject = _jsonFactory.createJSONObject(
+			StringUtil.removeSubstring(lines.get(3), "data: "));
+
+		Assert.assertEquals(
+			"makeLonger", outputJSONObject.getString("nodeName"));
+
+		String output = outputJSONObject.getString("data");
+
+		Assert.assertTrue(output.length() > inputText.length());
+
+		IdempotentRetryAssert.retryAssert(
+			5, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
+			() -> {
+				WorkflowInstance workflowInstance =
+					_workflowInstanceManager.getWorkflowInstance(
+						TestPropsValues.getCompanyId(),
+						jsonObject.getLong("externalReferenceCode"));
+
+				Map<String, Serializable> workflowContext =
+					workflowInstance.getWorkflowContext();
+
+				String rewrittenText = GetterUtil.getString(
+					workflowContext.get("rewrittenText"));
+
+				Assert.assertTrue(rewrittenText.length() > inputText.length());
+
+				_assertWorkflowLogsMakeLonger(
+					workflowInstance.getWorkflowInstanceId(), "60",
+					rewrittenText,
+					StringBundler.concat(
+						"You are an expert linguistic enhancer. ",
+						"Expand the provided text by adding relevant and natural ",
+						"details that clarify or enrich its meaning. Keep the ",
+						"original tone, intent, and structure. Avoid unnecessary ",
+						"embellishment, repetition, or creative exaggeration. ",
+						"Output only the expanded text."),
+					"This is the text to be detailed: Small");
+
+				return null;
+			});
 
 		SseUtil.closeAll();
 	}
