@@ -1,17 +1,29 @@
 {
 	"pageElement": {
+		"id": "ab297acb-0f32-71f9-1160-55b20d50df55",
 		"pageElements": [
 			{
 				"definition": {
 					"fragment": {
-						"key": ""
+						"key": "workflow-page-bar",
+						"siteKey": "AI Hub"
 					},
 					"fragmentConfig": {
+						"alt": "Site Logo",
+						"pagebarAriaLabel": "AI Hub Control Menu"
 					},
 					"fragmentFields": [
 					],
-					"indexed": true
+					"indexed": true,
+					"widgetInstances": [
+						{
+							"widgetConfig": {
+							},
+							"widgetName": "com_liferay_product_navigation_applications_menu_web_internal_portlet_ProductNavigationApplicationsMenuPortlet"
+						}
+					]
 				},
+				"id": "ae3c9eb7-496e-929f-548f-4a5d92d63cc0",
 				"type": "Fragment"
 			},
 			{
@@ -19,7 +31,10 @@
 					"fragmentSettings": {
 						"unallowedFragments": [
 							{
-								"key": "page-bar"
+								"key": "vertical-navigation"
+							},
+							{
+								"key": "ai-hub"
 							},
 							{
 								"key": "sidebar"
@@ -28,11 +43,12 @@
 								"key": "sidebar-trigger"
 							},
 							{
-								"key": "vertical-navigation"
+								"key": "page-bar"
 							}
 						]
 					}
 				},
+				"id": "509c93aa-145a-9564-2dcd-f82277a8859b",
 				"type": "DropZone"
 			}
 		],
@@ -48,5 +64,5 @@
 			"lfr-theme:regular:wrap-widget-page-content": "false"
 		}
 	},
-	"version": 1
+	"version": 1.1
 }
