@@ -14,6 +14,12 @@ import com.liferay.ai.hub.rest.resource.v1_0.test.util.SseEventSourceTestUtil;
 import com.liferay.ai.hub.rest.resource.v1_0.test.util.TokenTestUtil;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -28,11 +34,15 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.kernel.workflow.WorkflowInstanceManager;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.site.initializer.SiteInitializer;
 import com.liferay.site.initializer.SiteInitializerRegistry;
+
+import java.io.Serializable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,7 +66,7 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
-		AccountEntry accountEntry = _accountEntryLocalService.addAccountEntry(
+		_accountEntry = _accountEntryLocalService.addAccountEntry(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			AccountConstants.PARENT_ACCOUNT_ENTRY_ID_DEFAULT,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
@@ -67,7 +77,7 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 			ServiceContextTestUtil.getServiceContext());
 
 		_accountEntryUserRelLocalService.addAccountEntryUserRel(
-			accountEntry.getAccountEntryId(), TestPropsValues.getUserId());
+			_accountEntry.getAccountEntryId(), TestPropsValues.getUserId());
 
 		_originalPermissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
@@ -162,14 +172,95 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 		Assert.assertTrue(firstMessageSent, firstMessageSent.contains(text));
 	}
 
+	@Test
+	public void testPostChatByExternalReferenceCodeMessageWithUnassociatedAgentDefinition()
+		throws Exception {
+
+		ObjectDefinition objectDefinition1 =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_AI_HUB_AGENT_DEFINITION",
+					TestPropsValues.getCompanyId());
+
+		ObjectDefinition objectDefinition2 =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_AI_HUB_CHATBOT", TestPropsValues.getCompanyId());
+
+		String chatbotExternalReferenceCode = RandomTestUtil.randomString();
+
+		ObjectEntry objectEntry1 = _objectEntryLocalService.addObjectEntry(
+			0, TestPropsValues.getUserId(),
+			objectDefinition2.getObjectDefinitionId(), 0,
+			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+			HashMapBuilder.<String, Serializable>put(
+				"externalReferenceCode", chatbotExternalReferenceCode
+			).put(
+				"r_accountToAIHubChatbots_accountEntryId",
+				_accountEntry.getAccountEntryId()
+			).put(
+				"title_i18n",
+				(Serializable)HashMapBuilder.put(
+					LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+					RandomTestUtil.randomString()
+				).build()
+			).build(),
+			ServiceContextTestUtil.getServiceContext(
+				TestPropsValues.getGroupId(), TestPropsValues.getUserId()));
+
+		ObjectEntry objectEntry2 = _objectEntryLocalService.getObjectEntry(
+			"L_MAKE_SHORTER", 0L, objectDefinition1.getObjectDefinitionId());
+
+		ObjectRelationshipTestUtil.relateObjectEntries(
+			objectEntry2.getObjectEntryId(), objectEntry1.getObjectEntryId(),
+			_objectRelationshipLocalService.
+				fetchObjectRelationshipByExternalReferenceCode(
+					"L_AI_HUB_AGENT_DEFINITIONS_TO_L_AI_HUB_CHATBOTS",
+					objectDefinition1.getObjectDefinitionId()),
+			TestPropsValues.getUserId());
+
+		CountDownLatch countDownLatch = new CountDownLatch(4);
+		List<String> lines = new ArrayList<>();
+
+		String sseEventSinkKey = SseEventSourceTestUtil.open(
+			List.of(countDownLatch), lines, "chats/subscribe");
+
+		_postChatByExternalReferenceCodeMessage(
+			chatbotExternalReferenceCode,
+			"Please make this text longer: " + RandomTestUtil.randomString(),
+			sseEventSinkKey);
+
+		Assert.assertTrue(countDownLatch.await(30, TimeUnit.SECONDS));
+
+		Assert.assertEquals(lines.toString(), 4, lines.size());
+		Assert.assertEquals("event: Chat Message Sent", lines.get(2));
+		Assert.assertTrue(
+			lines.get(
+				3
+			).contains(
+				"I cannot fulfill this request."
+			));
+	}
+
 	private JSONObject _postChatByExternalReferenceCodeMessage(
 			String inputText, String sseEventSinkKey)
+		throws Exception {
+
+		return _postChatByExternalReferenceCodeMessage(
+			null, inputText, sseEventSinkKey);
+	}
+
+	private JSONObject _postChatByExternalReferenceCodeMessage(
+			String chatbotExternalReferenceCode, String inputText,
+			String sseEventSinkKey)
 		throws Exception {
 
 		JSONObject tokenJSONObject = TokenTestUtil.postToken();
 
 		return HTTPTestUtil.invokeToJSONObject(
 			JSONUtil.put(
+				"chatbotExternalReferenceCode", chatbotExternalReferenceCode
+			).put(
 				"text", inputText
 			).toString(),
 			"ai-hub/v1.0/chats/by-external-reference-code/" + sseEventSinkKey +
@@ -184,6 +275,8 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 			Http.Method.POST);
 	}
 
+	private static AccountEntry _accountEntry;
+
 	@Inject
 	private static AccountEntryLocalService _accountEntryLocalService;
 
@@ -196,5 +289,17 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 
 	@Inject
 	private static SiteInitializerRegistry _siteInitializerRegistry;
+
+	@Inject
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Inject
+	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Inject
+	private ObjectRelationshipLocalService _objectRelationshipLocalService;
+
+	@Inject
+	private WorkflowInstanceManager _workflowInstanceManager;
 
 }
