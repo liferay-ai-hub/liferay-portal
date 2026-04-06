@@ -219,24 +219,36 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 					objectDefinition1.getObjectDefinitionId()),
 			TestPropsValues.getUserId());
 
-		CountDownLatch countDownLatch = new CountDownLatch(4);
+		CountDownLatch countDownLatch1 = new CountDownLatch(4);
+		CountDownLatch countDownLatch2 = new CountDownLatch(6);
 		List<String> lines = new ArrayList<>();
 
 		String sseEventSinkKey = SseEventSourceTestUtil.open(
-			List.of(countDownLatch), lines, "chats/subscribe");
+			List.of(countDownLatch1, countDownLatch2), lines,
+			"chats/subscribe");
+
+		_postChatByExternalReferenceCodeMessage(
+			chatbotExternalReferenceCode,
+			"Please make this text shorter: " + RandomTestUtil.randomString(),
+			sseEventSinkKey);
+
+		Assert.assertTrue(countDownLatch1.await(30, TimeUnit.SECONDS));
+
+		Assert.assertEquals(lines.toString(), 4, lines.size());
+		Assert.assertEquals("event: Chat Message Sent", lines.get(2));
 
 		_postChatByExternalReferenceCodeMessage(
 			chatbotExternalReferenceCode,
 			"Please make this text longer: " + RandomTestUtil.randomString(),
 			sseEventSinkKey);
 
-		Assert.assertTrue(countDownLatch.await(30, TimeUnit.SECONDS));
+		Assert.assertTrue(countDownLatch2.await(30, TimeUnit.SECONDS));
 
-		Assert.assertEquals(lines.toString(), 4, lines.size());
-		Assert.assertEquals("event: Chat Message Sent", lines.get(2));
+		Assert.assertEquals(lines.toString(), 6, lines.size());
+		Assert.assertEquals("event: Chat Message Sent", lines.get(4));
 		Assert.assertTrue(
 			lines.get(
-				3
+				6
 			).contains(
 				"I cannot fulfill this request."
 			));
