@@ -1,29 +1,34 @@
 {
 	"dependencies": {
-		"@clayui/layout": "^3.159.0",
-		"react": "^18.2.0",
-		"react-dom": "^18.2.0"
+		"@clayui/icon": "^3.160.0",
+		"eventsource": "^4.1.0",
+		"react": "18.3.1",
+		"react-dom": "18.3.1",
+		"react-markdown": "^10.1.0"
 	},
+    "description": "AI Hub Chat Widget for Liferay Client Extension",
 	"devDependencies": {
-		"@types/react": "^18.2.0",
-		"@types/react-dom": "^18.2.0",
-		"@vitejs/plugin-react": "^4.3.4",
-		"sass-embedded": "^1.86.0",
-		"vite": "^6.2.0"
+		"@types/react": "18.3.18",
+		"@types/react-dom": "18.3.5",
+		"esbuild": "0.24.2",
+		"prettier": "^3.8.1",
+		"typescript": "5.7.3"
 	},
 	"eslintConfig": {
 		"globals": {
 			"Liferay": true
 		}
 	},
-	"license": "LGPL",
 	"name": "liferay-ai-hub-custom-element",
-	"private": true,
-	"scripts": {
-		"build": "vite build",
-		"dev": "vite",
-		"preview": "vite preview"
-	},
-	"type": "module",
-	"version": "0.0.0"
+    "private": true,
+    "scripts": {
+        "build": "esbuild src/widget.tsx --bundle --minify --outfile=build/static/js/main.js --format=iife",
+        "build:dev": "esbuild src/widget.tsx --bundle --outfile=build/static/js/main.js --format=iife --sourcemap --define:process.env.NODE_ENV=\\\"development\\\"",
+        "dev": "npm run build:dev && node dev-server.mjs",
+        "format": "prettier --write \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
+        "format:check": "prettier --check \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
+        "typecheck": "tsc --noEmit"
+    },
+    "type": "module",
+    "version": "1.0.0"
 }
