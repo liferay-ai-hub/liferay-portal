@@ -33,9 +33,9 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * @author Joshua Cords
  */
-@RequestMapping("/object/action/1")
+@RequestMapping("/object/action/crawler")
 @RestController
-public class ObjectAction1RestController extends BaseRestController {
+public class ObjectActionCrawlerRestController extends BaseRestController {
 
 	@PostMapping
 	public ResponseEntity<String> post(
@@ -155,7 +155,7 @@ public class ObjectAction1RestController extends BaseRestController {
 	}
 
 	private static final Log _log = LogFactory.getLog(
-		ObjectAction1RestController.class);
+		ObjectActionCrawlerRestController.class);
 
 	@Value("${liferay.ai.hub.crawler.domain.url}")
 	private String _crawlerDomainUrl;
