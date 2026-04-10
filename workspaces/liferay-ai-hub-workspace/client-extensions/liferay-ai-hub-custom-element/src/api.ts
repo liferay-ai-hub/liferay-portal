@@ -10,9 +10,18 @@ import {ChatbotConfig} from './types';
 const AI_HUB_ENDPOINT = '/o/ai-hub/v1.0';
 
 let aiHubURL = '';
+let spritemapURL = '';
+
+export function getSpritemapURL() {
+    return spritemapURL;
+}
 
 export function setAIHubURL(url: string) {
 	aiHubURL = url;
+}
+
+export function setSpritemapURL(url: string) {
+	spritemapURL = '';
 }
 
 export async function getChatbotConfig(

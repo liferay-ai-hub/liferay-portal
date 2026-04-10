@@ -5,11 +5,10 @@
 
 import React from 'react';
 import ClayIcon, {ClayIconSpriteContext} from '@clayui/icon';
-
-const spitemap = '/o/classic-theme/images/clay/icons.svg';
+import {getSpritemapURL} from '../api';
 
 const WrappedClayIcon = ({symbol}: {symbol: string}) => (
-	<ClayIconSpriteContext.Provider value={spitemap}>
+	<ClayIconSpriteContext.Provider value={getSpritemapURL()}>
 		<ClayIcon symbol={symbol} />
 	</ClayIconSpriteContext.Provider>
 );
