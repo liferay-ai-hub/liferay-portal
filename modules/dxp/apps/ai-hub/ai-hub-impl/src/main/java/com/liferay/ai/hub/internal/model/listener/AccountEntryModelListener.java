@@ -10,6 +10,7 @@ import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.ModelListener;
@@ -32,17 +33,31 @@ import org.osgi.service.component.annotations.Reference;
 public class AccountEntryModelListener extends BaseModelListener<AccountEntry> {
 
 	@Override
-	public void onAfterCreate(AccountEntry accountEntry)
+	public void onAfterUpdate(
+			AccountEntry originalAccountEntry, AccountEntry accountEntry)
 		throws ModelListenerException {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				accountEntry.getCompanyId(), "LPD-62272") ||
+			(accountEntry.getAccountEntryGroupId() == 0)) {
+
+			return;
+		}
 
 		try {
 			Company company = _companyLocalService.getCompany(
 				accountEntry.getCompanyId());
-
 			String screenName =
 				accountEntry.getExternalReferenceCode() + "-service-account";
 
-			User user = _userLocalService.addUser(
+			User user = _userLocalService.fetchUserByScreenName(
+				company.getCompanyId(), screenName);
+
+			if (user != null) {
+				return;
+			}
+
+			user = _userLocalService.addUser(
 				UserConstants.USER_ID_DEFAULT, company.getCompanyId(), true,
 				null, null, false, screenName,
 				screenName + StringPool.AT + company.getMx(),
@@ -56,16 +71,9 @@ public class AccountEntryModelListener extends BaseModelListener<AccountEntry> {
 
 			user = _userLocalService.updateUser(user);
 
-			ServiceContext serviceContext = new ServiceContext();
-
-			serviceContext.setCompanyId(company.getCompanyId());
-			serviceContext.setLanguageId(user.getLanguageId());
-			serviceContext.setUserId(user.getUserId());
-
-			// TODO it is not relating, probably due to cache
-
-			/*_accountEntryUserRelLocalService.addAccountEntryUserRel(
-				accountEntry.getAccountEntryId(), user.getUserId());*/
+			_accountEntryUserRelLocalService.updateAccountEntryUserRels(
+				new long[] {accountEntry.getAccountEntryId()}, new long[0],
+				user.getUserId());
 		}
 		catch (PortalException portalException) {
 			throw new ModelListenerException(portalException);
