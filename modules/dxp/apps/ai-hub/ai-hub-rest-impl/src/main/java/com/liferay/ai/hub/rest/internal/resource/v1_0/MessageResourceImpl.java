@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 
-import java.util.List;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -53,8 +52,8 @@ public class MessageResourceImpl extends BaseMessageResourceImpl {
 		}
 
 		User user = _initContextUser(
-			contextCompany.getCompanyId(),
-			message.getChatbotExternalReferenceCode(), contextUser);
+			message.getChatbotExternalReferenceCode(),
+			contextCompany.getCompanyId(), contextUser);
 
 		_supervisorAgent.invoke(
 			AgentContext.builder(
@@ -91,7 +90,7 @@ public class MessageResourceImpl extends BaseMessageResourceImpl {
 	}
 
 	private User _initContextUser(
-			long companyId, String chatbotExternalReferenceCode, User user)
+			String chatbotExternalReferenceCode, long companyId, User user)
 		throws Exception {
 
 		if (!user.isGuestUser() ||
@@ -109,14 +108,13 @@ public class MessageResourceImpl extends BaseMessageResourceImpl {
 			chatbotExternalReferenceCode, 0L,
 			objectDefinition.getObjectDefinitionId());
 
-		long accountEntryId = MapUtil.getLong(
-			objectEntry.getValues(), "r_accountToAIHubChatbots_accountEntryId");
+		for (AccountEntryUserRel accountEntryUserRel :
+				_accountEntryUserRelLocalService.
+					getAccountEntryUserRelsByAccountEntryId(
+						MapUtil.getLong(
+							objectEntry.getValues(),
+							"r_accountToAIHubChatbots_accountEntryId"))) {
 
-		List<AccountEntryUserRel> accountEntryUserRels =
-			_accountEntryUserRelLocalService.
-				getAccountEntryUserRelsByAccountEntryId(accountEntryId);
-
-		for (AccountEntryUserRel accountEntryUserRel : accountEntryUserRels) {
 			User accountEntryUserRelUser = accountEntryUserRel.getUser();
 
 			if (accountEntryUserRelUser.isServiceAccountUser()) {
