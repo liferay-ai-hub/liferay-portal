@@ -3,12 +3,6 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-export interface AuthToken {
-	accessToken: string;
-	serviceURL: string;
-	userToken: string;
-}
-
 export interface ChatbotConfig {
 	active: boolean;
 	introMessage: string;
@@ -23,6 +17,6 @@ export interface ChatMessage {
 }
 
 export interface WidgetConfig {
+	aiHubURL: string;
 	chatbotExternalReferenceCode: string;
-	serviceURL: string;
 }
