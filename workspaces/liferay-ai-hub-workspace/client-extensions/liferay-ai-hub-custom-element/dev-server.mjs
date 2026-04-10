@@ -58,7 +58,7 @@ function isStaticFile(pathname) {
 
 	// Serve dist/ files locally
 
-	if (pathname.startsWith('/dist/')) {
+	if (pathname.startsWith('/build/static/')) {
 		const filePath = join(ROOT, pathname);
 
 		return existsSync(filePath) && statSync(filePath).isFile();
