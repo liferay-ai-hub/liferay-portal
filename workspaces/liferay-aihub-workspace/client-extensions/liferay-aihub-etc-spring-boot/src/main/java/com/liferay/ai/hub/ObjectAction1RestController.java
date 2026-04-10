@@ -16,7 +16,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import java.util.stream.Stream;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -81,9 +80,11 @@ public class ObjectAction1RestController extends BaseRestController {
 					new InputStreamReader(
 						process.getInputStream(), StandardCharsets.UTF_8))) {
 
-				Stream<String> lines = bufferedReader.lines();
+				String line;
 
-				lines.forEach(line -> _log(jwt, "[crawler] " + line));
+				while ((line = bufferedReader.readLine()) != null) {
+					_log(jwt, "[crawler] " + line);
+				}
 			}
 
 			int exitValue = process.waitFor();
