@@ -24,7 +24,7 @@ public class AccountEntryUtil {
 			AccountEntryUserRelLocalServiceUtil.
 				getAccountEntryUserRelsByAccountUserId(userId);
 
-		if (accountEntryUserRels.size() != 2) {
+		if (accountEntryUserRels.size() > 2) {
 			return null;
 		}
 
