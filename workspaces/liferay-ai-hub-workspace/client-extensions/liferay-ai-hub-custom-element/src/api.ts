@@ -5,14 +5,14 @@
 
 import {EventSource} from 'eventsource';
 
-import {AuthToken, ChatbotConfig} from './types';
+import {ChatbotConfig} from './types';
 
 const AI_HUB_ENDPOINT = '/o/ai-hub/v1.0';
 
-let serviceURL = 'http://localhost:8080';
+let aiHubURL = '';
 
-export function setServiceURL(url: string) {
-	serviceURL = url;
+export function setAIHubURL(url: string) {
+	aiHubURL = url;
 }
 
 export async function getChatbotConfig(
@@ -20,7 +20,7 @@ export async function getChatbotConfig(
 ): Promise<ChatbotConfig | undefined> {
 	try {
 		const response = await fetch(
-			`${serviceURL}/o/ai-hub/chatbots/by-external-reference-code/${chatbotExternalReferenceCode}`,
+			`${aiHubURL}/o/ai-hub/chatbots/by-external-reference-code/${chatbotExternalReferenceCode}`,
 			{
 				headers: new Headers({
 					Accept: 'application/json',
@@ -41,7 +41,7 @@ export async function getChatbotConfig(
 }
 
 export async function createEventSource(): Promise<EventSource | null> {
-	return new EventSource(`${serviceURL}${AI_HUB_ENDPOINT}/chats/subscribe`, {
+	return new EventSource(`${aiHubURL}${AI_HUB_ENDPOINT}/chats/subscribe`, {
 		fetch: (input, init) =>
 			fetch(input as RequestInfo, {
 				...init,
@@ -59,7 +59,7 @@ export async function postChatMessage(
 	text: string
 ) {
 	return await fetch(
-		`${serviceURL}${AI_HUB_ENDPOINT}/chats/by-external-reference-code/${eventSourceReference}/messages`,
+		`${aiHubURL}${AI_HUB_ENDPOINT}/chats/by-external-reference-code/${eventSourceReference}/messages`,
 		{
 			body: JSON.stringify({
 				chatbotExternalReferenceCode,
