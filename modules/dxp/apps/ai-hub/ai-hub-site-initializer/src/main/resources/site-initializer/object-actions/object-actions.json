@@ -1,0 +1,19 @@
+{
+	"object-actions": [
+        {
+          "active": true,
+          "errorMessage": {
+            "en_US": "Error while crawling"
+          },
+          "label": {
+            "en_US": "Crawl"
+          },
+          "name": "crawl",
+          "objectActionExecutorKey": "function#liferay-aihub-etc-spring-boot-object-action-crawl",
+          "objectActionTriggerKey": "standalone",
+          "parameters": {
+          }
+        }
+	],
+	"objectDefinitionId": "[$OBJECT_DEFINITION_ID:AIHubContentRetriever$]"
+}
