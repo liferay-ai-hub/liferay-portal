@@ -6,6 +6,7 @@
 package com.liferay.ai.hub;
 
 import com.liferay.client.extension.util.spring.boot3.BaseRestController;
+import com.liferay.petra.string.StringBundler;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -16,10 +17,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,7 +49,18 @@ public class ObjectAction1RestController extends BaseRestController {
 			crawlerConfigPath = Files.createTempFile("crawler-config-", ".yml");
 
 			Files.writeString(
-				crawlerConfigPath, _DEFAULT_CRAWLER_CONFIG,
+				crawlerConfigPath,
+				StringBundler.concat(
+					"domains:\n", "  -   url: ", _crawlerDomainUrl, "\n",
+					"      seed_urls:\n", "          - ", _crawlerSeedUrl, "\n",
+					"max_crawl_depth: ", _crawlerMaxCrawlDepth, "\n",
+					"max_duration: ", _crawlerMaxDuration, "\n",
+					"output_sink: ", _crawlerOutputSink, "\n", "output_index: ",
+					_crawlerOutputIndex, "\n\n", "elasticsearch:\n", "  host: ",
+					_crawlerElasticsearchHost, "\n", "  port: ",
+					_crawlerElasticsearchPort, "\n", "  pipeline: ",
+					_crawlerElasticsearchPipeline, "\n", "  pipeline_enabled: ",
+					_crawlerElasticsearchPipelineEnabled),
 				StandardCharsets.UTF_8);
 
 			ProcessBuilder processBuilder = new ProcessBuilder(
@@ -62,6 +74,7 @@ public class ObjectAction1RestController extends BaseRestController {
 			).put(
 				"BUNDLE_GEMFILE", "/opt/liferay/crawler/Gemfile"
 			);
+
 			processBuilder.environment(
 			).put(
 				"BUNDLE_PATH", "vendor/bundle"
@@ -135,31 +148,43 @@ public class ObjectAction1RestController extends BaseRestController {
 			return;
 		}
 
-		String logMessage =
-			"[JWT Subject: " + jwt.getSubject() + "] " + message;
+		String logMessage = StringBundler.concat(
+			"[JWT Subject: ", jwt.getSubject(), "] ", message);
 
 		_log.info(logMessage);
 	}
 
-	// TODO: replace url and possibly seed_urls from Object
-	// The index (output_index) should be targeted by some information from ObjectDefinition - sync with Feliphe about how the index
-	// name is generated.
-	// max_crawl_depth and max_duration (in seconds) need to be set to reasonable values
-
-	private static final String _DEFAULT_CRAWLER_CONFIG =
-		"domains:\n" + "  -   url: https://en.wikipedia.org\n" +
-			"      seed_urls:\n" +
-				"          - https://en.wikipedia.org/wiki/F%C3%BCr_Elise\n" +
-					"max_crawl_depth: 1\n" + "max_duration: 30\n" +
-						"output_sink: elasticsearch\n" +
-							"output_index: google-vertex-ai-embeddings-2\n" +
-								"\n" + "elasticsearch:\n" +
-									"  host: http://elasticsearch\n" +
-										"  port: 9200\n" +
-											"  pipeline: vertex-embed-web-crawl-2\n" +
-												"  pipeline_enabled: true";
-
 	private static final Log _log = LogFactory.getLog(
 		ObjectAction1RestController.class);
+
+	@Value("${liferay.ai.hub.crawler.domain.url}")
+	private String _crawlerDomainUrl;
+
+	@Value("${liferay.ai.hub.crawler.elasticsearch.host}")
+	private String _crawlerElasticsearchHost;
+
+	@Value("${liferay.ai.hub.crawler.elasticsearch.pipeline}")
+	private String _crawlerElasticsearchPipeline;
+
+	@Value("${liferay.ai.hub.crawler.elasticsearch.pipeline.enabled}")
+	private boolean _crawlerElasticsearchPipelineEnabled;
+
+	@Value("${liferay.ai.hub.crawler.elasticsearch.port}")
+	private int _crawlerElasticsearchPort;
+
+	@Value("${liferay.ai.hub.crawler.max.crawl.depth}")
+	private int _crawlerMaxCrawlDepth;
+
+	@Value("${liferay.ai.hub.crawler.max.duration}")
+	private int _crawlerMaxDuration;
+
+	@Value("${liferay.ai.hub.crawler.output.index}")
+	private String _crawlerOutputIndex;
+
+	@Value("${liferay.ai.hub.crawler.output.sink}")
+	private String _crawlerOutputSink;
+
+	@Value("${liferay.ai.hub.crawler.seed.url}")
+	private String _crawlerSeedUrl;
 
 }
