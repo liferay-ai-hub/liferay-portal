@@ -7,18 +7,24 @@ package com.liferay.ai.hub;
 
 import com.liferay.client.extension.util.spring.boot3.BaseRestController;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
+import org.json.JSONObject;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -41,31 +47,55 @@ public class ObjectActionCrawlerRestController extends BaseRestController {
 	public ResponseEntity<String> post(
 		@AuthenticationPrincipal Jwt jwt, @RequestBody String json) {
 
-		log(jwt, _log, json);
+		if (_log.isDebugEnabled()) {
+			_log.debug(json);
+		}
 
-		Path crawlerConfigPath = null;
+		JSONObject jsonObject = new JSONObject(json);
+
+		JSONObject objectEntryJSONObject = jsonObject.getJSONObject(
+			"objectEntry");
+
+		JSONObject valuesJSONObject = objectEntryJSONObject.getJSONObject(
+			"values");
+
+		Path path = null;
 
 		try {
-			crawlerConfigPath = Files.createTempFile("crawler-config-", ".yml");
+			path = Files.createTempFile("crawler-config", ".yml");
 
-			Files.writeString(
-				crawlerConfigPath,
-				StringBundler.concat(
-					"domains:\n", "  -   url: ", _crawlerDomainUrl, "\n",
-					"      seed_urls:\n", "          - ", _crawlerSeedUrl, "\n",
-					"max_crawl_depth: ", _crawlerMaxCrawlDepth, "\n",
-					"max_duration: ", _crawlerMaxDuration, "\n",
-					"output_sink: ", _crawlerOutputSink, "\n", "output_index: ",
-					_crawlerOutputIndex, "\n\n", "elasticsearch:\n", "  host: ",
-					_crawlerElasticsearchHost, "\n", "  port: ",
-					_crawlerElasticsearchPort, "\n", "  pipeline: ",
-					_crawlerElasticsearchPipeline, "\n", "  pipeline_enabled: ",
-					_crawlerElasticsearchPipelineEnabled),
-				StandardCharsets.UTF_8);
+			String crawlerConfig;
+
+			try (InputStream inputStream = getClass().getResourceAsStream(
+					"/crawler-config-template.yml")) {
+
+				crawlerConfig = new String(
+					inputStream.readAllBytes(), StandardCharsets.UTF_8);
+			}
+
+			crawlerConfig = _replace(
+				crawlerConfig,
+				Map.of(
+					"[$CRAWLER_DOMAIN_URL$]", valuesJSONObject.getString("url"),
+					"[$CRAWLER_ELASTICSEARCH_HOST$]", _crawlerElasticsearchHost,
+					"[$CRAWLER_ELASTICSEARCH_PIPELINE$]",
+					_crawlerElasticsearchPipeline,
+					"[$CRAWLER_ELASTICSEARCH_PORT$]",
+					String.valueOf(_crawlerElasticsearchPort),
+					"[$CRAWLER_MAX_CRAWL_DEPTH$]",
+					String.valueOf(_crawlerMaxCrawlDepth),
+					"[$CRAWLER_MAX_DURATION$]",
+					String.valueOf(_crawlerMaxDuration),
+					"[$CRAWLER_OUTPUT_INDEX$]",
+					valuesJSONObject.getString("indexName"),
+					"[$CRAWLER_OUTPUT_SINK$]", _crawlerOutputSink,
+					"[$CRAWLER_SEED_URL$]", valuesJSONObject.getString("url")));
+
+			Files.writeString(path, crawlerConfig, StandardCharsets.UTF_8);
 
 			ProcessBuilder processBuilder = new ProcessBuilder(
 				"bundle", "exec", "jruby", "bin/crawler", "crawl",
-				crawlerConfigPath.toAbsolutePath(
+				path.toAbsolutePath(
 				).toString());
 
 			processBuilder.directory(new File("/opt/liferay/crawler"));
@@ -129,9 +159,9 @@ public class ObjectActionCrawlerRestController extends BaseRestController {
 				errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		finally {
-			if (crawlerConfigPath != null) {
+			if (path != null) {
 				try {
-					Files.deleteIfExists(crawlerConfigPath);
+					Files.deleteIfExists(path);
 				}
 				catch (IOException ioException) {
 					_log(
@@ -154,11 +184,17 @@ public class ObjectActionCrawlerRestController extends BaseRestController {
 		_log.info(logMessage);
 	}
 
+	private String _replace(String string, Map<String, String> map) {
+		for (Map.Entry<String, String> entry : map.entrySet()) {
+			string = StringUtil.replace(
+				string, entry.getKey(), entry.getValue());
+		}
+
+		return string;
+	}
+
 	private static final Log _log = LogFactory.getLog(
 		ObjectActionCrawlerRestController.class);
-
-	@Value("${liferay.ai.hub.crawler.domain.url}")
-	private String _crawlerDomainUrl;
 
 	@Value("${liferay.ai.hub.crawler.elasticsearch.host}")
 	private String _crawlerElasticsearchHost;
@@ -178,13 +214,7 @@ public class ObjectActionCrawlerRestController extends BaseRestController {
 	@Value("${liferay.ai.hub.crawler.max.duration}")
 	private int _crawlerMaxDuration;
 
-	@Value("${liferay.ai.hub.crawler.output.index}")
-	private String _crawlerOutputIndex;
-
 	@Value("${liferay.ai.hub.crawler.output.sink}")
 	private String _crawlerOutputSink;
-
-	@Value("${liferay.ai.hub.crawler.seed.url}")
-	private String _crawlerSeedUrl;
 
 }
