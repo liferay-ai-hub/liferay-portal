@@ -6,12 +6,10 @@
 package com.liferay.ai.hub;
 
 import com.liferay.client.extension.util.spring.boot3.BaseRestController;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringUtil;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
@@ -112,10 +110,11 @@ public class ObjectActionCrawlerRestController extends BaseRestController {
 
 			processBuilder.redirectErrorStream(true);
 
-			_log(
-				jwt,
-				"Launching crawler command: " +
-					String.join(" ", processBuilder.command()));
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Launching crawler: " +
+						String.join(" ", processBuilder.command()));
+			}
 
 			Process process = processBuilder.start();
 
@@ -126,62 +125,49 @@ public class ObjectActionCrawlerRestController extends BaseRestController {
 				String line;
 
 				while ((line = bufferedReader.readLine()) != null) {
-					_log(jwt, "[crawler] " + line);
+					if (_log.isInfoEnabled()) {
+						_log.info("[crawler] " + line);
+					}
 				}
 			}
 
-			int exitValue = process.waitFor();
+			int exitCode = process.waitFor();
 
-			String message =
-				"Crawler finished with exit code " + exitValue + ".";
+			if (_log.isInfoEnabled()) {
+				_log.info("Crawler finished with exit code " + exitCode);
+			}
 
-			_log(jwt, message);
-
-			if (exitValue == 0) {
-				return ResponseEntity.ok(message);
+			if (exitCode == 0) {
+				return ResponseEntity.ok(
+				).build();
 			}
 
 			return new ResponseEntity<>(
-				message, HttpStatus.INTERNAL_SERVER_ERROR);
+				"Crawler finished with exit code " + exitCode,
+				HttpStatus.INTERNAL_SERVER_ERROR);
 		}
-		catch (InterruptedException | IOException exception) {
+		catch (Exception exception) {
 			if (exception instanceof InterruptedException) {
 				Thread.currentThread(
 				).interrupt();
 			}
 
-			String errorMessage =
-				"Crawler execution failed: " + exception.getMessage();
-
-			_log(jwt, errorMessage);
+			_log.error("Crawler execution failed", exception);
 
 			return new ResponseEntity<>(
-				errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+				exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 		finally {
 			if (path != null) {
 				try {
 					Files.deleteIfExists(path);
 				}
-				catch (IOException ioException) {
-					_log(
-						jwt,
-						"Unable to delete temporary crawler config: " +
-							ioException.getMessage());
+				catch (Exception exception) {
+					_log.error(
+						"Unable to delete temporary crawler config", exception);
 				}
 			}
 		}
-	}
-
-	private void _log(Jwt jwt, String message) {
-		if (!_log.isInfoEnabled()) {
-			return;
-		}
-
-		String logMessage = StringBundler.concat(
-			"[JWT Subject: ", jwt.getSubject(), "] ", message);
-
-		_log.info(logMessage);
 	}
 
 	private String _replace(String string, Map<String, String> map) {
