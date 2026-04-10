@@ -6,10 +6,10 @@ liferay-ai-hub-custom-element:
         -   css/main.css
     friendlyURLMapping: liferay-ai-hub-custom-element
     htmlAttributes:
-        ai-hub-url: "https://ai.hub.liferay.com"
-        chatbot-external-reference-code: "MY_CHATBOT"
-        id: "aihub-chat-widget-script"
-        spritemap-url: "/o/classic-theme/images/clay/icons.svg"
+        ai-hub-url: https://ai.hub.liferay.com
+        chatbot-external-reference-code: MY_CHATBOT
+        id: aihub-chat-widget-script
+        spritemap-url: /o/classic-theme/images/clay/icons.svg
     htmlElementName: liferay-ai-hub-custom-element
     instanceable: false
     name: Liferay AI Hub

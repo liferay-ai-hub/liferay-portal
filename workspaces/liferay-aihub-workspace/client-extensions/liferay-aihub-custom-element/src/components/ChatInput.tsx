@@ -64,9 +64,11 @@ export default function ChatInput({
 				event.preventDefault();
 
 				handleSubmit();
-			} else if (event.key === 'Enter' && event.shiftKey) {
+			}
+			else if (event.key === 'Enter' && event.shiftKey) {
 				requestAnimationFrame(adjustHeight);
-			} else {
+			}
+			else {
 				event.stopPropagation();
 			}
 		},
@@ -78,8 +80,8 @@ export default function ChatInput({
 			<textarea
 				className="aihub-textarea"
 				disabled={disabled}
-				onChange={(e) => {
-					setValue(e.target.value);
+				onChange={(event) => {
+					setValue(event.target.value);
 
 					requestAnimationFrame(adjustHeight);
 				}}
