@@ -36,39 +36,54 @@ export default function ChatWidget({config}: ChatWidgetProps) {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		getChatbotConfig(config.chatbotExternalReferenceCode).then((result) => {
-			if (result) {
-				setChatbotConfig(result);
-			}
-		});
+		getChatbotConfig(config.chatbotExternalReferenceCode)
+			.then((result) => {
+				if (result) {
+					setChatbotConfig(result);
+				}
+			})
+			.catch((error) => {
+				console.error('[AI Hub Chat] Error fetching config:', error);
+			});
 	}, [config.chatbotExternalReferenceCode]);
 
 	useEffect(() => {
-		createEventSource().then((eventSource) => {
-			if (!eventSource) {
-				return;
-			}
-
-			eventSourceRef.current = eventSource;
-
-			eventSourceRef.current.addEventListener(
-				'Chat Message Sent',
-				(event) => {
-					const dataJSON = JSON.parse((event as MessageEvent).data);
-
-					setMessages((prev) => [
-						...prev,
-						{sender: 'assistant', text: dataJSON['data']},
-					]);
-
-					setGenerating(false);
+		createEventSource()
+			.then((eventSource) => {
+				if (!eventSource) {
+					return;
 				}
-			);
 
-			eventSourceRef.current.addEventListener('Subscribe', (event) => {
-				eventSourceReference.current = (event as MessageEvent).data;
+				eventSourceRef.current = eventSource;
+
+				eventSourceRef.current.addEventListener(
+					'Chat Message Sent',
+					(event) => {
+						const dataJSON = JSON.parse(
+							(event as MessageEvent).data
+						);
+
+						setMessages((prev) => [
+							...prev,
+							{sender: 'assistant', text: dataJSON['data']},
+						]);
+
+						setGenerating(false);
+					}
+				);
+
+				eventSourceRef.current.addEventListener(
+					'Subscribe',
+					(event) => {
+						eventSourceReference.current = (
+							event as MessageEvent
+						).data;
+					}
+				);
+			})
+			.catch((error) => {
+				console.error('[AI Hub Chat] EventSource failed:', error);
 			});
-		});
 
 		return () => {
 			eventSourceRef.current?.close();
@@ -85,25 +100,28 @@ export default function ChatWidget({config}: ChatWidgetProps) {
 		setNotificationDismissed(true);
 	}, []);
 
-	const sendMessage = useCallback((text: string) => {
-		if (!eventSourceReference.current) {
-			return;
-		}
+	const sendMessage = useCallback(
+		(text: string) => {
+			if (!eventSourceReference.current) {
+				return;
+			}
 
-		setMessages((prev) => [...prev, {sender: 'user', text}]);
-		setGenerating(true);
+			setMessages((prev) => [...prev, {sender: 'user', text}]);
+			setGenerating(true);
 
-		postChatMessage(
-			config.chatbotExternalReferenceCode,
-			eventSourceReference.current,
-			text
-		).catch((error) => {
-			console.error('[AI Hub Chat] Failed to send message:', error);
+			postChatMessage(
+				config.chatbotExternalReferenceCode,
+				eventSourceReference.current,
+				text
+			).catch((error) => {
+				console.error('[AI Hub Chat] Failed to send message:', error);
 
-			setMessages((prev) => [...prev, {sender: 'error', text: ''}]);
-			setGenerating(false);
-		});
-	}, []);
+				setMessages((prev) => [...prev, {sender: 'error', text: ''}]);
+				setGenerating(false);
+			});
+		},
+		[config.chatbotExternalReferenceCode]
+	);
 
 	if (!chatbotConfig || !chatbotConfig.active) {
 		return null;

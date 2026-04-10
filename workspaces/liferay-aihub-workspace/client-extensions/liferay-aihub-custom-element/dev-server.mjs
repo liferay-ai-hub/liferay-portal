@@ -26,9 +26,7 @@ import {extname, join, resolve} from 'path';
 import {URL} from 'url';
 
 const LIFERAY_URL =
-	process.argv[2] ||
-	process.env.LIFERAY_URL ||
-	'http://localhost:8080';
+	process.argv[2] || process.env.LIFERAY_URL || 'http://localhost:8080';
 
 const PORT = Number(process.env.PORT) || 3000;
 
@@ -46,10 +44,7 @@ const MIME_TYPES = {
 
 // Static file paths served from the local filesystem
 
-const STATIC_PATHS = new Set([
-	'/',
-	'/test.html',
-]);
+const STATIC_PATHS = new Set(['/', '/test.html']);
 
 function isStaticFile(pathname) {
 	if (STATIC_PATHS.has(pathname)) {
@@ -86,8 +81,7 @@ const server = createServer((req, res) => {
 		}
 
 		const ext = extname(filePath);
-		const contentType =
-			MIME_TYPES[ext] || 'application/octet-stream';
+		const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
 		res.writeHead(200, {'Content-Type': contentType});
 		createReadStream(filePath).pipe(res);
@@ -97,10 +91,7 @@ const server = createServer((req, res) => {
 
 	// Proxy everything else to Liferay
 
-	const target = new URL(
-		url.pathname + url.search,
-		LIFERAY_URL
-	);
+	const target = new URL(url.pathname + url.search, LIFERAY_URL);
 
 	const proxyReq = httpRequest(
 		target,
@@ -117,8 +108,8 @@ const server = createServer((req, res) => {
 		}
 	);
 
-	proxyReq.on('error', (err) => {
-		console.error(`[proxy] ${err.message}`);
+	proxyReq.on('error', (error) => {
+		console.error(`[proxy] ${error.message}`);
 		res.writeHead(502);
 		res.end('Bad Gateway: could not reach ' + LIFERAY_URL);
 	});
@@ -127,8 +118,12 @@ const server = createServer((req, res) => {
 });
 
 server.listen(PORT, () => {
+
+	/* eslint-disable no-console */
 	console.log();
 	console.log(`  Dev server:   http://localhost:${PORT}`);
 	console.log(`  Proxying to:  ${LIFERAY_URL}`);
 	console.log();
+
+	/* eslint-enable no-console */
 });

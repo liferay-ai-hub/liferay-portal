@@ -13,14 +13,14 @@ let aiHubURL = '';
 let spritemapURL = '';
 
 export function getSpritemapURL() {
-    return spritemapURL;
+	return spritemapURL;
 }
 
 export function setAIHubURL(url: string) {
 	aiHubURL = url;
 }
 
-export function setSpritemapURL(url: string) {
+export function setSpritemapURL() {
 	spritemapURL = '';
 }
 
@@ -44,7 +44,8 @@ export async function getChatbotConfig(
 		}
 
 		return (await response.json()) as ChatbotConfig;
-	} catch (error) {
+	}
+	catch (error) {
 		console.warn('[AI Hub Chat]', (error as Error).message);
 	}
 }

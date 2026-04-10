@@ -6,7 +6,7 @@
 		"react-dom": "18.3.1",
 		"react-markdown": "^10.1.0"
 	},
-    "description": "AI Hub Chat Widget for Liferay Client Extension",
+	"description": "AI Hub Chat Widget for Liferay Client Extension",
 	"devDependencies": {
 		"@types/react": "18.3.18",
 		"@types/react-dom": "18.3.5",
@@ -20,15 +20,15 @@
 		}
 	},
 	"name": "liferay-ai-hub-custom-element",
-    "private": true,
-    "scripts": {
-        "build": "esbuild src/widget.tsx --bundle --minify --outfile=build/static/js/main.js --format=iife",
-        "build:dev": "esbuild src/widget.tsx --bundle --outfile=build/static/js/main.js --format=iife --sourcemap --define:process.env.NODE_ENV=\\\"development\\\"",
-        "dev": "npm run build:dev && node dev-server.mjs",
-        "format": "prettier --write \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
-        "format:check": "prettier --check \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
-        "typecheck": "tsc --noEmit"
-    },
-    "type": "module",
-    "version": "1.0.0"
+	"private": true,
+	"scripts": {
+		"build": "esbuild src/widget.tsx --bundle --minify --outfile=build/static/js/main.js --format=iife",
+		"build:dev": "esbuild src/widget.tsx --bundle --outfile=build/static/js/main.js --format=iife --sourcemap --define:process.env.NODE_ENV=\\\"development\\\"",
+		"dev": "npm run build:dev && node dev-server.mjs",
+		"format": "prettier --write \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
+		"format:check": "prettier --check \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
+		"typecheck": "tsc --noEmit"
+	},
+	"type": "module",
+	"version": "1.0.0"
 }

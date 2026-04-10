@@ -14,14 +14,14 @@
 	font-family:
 		-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans,
 		Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+	bottom: 1.25rem;
 	font-size: 1rem;
 	position: fixed;
-	bottom: 1.25rem;
 	right: 1.25rem;
 	z-index: 2147483647;
 }
 
-/* Toggle button */
+/* ---------- Toggle button ---------- */
 
 .aihub-toggle {
 	align-items: center;
@@ -50,7 +50,7 @@
 	width: 28px;
 }
 
-/* Panel */
+/* ---------- Panel ---------- */
 
 .aihub-panel {
 	background: #fff;
@@ -70,7 +70,7 @@
 	display: flex;
 }
 
-/* Header */
+/* ---------- Header ---------- */
 
 .aihub-header {
 	align-items: center;
@@ -144,7 +144,7 @@
 	width: 0.875rem;
 }
 
-/* Messages container */
+/* ---------- Messages container ---------- */
 
 .aihub-messages {
 	display: flex;
@@ -156,7 +156,7 @@
 	padding: 1rem;
 }
 
-/* Intro message */
+/* ---------- Intro message ---------- */
 
 .aihub-intro {
 	align-items: center;
@@ -205,7 +205,7 @@
 	margin: 0;
 }
 
-/* AI assistant message balloon */
+/* ---------- AI assistant message balloon ---------- */
 
 .aihub-msg-assistant {
 	display: flex;
@@ -269,7 +269,7 @@
 	font-weight: 700;
 }
 
-/* AI error balloon */
+/* ---------- AI error balloon ---------- */
 
 .aihub-msg-error {
 	background: #feefef;
@@ -279,7 +279,7 @@
 	fill: #da1414;
 }
 
-/* User message balloon */
+/* ---------- User message balloon ---------- */
 
 .aihub-msg-user {
 	align-items: flex-start;
@@ -299,7 +299,7 @@
 	word-break: break-word;
 }
 
-/* Generating indicator */
+/* ---------- Generating indicator ---------- */
 
 .aihub-generating {
 	align-items: center;
@@ -332,7 +332,7 @@
 	}
 }
 
-/* Input area */
+/* ---------- Input area ---------- */
 
 .aihub-input-area {
 	align-items: flex-end;
@@ -389,7 +389,7 @@
 	width: 1rem;
 }
 
-/* Footer */
+/* ---------- Footer ---------- */
 
 .aihub-footer {
 	color: var(--aihub-text-muted, #6b6c7e);
@@ -408,7 +408,7 @@
 	text-decoration: underline;
 }
 
-/* Notification bubble */
+/* ---------- Notification bubble ---------- */
 
 .aihub-notification {
 	align-items: flex-start;

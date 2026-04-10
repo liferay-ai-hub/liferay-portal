@@ -11,7 +11,7 @@ export default function ChatFooter() {
 			By messaging, you agree that this chat may be monitored and recorded
 			per our{' '}
 			<a
-				href={'https://www.liferay.com/privacy-policy'}
+				href="https://www.liferay.com/privacy-policy"
 				rel="noopener noreferrer"
 				target="_blank"
 			>
