@@ -3,7 +3,7 @@ assemble:
         into: static
 liferay-ai-hub-custom-element:
     cssURLs:
-        -   css/main.*.css
+        -   css/main.css
     friendlyURLMapping: liferay-ai-hub-custom-element
     htmlAttributes:
         ai-hub-url: "https://ai.hub.liferay.com"
@@ -15,5 +15,5 @@ liferay-ai-hub-custom-element:
     portletCategoryName: category.client-extensions
     type: customElement
     urls:
-        -   js/main.*.js
+        -   js/main.js
     useESM: true
