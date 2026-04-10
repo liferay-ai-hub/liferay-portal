@@ -1,0 +1,12 @@
+assemble:
+    -   fromTask: bootJar
+liferay-aihub-etc-spring-boot-oaua:
+    .serviceAddress: localhost:58081
+    .serviceScheme: http
+    name: Liferay AI Hub Etc Spring Boot OAuth Application User Agent
+    type: oAuthApplicationUserAgent
+liferay-aihub-etc-spring-boot-object-action-1:
+    name: Liferay AI Hub Etc Spring Boot Object Action 1
+    oAuth2ApplicationExternalReferenceCode: liferay-aihub-etc-spring-boot-oaua
+    resourcePath: /object/action/1
+    type: objectAction
