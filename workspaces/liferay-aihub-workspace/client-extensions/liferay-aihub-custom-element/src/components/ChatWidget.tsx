@@ -7,7 +7,7 @@ import {EventSource} from 'eventsource';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import {createEventSource, getChatbotConfig, postChatMessage} from '../api';
-import {ChatMessage, ChatbotConfig, WidgetConfig} from '../types';
+import {ChatMessage, ChatbotConfig, WidgetConfiguration} from '../types';
 import AssistantMessage from './AssistantMessage';
 import ChatFooter from './ChatFooter';
 import ChatHeader from './ChatHeader';
@@ -19,10 +19,10 @@ import {ChatIcon, CloseIcon} from './Icons';
 import UserMessage from './UserMessage';
 
 interface ChatWidgetProps {
-	config: WidgetConfig;
+	widgetConfiguration: WidgetConfiguration;
 }
 
-export default function ChatWidget({config}: ChatWidgetProps) {
+export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 	const [chatbotConfig, setChatbotConfig] = useState<ChatbotConfig | null>(
 		null
 	);
@@ -36,7 +36,7 @@ export default function ChatWidget({config}: ChatWidgetProps) {
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		getChatbotConfig(config.chatbotExternalReferenceCode)
+		getChatbotConfig(widgetConfiguration.chatbotExternalReferenceCode)
 			.then((result) => {
 				if (result) {
 					setChatbotConfig(result);
@@ -45,7 +45,7 @@ export default function ChatWidget({config}: ChatWidgetProps) {
 			.catch((error) => {
 				console.error('[AI Hub Chat] Error fetching config:', error);
 			});
-	}, [config.chatbotExternalReferenceCode]);
+	}, [widgetConfiguration.chatbotExternalReferenceCode]);
 
 	useEffect(() => {
 		createEventSource()
@@ -110,7 +110,7 @@ export default function ChatWidget({config}: ChatWidgetProps) {
 			setGenerating(true);
 
 			postChatMessage(
-				config.chatbotExternalReferenceCode,
+				widgetConfiguration.chatbotExternalReferenceCode,
 				eventSourceReference.current,
 				text
 			).catch((error) => {
@@ -120,7 +120,7 @@ export default function ChatWidget({config}: ChatWidgetProps) {
 				setGenerating(false);
 			});
 		},
-		[config.chatbotExternalReferenceCode]
+		[widgetConfiguration.chatbotExternalReferenceCode]
 	);
 
 	if (!chatbotConfig || !chatbotConfig.active) {

@@ -16,7 +16,7 @@ export interface ChatMessage {
 	text: string;
 }
 
-export interface WidgetConfig {
+export interface WidgetConfiguration {
 	aiHubURL: string;
 	chatbotExternalReferenceCode: string;
 }

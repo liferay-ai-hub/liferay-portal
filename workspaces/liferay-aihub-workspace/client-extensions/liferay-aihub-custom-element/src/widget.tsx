@@ -8,7 +8,7 @@ import {createRoot} from 'react-dom/client';
 
 import {setAIHubURL} from './api';
 import ChatWidget from './components/ChatWidget';
-import {WidgetConfig} from './types';
+import {WidgetConfiguration} from './types';
 
 import './widget.css';
 
@@ -21,22 +21,23 @@ if (!document.getElementById(WIDGET_ID)) {
 		console.error(
 			'[AI Hub Chat] Script tag with id="aihub-chat-widget-script" not found.'
 		);
-	}
-	else {
-		const config: WidgetConfig = {
+	} else {
+		const widgetConfiguration: WidgetConfiguration = {
 			aiHubURL: scriptTag.getAttribute('ai-hub-url') || '',
 			chatbotExternalReferenceCode:
 				scriptTag.getAttribute('chatbot-external-reference-code') || '',
 		};
 
-		const container = document.createElement('div');
+		const element = document.createElement('div');
 
-		container.id = WIDGET_ID;
+		element.id = WIDGET_ID;
 
-		document.body.appendChild(container);
+		document.body.appendChild(element);
 
-		setAIHubURL(config.aiHubURL);
+		setAIHubURL(widgetConfiguration.aiHubURL);
 
-		createRoot(container).render(<ChatWidget config={config} />);
+		createRoot(element).render(
+			<ChatWidget widgetConfiguration={widgetConfiguration} />
+		);
 	}
 }
