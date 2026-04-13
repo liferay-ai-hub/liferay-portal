@@ -10,18 +10,13 @@ import {ChatbotConfig} from './types';
 const AI_HUB_ENDPOINT = '/o/ai-hub/v1.0';
 
 let aiHubURL = '';
-let spritemapURL = '';
 
-export function getSpritemapURL() {
-	return spritemapURL;
+export function getAIHubURL() {
+	return aiHubURL;
 }
 
 export function setAIHubURL(url: string) {
 	aiHubURL = url;
-}
-
-export function setSpritemapURL() {
-	spritemapURL = '';
 }
 
 export async function getChatbotConfig(
@@ -44,8 +39,7 @@ export async function getChatbotConfig(
 		}
 
 		return (await response.json()) as ChatbotConfig;
-	}
-	catch (error) {
+	} catch (error) {
 		console.warn('[AI Hub Chat]', (error as Error).message);
 	}
 }

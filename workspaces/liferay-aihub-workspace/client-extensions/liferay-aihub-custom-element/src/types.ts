@@ -19,5 +19,4 @@ export interface ChatMessage {
 export interface WidgetConfig {
 	aiHubURL: string;
 	chatbotExternalReferenceCode: string;
-	spritemapURL: string;
 }

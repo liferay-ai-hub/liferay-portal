@@ -27,7 +27,6 @@ if (!document.getElementById(WIDGET_ID)) {
 			aiHubURL: scriptTag.getAttribute('ai-hub-url') || '',
 			chatbotExternalReferenceCode:
 				scriptTag.getAttribute('chatbot-external-reference-code') || '',
-			spritemapURL: scriptTag.getAttribute('spritemap-url') || '',
 		};
 
 		const container = document.createElement('div');
