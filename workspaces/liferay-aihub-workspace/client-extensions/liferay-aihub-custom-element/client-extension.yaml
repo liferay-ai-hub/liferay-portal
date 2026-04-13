@@ -3,7 +3,7 @@ assemble:
         into: static
 liferay-ai-hub-custom-element:
     cssURLs:
-        -   css/main.css
+        -   js/main.css
     friendlyURLMapping: liferay-ai-hub-custom-element
     htmlAttributes:
         ai-hub-url: https://ai.hub.liferay.com
