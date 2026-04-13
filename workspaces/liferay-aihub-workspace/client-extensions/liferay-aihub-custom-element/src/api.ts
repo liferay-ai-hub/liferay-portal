@@ -39,7 +39,8 @@ export async function getChatbotConfig(
 		}
 
 		return (await response.json()) as ChatbotConfig;
-	} catch (error) {
+	}
+	catch (error) {
 		console.warn('[AI Hub Chat]', (error as Error).message);
 	}
 }
