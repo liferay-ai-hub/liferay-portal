@@ -11,42 +11,22 @@
 		"@types/react": "18.3.18",
 		"@types/react-dom": "18.3.5",
 		"@types/semver": "^7.7.1",
-		"@typescript-eslint/eslint-plugin": "^5.12.1",
-		"@typescript-eslint/parser": "^5.12.1",
 		"esbuild": "0.24.2",
 		"eslint-plugin-react": "^7.34.0",
 		"prettier": "^3.8.1",
-		"typescript": "5.7.3"
+		"typescript": "5.7.2"
 	},
 	"eslintConfig": {
-		"extends": [
-			"plugin:react/recommended"
-		],
 		"globals": {
 			"Liferay": true
-		},
-		"parser": "@typescript-eslint/parser",
-		"parserOptions": {
-			"ecmaFeatures": {
-				"jsx": true
-			},
-			"ecmaVersion": 2020,
-			"sourceType": "module"
-		},
-		"settings": {
-			"react": {
-				"version": "18.3"
-			}
 		}
 	},
 	"name": "liferay-ai-hub-custom-element",
 	"private": true,
 	"scripts": {
 		"build": "esbuild src/index.tsx --bundle --minify --outfile=build/static/js/main.js --format=iife",
-		"build:dev": "esbuild src/index.tsx --bundle --outfile=build/static/js/main.js --format=iife --sourcemap --define:process.env.NODE_ENV=\\\"development\\\"",
 		"dev": "npm run build:dev && node dev-server.mjs",
 		"format": "prettier --write \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
-		"format:check": "prettier --check \"./**/*.{ts,tsx,css,js,jsx,json,md}\"",
 		"typecheck": "tsc --noEmit"
 	},
 	"type": "module",
