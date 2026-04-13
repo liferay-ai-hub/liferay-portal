@@ -59,7 +59,7 @@ export async function postChatMessage(
 	eventSourceReference: string,
 	text: string
 ) {
-	return await fetch(
+	return fetch(
 		`${aiHubURL}${AI_HUB_ENDPOINT}/chats/by-external-reference-code/${eventSourceReference}/messages`,
 		{
 			body: JSON.stringify({
