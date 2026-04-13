@@ -47,7 +47,7 @@ export function createEventSource(): EventSource {
 	});
 }
 
-export async function postChatMessage(
+export function postChatMessage(
 	chatbotExternalReferenceCode: string,
 	eventSourceReference: string,
 	text: string
