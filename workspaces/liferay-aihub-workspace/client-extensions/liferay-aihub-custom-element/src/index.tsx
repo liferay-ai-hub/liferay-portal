@@ -19,7 +19,8 @@ if (!document.getElementById(CHATBOT_WIDGET_ID)) {
 
 	if (!scriptTag) {
 		console.error('Element with id="aihub-chat-widget-script" not found');
-	} else {
+	}
+	else {
 		const widgetConfiguration: WidgetConfiguration = {
 			aiHubURL: scriptTag.getAttribute('ai-hub-url') || '',
 			chatbotExternalReferenceCode:
