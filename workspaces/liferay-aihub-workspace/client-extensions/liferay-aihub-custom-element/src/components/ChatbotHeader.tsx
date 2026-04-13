@@ -8,12 +8,12 @@ import React from 'react';
 import {CloseIcon} from './Icons';
 import Logo from './Logo';
 
-interface ChatHeaderProps {
+interface ChatbotHeaderProps {
 	onClose: () => void;
 	title: string;
 }
 
-export default function ChatHeader({onClose, title}: ChatHeaderProps) {
+export default function ChatbotHeader({onClose, title}: ChatbotHeaderProps) {
 	return (
 		<div className="aihub-header">
 			<Logo className="aihub-header-logo" />

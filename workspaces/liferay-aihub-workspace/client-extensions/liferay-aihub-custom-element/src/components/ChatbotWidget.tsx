@@ -8,20 +8,20 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {createEventSource, getChatbotConfig, postChatMessage} from '../api';
 import {ChatMessage, ChatbotConfig, WidgetConfiguration} from '../types';
 import AssistantMessage from './AssistantMessage';
-import ChatFooter from './ChatFooter';
-import ChatHeader from './ChatHeader';
-import ChatInput from './ChatInput';
-import ChatIntro from './ChatIntro';
+import ChatbotFooter from './ChatbotFooter';
+import ChatbotHeader from './ChatbotHeader';
+import ChatbotInput from './ChatbotInput';
+import ChatbotIntro from './ChatbotIntro';
 import ErrorMessage from './ErrorMessage';
 import GeneratingIndicator from './GeneratingIndicator';
 import {ChatIcon, CloseIcon} from './Icons';
 import UserMessage from './UserMessage';
 
-interface ChatWidgetProps {
+interface ChatbotWidgetProps {
 	widgetConfiguration: WidgetConfiguration;
 }
 
-export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
+export default function ChatbotWidget({widgetConfiguration}: ChatbotWidgetProps) {
 	const [chatbotConfig, setChatbotConfig] = useState<ChatbotConfig | null>(
 		null
 	);
@@ -139,10 +139,10 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 	return (
 		<>
 			<div className={'aihub-panel' + (open ? ' open' : '')}>
-				<ChatHeader onClose={handleToggle} title={chatbotConfig.title} />
+				<ChatbotHeader onClose={handleToggle} title={chatbotConfig.title} />
 
 				<div className="aihub-messages">
-					<ChatIntro
+					<ChatbotIntro
 						introMessage={chatbotConfig.introMessage}
 						title={chatbotConfig.title}
 					/>
@@ -166,13 +166,13 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 					<div ref={messagesEndRef} />
 				</div>
 
-				<ChatInput
+				<ChatbotInput
 					disabled={generating}
 					onSubmit={sendMessage}
 					placeholder={chatbotConfig.placeholderMessage}
 				/>
 
-				<ChatFooter />
+				<ChatbotFooter />
 			</div>
 
 			{!open &&

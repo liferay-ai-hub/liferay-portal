@@ -7,7 +7,7 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 
 import {setAIHubURL} from './api';
-import ChatWidget from './components/ChatWidget';
+import ChatbotWidget from './components/ChatbotWidget';
 import {WidgetConfiguration} from './types';
 
 import './widget.css';
@@ -38,7 +38,7 @@ if (!document.getElementById(WIDGET_ID)) {
 		setAIHubURL(widgetConfiguration.aiHubURL);
 
 		createRoot(element).render(
-			<ChatWidget widgetConfiguration={widgetConfiguration} />
+			<ChatbotWidget widgetConfiguration={widgetConfiguration} />
 		);
 	}
 }

@@ -7,17 +7,17 @@ import React, {KeyboardEvent, useCallback, useRef, useState} from 'react';
 
 import {SendIcon} from './Icons';
 
-interface ChatInputProps {
+interface ChatbotInputProps {
 	disabled: boolean;
 	onSubmit: (text: string) => void;
 	placeholder: string;
 }
 
-export default function ChatInput({
+export default function ChatbotInput({
 	disabled,
 	onSubmit,
 	placeholder,
-}: ChatInputProps) {
+}: ChatbotInputProps) {
 	const [value, setValue] = useState('');
 	const textareaRef = useRef<HTMLTextAreaElement>(null);
 

@@ -7,12 +7,12 @@ import React from 'react';
 
 import Logo from './Logo';
 
-interface ChatIntroProps {
+interface ChatbotIntroProps {
 	introMessage: string;
 	title: string;
 }
 
-export default function ChatIntro({introMessage, title}: ChatIntroProps) {
+export default function ChatbotIntro({introMessage, title}: ChatbotIntroProps) {
 	return (
 		<div className="aihub-intro">
 			<Logo className="aihub-intro-logo" />

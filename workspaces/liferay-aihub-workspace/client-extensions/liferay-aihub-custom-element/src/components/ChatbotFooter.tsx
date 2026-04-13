@@ -5,7 +5,7 @@
 
 import React from 'react';
 
-export default function ChatFooter() {
+export default function ChatbotFooter() {
 	return (
 		<div className="aihub-footer">
 			By messaging, you agree that this chat may be monitored and recorded
