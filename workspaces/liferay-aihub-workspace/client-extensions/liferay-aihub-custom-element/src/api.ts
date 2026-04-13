@@ -41,7 +41,7 @@ export async function getChatbotConfig(
 	}
 }
 
-export async function createEventSource(): Promise<EventSource | null> {
+export function createEventSource(): EventSource {
 	return new EventSource(`${aiHubURL}${AI_HUB_ENDPOINT}/chats/subscribe`, {
 		fetch: (input, init) =>
 			fetch(input as RequestInfo, {

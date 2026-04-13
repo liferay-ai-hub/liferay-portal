@@ -48,42 +48,24 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 	}, [widgetConfiguration.chatbotExternalReferenceCode]);
 
 	useEffect(() => {
-		createEventSource()
-			.then((eventSource) => {
-				if (!eventSource) {
-					return;
-				}
+		const eventSource = createEventSource();
 
-				eventSourceRef.current = eventSource;
+		eventSourceRef.current = eventSource;
 
-				eventSourceRef.current.addEventListener(
-					'Chat Message Sent',
-					(event) => {
-						const dataJSON = JSON.parse(
-							(event as MessageEvent).data
-						);
+		eventSource.addEventListener('Chat Message Sent', (event) => {
+			const dataJSON = JSON.parse((event as MessageEvent).data);
 
-						setMessages((prev) => [
-							...prev,
-							{sender: 'assistant', text: dataJSON['data']},
-						]);
+			setMessages((prev) => [
+				...prev,
+				{sender: 'assistant', text: dataJSON['data']},
+			]);
 
-						setGenerating(false);
-					}
-				);
+			setGenerating(false);
+		});
 
-				eventSourceRef.current.addEventListener(
-					'Subscribe',
-					(event) => {
-						eventSourceReference.current = (
-							event as MessageEvent
-						).data;
-					}
-				);
-			})
-			.catch((error) => {
-				console.error('[AI Hub Chat] EventSource failed:', error);
-			});
+		eventSource.addEventListener('Subscribe', (event) => {
+			eventSourceReference.current = (event as MessageEvent).data;
+		});
 
 		return () => {
 			eventSourceRef.current?.close();
