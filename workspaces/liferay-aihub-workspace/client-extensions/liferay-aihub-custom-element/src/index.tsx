@@ -12,9 +12,9 @@ import {WidgetConfiguration} from './types';
 
 import './index.css';
 
-const WIDGET_ID = 'aihub-chat-widget';
+const CHATBOT_WIDGET_ID = 'aihub-chat-widget';
 
-if (!document.getElementById(WIDGET_ID)) {
+if (!document.getElementById(CHATBOT_WIDGET_ID)) {
 	const scriptTag = document.getElementById('aihub-chat-widget-script');
 
 	if (!scriptTag) {
@@ -31,7 +31,7 @@ if (!document.getElementById(WIDGET_ID)) {
 
 		const element = document.createElement('div');
 
-		element.id = WIDGET_ID;
+		element.id = CHATBOT_WIDGET_ID;
 
 		document.body.appendChild(element);
 
