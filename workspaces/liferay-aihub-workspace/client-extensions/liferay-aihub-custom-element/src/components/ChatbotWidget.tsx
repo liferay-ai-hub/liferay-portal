@@ -42,7 +42,7 @@ export default function ChatbotWidget({
 		getChatbotConfig(widgetConfiguration.chatbotExternalReferenceCode)
 			.then(setChatbotConfig)
 			.catch((error) => {
-				console.error('[AI Hub Chat] Error fetching config:', error);
+				console.error('Error fetching config:', error);
 			});
 	}, [widgetConfiguration.chatbotExternalReferenceCode]);
 
@@ -119,10 +119,7 @@ export default function ChatbotWidget({
 					}, 30000);
 				})
 				.catch((error) => {
-					console.error(
-						'[AI Hub Chat] Failed to send message:',
-						error
-					);
+					console.error('Failed to send message:', error);
 
 					setMessages((prev) => [
 						...prev,
