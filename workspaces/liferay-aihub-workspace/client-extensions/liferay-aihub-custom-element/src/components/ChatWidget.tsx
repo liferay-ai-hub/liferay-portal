@@ -65,7 +65,7 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 
 			setMessages((prev) => [
 				...prev,
-				{sender: 'assistant', text: dataJSON['data']},
+				{sender: 'assistant', text: dataJSON.data},
 			]);
 
 			setGenerating(false);
