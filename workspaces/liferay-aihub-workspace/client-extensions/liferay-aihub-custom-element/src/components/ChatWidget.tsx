@@ -113,12 +113,24 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 				widgetConfiguration.chatbotExternalReferenceCode,
 				eventSourceReference.current,
 				text
-			).catch((error) => {
-				console.error('[AI Hub Chat] Failed to send message:', error);
+			)
+				.then((response) => {
+					if (!response.ok) {
+						throw new Error('Failed to post message');
+					}
+				})
+				.catch((error) => {
+					console.error(
+						'[AI Hub Chat] Failed to send message:',
+						error
+					);
 
-				setMessages((prev) => [...prev, {sender: 'error', text: ''}]);
-				setGenerating(false);
-			});
+					setMessages((prev) => [
+						...prev,
+						{sender: 'error', text: ''},
+					]);
+					setGenerating(false);
+				});
 		},
 		[widgetConfiguration.chatbotExternalReferenceCode]
 	);
