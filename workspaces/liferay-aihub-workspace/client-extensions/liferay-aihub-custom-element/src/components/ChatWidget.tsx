@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {EventSource} from 'eventsource';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import {createEventSource, getChatbotConfig, postChatMessage} from '../api';
@@ -31,7 +30,6 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 	const [notificationDismissed, setNotificationDismissed] = useState(false);
 	const [open, setOpen] = useState(false);
 
-	const eventSourceRef = useRef<EventSource | null>(null);
 	const eventSourceReference = useRef<string | null>(null);
 	const generatingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
 		null
@@ -52,8 +50,6 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 		}
 
 		const eventSource = createEventSource();
-
-		eventSourceRef.current = eventSource;
 
 		eventSource.addEventListener('Chat Message Sent', (event) => {
 			if (generatingTimeoutRef.current) {
@@ -80,8 +76,7 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 				clearTimeout(generatingTimeoutRef.current);
 			}
 
-			eventSourceRef.current?.close();
-			eventSourceRef.current = null;
+			eventSource.close();
 		};
 	}, [chatbotConfig]);
 
