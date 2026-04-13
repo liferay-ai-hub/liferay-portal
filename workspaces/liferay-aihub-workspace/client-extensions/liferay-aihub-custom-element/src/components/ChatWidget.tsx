@@ -33,6 +33,9 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 
 	const eventSourceRef = useRef<EventSource | null>(null);
 	const eventSourceReference = useRef<string | null>(null);
+	const generatingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+		null
+	);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
@@ -53,6 +56,11 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 		eventSourceRef.current = eventSource;
 
 		eventSource.addEventListener('Chat Message Sent', (event) => {
+			if (generatingTimeoutRef.current) {
+				clearTimeout(generatingTimeoutRef.current);
+				generatingTimeoutRef.current = null;
+			}
+
 			const dataJSON = JSON.parse((event as MessageEvent).data);
 
 			setMessages((prev) => [
@@ -68,6 +76,10 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 		});
 
 		return () => {
+			if (generatingTimeoutRef.current) {
+				clearTimeout(generatingTimeoutRef.current);
+			}
+
 			eventSourceRef.current?.close();
 			eventSourceRef.current = null;
 		};
@@ -100,6 +112,14 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 					if (!response.ok) {
 						throw new Error('Failed to post message');
 					}
+
+					generatingTimeoutRef.current = setTimeout(() => {
+						setMessages((prev) => [
+							...prev,
+							{sender: 'error', text: ''},
+						]);
+						setGenerating(false);
+					}, 30000);
 				})
 				.catch((error) => {
 					console.error(
