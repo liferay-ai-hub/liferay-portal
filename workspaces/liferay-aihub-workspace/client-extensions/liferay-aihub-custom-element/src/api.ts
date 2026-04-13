@@ -11,10 +11,6 @@ const AI_HUB_ENDPOINT = '/o/ai-hub/v1.0';
 
 let aiHubURL = '';
 
-export function getAIHubURL() {
-	return aiHubURL;
-}
-
 export function setAIHubURL(url: string) {
 	aiHubURL = url;
 }
