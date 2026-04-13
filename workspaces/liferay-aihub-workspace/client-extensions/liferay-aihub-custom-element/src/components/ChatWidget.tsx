@@ -137,17 +137,15 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 		return null;
 	}
 
-	const title = chatbotConfig.title;
-
 	return (
 		<>
 			<div className={'aihub-panel' + (open ? ' open' : '')}>
-				<ChatHeader onClose={handleToggle} title={title} />
+				<ChatHeader onClose={handleToggle} title={chatbotConfig.title} />
 
 				<div className="aihub-messages">
 					<ChatIntro
 						introMessage={chatbotConfig.introMessage}
-						title={title}
+						title={chatbotConfig.title}
 					/>
 
 					{messages.map((msg, index) => {
