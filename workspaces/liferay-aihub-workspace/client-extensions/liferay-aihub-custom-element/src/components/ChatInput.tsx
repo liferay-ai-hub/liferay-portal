@@ -68,9 +68,6 @@ export default function ChatInput({
 			else if (event.key === 'Enter' && event.shiftKey) {
 				requestAnimationFrame(adjustHeight);
 			}
-			else {
-				event.stopPropagation();
-			}
 		},
 		[adjustHeight, handleSubmit]
 	);
