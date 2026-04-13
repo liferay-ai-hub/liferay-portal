@@ -47,6 +47,10 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 	}, [widgetConfiguration.chatbotExternalReferenceCode]);
 
 	useEffect(() => {
+		if (!chatbotConfig?.active) {
+			return;
+		}
+
 		const eventSource = createEventSource();
 
 		eventSourceRef.current = eventSource;
@@ -79,7 +83,7 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 			eventSourceRef.current?.close();
 			eventSourceRef.current = null;
 		};
-	}, []);
+	}, [chatbotConfig]);
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({behavior: 'smooth'});
