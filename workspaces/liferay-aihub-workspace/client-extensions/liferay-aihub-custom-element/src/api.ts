@@ -7,8 +7,6 @@ import {EventSource} from 'eventsource';
 
 import {ChatbotConfig} from './types';
 
-const AI_HUB_ENDPOINT = '/o/ai-hub/v1.0';
-
 let aiHubURL = '';
 
 export function setAIHubURL(url: string) {
@@ -42,7 +40,7 @@ export async function getChatbotConfig(
 }
 
 export function createEventSource(): EventSource {
-	return new EventSource(`${aiHubURL}${AI_HUB_ENDPOINT}/chats/subscribe`, {
+	return new EventSource(`${aiHubURL}/o/ai-hub/v1.0/chats/subscribe`, {
 		fetch: (input, init) =>
 			fetch(input as RequestInfo, {
 				...init,
@@ -60,7 +58,7 @@ export async function postChatMessage(
 	text: string
 ) {
 	return fetch(
-		`${aiHubURL}${AI_HUB_ENDPOINT}/chats/by-external-reference-code/${eventSourceReference}/messages`,
+		`${aiHubURL}/o/ai-hub/v1.0/chats/by-external-reference-code/${eventSourceReference}/messages`,
 		{
 			body: JSON.stringify({
 				chatbotExternalReferenceCode,
