@@ -11,13 +11,32 @@
 		"@types/react": "18.3.18",
 		"@types/react-dom": "18.3.5",
 		"@types/semver": "^7.7.1",
+		"@typescript-eslint/eslint-plugin": "^7.0.0",
+		"@typescript-eslint/parser": "^7.0.0",
 		"esbuild": "0.24.2",
+		"eslint-plugin-react": "^7.34.0",
 		"prettier": "^3.8.1",
 		"typescript": "5.7.3"
 	},
 	"eslintConfig": {
+		"extends": [
+			"plugin:react/recommended"
+		],
 		"globals": {
 			"Liferay": true
+		},
+		"parser": "@typescript-eslint/parser",
+		"parserOptions": {
+			"ecmaFeatures": {
+				"jsx": true
+			},
+			"ecmaVersion": 2020,
+			"sourceType": "module"
+		},
+		"settings": {
+			"react": {
+				"version": "18.3"
+			}
 		}
 	},
 	"name": "liferay-ai-hub-custom-element",
