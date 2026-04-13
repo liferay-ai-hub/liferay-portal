@@ -40,11 +40,7 @@ export default function ChatWidget({widgetConfiguration}: ChatWidgetProps) {
 
 	useEffect(() => {
 		getChatbotConfig(widgetConfiguration.chatbotExternalReferenceCode)
-			.then((result) => {
-				if (result) {
-					setChatbotConfig(result);
-				}
-			})
+			.then(setChatbotConfig)
 			.catch((error) => {
 				console.error('[AI Hub Chat] Error fetching config:', error);
 			});

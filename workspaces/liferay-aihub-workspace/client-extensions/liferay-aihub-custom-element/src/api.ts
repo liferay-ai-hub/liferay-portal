@@ -15,28 +15,23 @@ export function setAIHubURL(url: string) {
 
 export async function getChatbotConfig(
 	chatbotExternalReferenceCode: string
-): Promise<ChatbotConfig | undefined> {
-	try {
-		const response = await fetch(
-			`${aiHubURL}/o/ai-hub/chatbots/by-external-reference-code/${chatbotExternalReferenceCode}`,
-			{
-				headers: new Headers({
-					Accept: 'application/json',
-				}),
-			}
-		);
-
-		if (!response.ok) {
-			throw new Error(
-				`Unable to fetch chatbot config: ${response.statusText}`
-			);
+): Promise<ChatbotConfig> {
+	const response = await fetch(
+		`${aiHubURL}/o/ai-hub/chatbots/by-external-reference-code/${chatbotExternalReferenceCode}`,
+		{
+			headers: new Headers({
+				Accept: 'application/json',
+			}),
 		}
+	);
 
-		return (await response.json()) as ChatbotConfig;
+	if (!response.ok) {
+		throw new Error(
+			`Unable to fetch chatbot config: ${response.statusText}`
+		);
 	}
-	catch (error) {
-		console.warn('[AI Hub Chat]', (error as Error).message);
-	}
+
+	return (await response.json()) as ChatbotConfig;
 }
 
 export function createEventSource(): EventSource {
