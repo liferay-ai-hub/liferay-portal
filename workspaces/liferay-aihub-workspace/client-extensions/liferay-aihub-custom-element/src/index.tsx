@@ -10,7 +10,7 @@ import {setAIHubURL} from './api';
 import ChatbotWidget from './components/ChatbotWidget';
 import {WidgetConfiguration} from './types';
 
-import './widget.css';
+import './index.css';
 
 const WIDGET_ID = 'aihub-chat-widget';
 
