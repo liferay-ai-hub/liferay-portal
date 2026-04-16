@@ -94,7 +94,7 @@ export default function SidebarHeader({
 				{showDeleteButton && (
 					<ClayButtonWithIcon
 						aria-label={Liferay.Language.get('delete')}
-						className="text-secondary trash-button"
+						className="text-dark trash-button"
 						disabled={contentName === 'assignments'}
 						displayType="unstyled"
 						onClick={() => setShowDeleteConfirmationModal(true)}

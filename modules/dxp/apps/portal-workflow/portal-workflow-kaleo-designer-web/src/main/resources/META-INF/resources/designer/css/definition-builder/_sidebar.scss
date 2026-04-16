@@ -1,7 +1,15 @@
 .sidebar {
 	background: #fff;
-	border-left: 1px solid #e7e7ed;
-	width: 368px;
+	border: 1px solid #cdced9;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	max-height: calc(100% - 24px);
+	position: absolute;
+	right: 12px;
+	top: 12px;
+	width: 320px;
+	z-index: 5;
 
 	.tab-pane {
 		padding: 10px;
@@ -54,8 +62,9 @@
 	}
 
 	.sidebar-body {
-		overflow: hidden;
-		padding: 12px;
+		flex: 1;
+		overflow-y: auto;
+		padding: 16px;
 
 		.delete-button {
 			& svg {
@@ -71,6 +80,14 @@
 			display: flex;
 			justify-content: space-between;
 			width: 100%;
+		}
+
+		.panel-group {
+			margin-bottom: 0;
+
+			& + .panel-group {
+				margin-top: 24px;
+			}
 		}
 
 		.recipient-type-form-group {
@@ -159,23 +176,59 @@
 			display: flex;
 			margin-bottom: 1.5rem;
 		}
+
+		.form-group {
+			label {
+				color: #272833;
+				font-size: 12px;
+				font-weight: 600;
+				line-height: 1.5;
+			}
+
+			.form-control {
+				background-color: #f7f8f9;
+				border: 1px solid #e7e7ed;
+				border-radius: 8px;
+				font-size: 14px;
+
+				&:focus {
+					background-color: #fff;
+					border-color: #80acff;
+					box-shadow: 0 0 0 0.125rem rgba(11, 95, 255, 0.25);
+				}
+			}
+
+			textarea.form-control {
+				background-color: #f1f2f5;
+				border-radius: 4px;
+			}
+		}
 	}
 
 	.sidebar-header {
 		align-items: center;
-		border-bottom: 1px solid #e7e7ed;
 		display: flex;
-		height: 75px;
+		flex-shrink: 0;
+		padding: 16px;
 
 		.title {
 			color: #272833;
-			font-size: 20px;
-			font-weight: 700;
+			font-size: 18px;
+			font-weight: 600;
+			line-height: 1.5;
 
 			&:first-letter {
 				text-transform: capitalize;
 			}
 		}
+	}
+
+	.sidebar-description {
+		color: #6b6c7e;
+		font-size: 14px;
+		line-height: 1.5;
+		margin-top: -8px;
+		padding: 0 16px 16px;
 	}
 
 	.spaced-items {

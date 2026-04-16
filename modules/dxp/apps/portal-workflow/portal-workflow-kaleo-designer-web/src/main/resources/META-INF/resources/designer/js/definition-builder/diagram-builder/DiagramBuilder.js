@@ -562,10 +562,8 @@ export default function DiagramBuilder() {
 
 					<Controls showInteractive={false} />
 
-					<Background size={1} />
+					<Sidebar />
 				</div>
-
-				<Sidebar />
 			</div>
 		</DiagramBuilderContextProvider>
 	);

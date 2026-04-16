@@ -5,12 +5,13 @@
 .node {
 	align-items: center;
 	background: #fff;
-	border: 1px $light-l1 solid;
-	border-radius: 8px;
+	border: none;
+	border-radius: 16px;
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 	display: flex;
-	height: 74px;
+	height: 64px;
 	left: 18px;
-	padding: 18px 16px;
+	padding: 16px;
 	top: 18px;
 	width: 254px;
 
@@ -20,8 +21,7 @@
 
 	.node-icon {
 		align-items: center;
-		background: #f7f8f9;
-		border-radius: 4px;
+		border-radius: 8px;
 		display: flex;
 		height: 32px;
 		justify-content: center;
@@ -43,40 +43,101 @@
 		size: 14px;
 	}
 
-	&.ai-decision,
-	&.end-node,
-	&.llm-node,
 	&.start-node {
-		.node-icon svg {
-			fill: #4b9bff;
+		.node-icon {
+			background: #eafbf8;
+
+			svg {
+				fill: #24a892;
+			}
 		}
 	}
 
-	&.condition-node,
-	&.fork-node,
-	&.state-node {
-		.node-icon svg {
-			fill: #ffb46e;
+	&.end-node {
+		.node-icon {
+			background: #feefef;
+
+			svg {
+				fill: #f66;
+			}
+		}
+	}
+
+	&.fork-node {
+		.node-icon {
+			background: #fff4ec;
+
+			svg {
+				fill: #ff8f39;
+			}
+		}
+	}
+
+	&.condition-node {
+		.node-icon {
+			background: #fff4ec;
+
+			svg {
+				fill: #ff8f39;
+			}
 		}
 	}
 
 	&.join-node,
 	&.join-xor-node {
-		.node-icon svg {
-			fill: #7785ff;
+		.node-icon {
+			background: #e5e8ff;
+
+			svg {
+				fill: #4d5fff;
+			}
+		}
+	}
+
+	&.ai-decision {
+		.node-icon {
+			background: #f0f5ff;
+
+			svg {
+				fill: #0b5fff;
+			}
+		}
+	}
+
+	&.llm-node {
+		.node-icon {
+			background: #f0f5ff;
+
+			svg {
+				fill: #0b5fff;
+			}
+		}
+	}
+
+	&.state-node {
+		.node-icon {
+			background: #edf9f0;
+
+			svg {
+				fill: #5aca75;
+			}
 		}
 	}
 
 	&.task-node {
-		.node-icon svg {
-			fill: #50d2a0;
+		.node-icon {
+			background: #edf9f0;
+
+			svg {
+				fill: #5aca75;
+			}
 		}
 	}
 }
 
 .node-border-area {
-	border-radius: 4px;
-	height: 110px;
+	border-radius: 16px;
+	height: 100px;
 	opacity: 0.5;
 	width: 290px;
 
@@ -92,11 +153,12 @@
 }
 
 .node.selected {
-	border: 2px solid #80acff;
+	background: #f0f5ff;
+	border: 4px solid #5791ff;
 }
 
 .node-handle-area {
-	height: 110px;
+	height: 100px;
 	left: -18px;
 	position: absolute;
 	top: -18px;
@@ -104,7 +166,7 @@
 	z-index: -1;
 
 	.handles {
-		height: 110px;
+		height: 100px;
 		opacity: 0;
 		position: absolute;
 		width: 290px;

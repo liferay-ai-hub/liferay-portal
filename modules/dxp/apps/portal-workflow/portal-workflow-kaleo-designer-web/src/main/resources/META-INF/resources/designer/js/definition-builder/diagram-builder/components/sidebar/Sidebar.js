@@ -8,6 +8,7 @@ import {isEdge, isNode} from 'react-flow-renderer';
 
 import {DefinitionBuilderContext} from '../../../DefinitionBuilderContext';
 import {DiagramBuilderContext} from '../../DiagramBuilderContext';
+import {nodeDescription} from '../nodes/utils';
 import {DefinitionInfo} from './DefinitionInfo/DefinitionInfo';
 import SidebarBody from './SidebarBody';
 import SidebarHeader from './SidebarHeader';
@@ -239,6 +240,10 @@ export default function Sidebar() {
 
 	const content = contents[contentName];
 	const title = content?.title ?? Liferay.Language.get('nodes');
+	const description =
+		!showDefinitionInfo && contentName
+			? nodeDescription[contentName]
+			: null;
 
 	return (
 		<div className="sidebar">
@@ -257,6 +262,10 @@ export default function Sidebar() {
 				}
 				title={!showDefinitionInfo ? title : definitionTitle}
 			/>
+
+			{description && (
+				<div className="sidebar-description">{description}</div>
+			)}
 
 			<SidebarBody
 				displayDefaultContent={!content && !showDefinitionInfo}
