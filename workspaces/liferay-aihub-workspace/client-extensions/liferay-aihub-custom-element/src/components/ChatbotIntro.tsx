@@ -8,14 +8,27 @@ import React from 'react';
 import Logo from './Logo';
 
 interface ChatbotIntroProps {
+	companyLogo?: string;
 	introMessage: string;
 	title: string;
 }
 
-export default function ChatbotIntro({introMessage, title}: ChatbotIntroProps) {
+export default function ChatbotIntro({
+	companyLogo,
+	introMessage,
+	title,
+}: ChatbotIntroProps) {
 	return (
 		<div className="aihub-intro">
-			<Logo className="aihub-intro-logo" />
+			{companyLogo ? (
+				<img
+					alt={title}
+					className="aihub-intro-logo"
+					src={companyLogo}
+				/>
+			) : (
+				<Logo className="aihub-intro-logo" />
+			)}
 
 			<div className="aihub-intro-name">{title}</div>
 

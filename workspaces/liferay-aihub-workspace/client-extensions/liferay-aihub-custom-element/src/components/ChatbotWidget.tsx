@@ -175,12 +175,14 @@ export default function ChatbotWidget({
 				tabIndex={-1}
 			>
 				<ChatbotHeader
+					companyLogo={chatbotConfiguration.companyLogo?.fileURL}
 					onClose={handleToggle}
 					title={chatbotConfiguration.title}
 				/>
 
 				<div aria-live="polite" className="aihub-messages">
 					<ChatbotIntro
+						companyLogo={chatbotConfiguration.companyLogo?.fileURL}
 						introMessage={chatbotConfiguration.introMessage}
 						title={chatbotConfiguration.title}
 					/>
@@ -188,7 +190,15 @@ export default function ChatbotWidget({
 					{messages.map((msg, index) => {
 						if (msg.sender === 'assistant') {
 							return (
-								<AssistantMessage key={index} text={msg.text} />
+								<AssistantMessage
+									companyLogo={
+										chatbotConfiguration.companyLogo
+											?.fileURL
+									}
+									key={index}
+									text={msg.text}
+									title={chatbotConfiguration.title}
+								/>
 							);
 						}
 

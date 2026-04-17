@@ -98,7 +98,7 @@ export default function ChatbotForm({
 	const [selectedAgentDefinitions, setSelectedAgentDefinitions] = useState<
 		AgentDefinitionOption[]
 	>([]);
-		const [
+	const [
 		originalSelectedAgentDefinitions,
 		setOriginalSelectedAgentDefinitions,
 	] = useState<AgentDefinitionOption[]>([]);
@@ -233,7 +233,6 @@ export default function ChatbotForm({
 						chatbotExternalReferenceCode,
 						agent.externalReferenceCode
 					)
-
 				)
 			);
 
@@ -312,7 +311,6 @@ export default function ChatbotForm({
 
 				setSelectedAgentDefinitions(agentDefinitions);
 				setOriginalSelectedAgentDefinitions(agentDefinitions);
-
 			}
 			catch (error) {
 				openToast({
@@ -546,7 +544,6 @@ export default function ChatbotForm({
 											}
 											spritemap={Liferay.Icons.spritemap}
 										/>
-
 									</ClayForm.Group>
 
 									<ClayForm.Group>

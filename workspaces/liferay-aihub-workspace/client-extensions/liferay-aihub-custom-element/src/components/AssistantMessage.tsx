@@ -9,14 +9,28 @@ import ReactMarkdown from 'react-markdown';
 import {StarsIcon} from './Icons';
 
 interface AssistantMessageProps {
+	companyLogo?: string;
 	text: string;
+	title: string;
 }
 
-export default function AssistantMessage({text}: AssistantMessageProps) {
+export default function AssistantMessage({
+	companyLogo,
+	text,
+	title,
+}: AssistantMessageProps) {
 	return (
 		<div className="aihub-msg-assistant">
 			<div className="aihub-msg-assistant-icon">
-				<StarsIcon />
+				{companyLogo ? (
+					<img
+						alt={title}
+						className="aihub-msg-assistant-company-logo"
+						src={companyLogo}
+					/>
+				) : (
+					<StarsIcon />
+				)}
 			</div>
 
 			<div className="aihub-msg-assistant-text">
