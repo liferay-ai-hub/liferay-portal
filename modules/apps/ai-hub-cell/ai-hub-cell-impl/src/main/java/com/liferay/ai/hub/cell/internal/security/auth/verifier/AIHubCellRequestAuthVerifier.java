@@ -28,7 +28,7 @@ import org.osgi.service.component.annotations.Component;
  * @author Rafael Praxedes
  */
 @Component(
-	property = "auth.verifier.AIHubCellRequestAuthVerifier.urls.includes=*",
+	property = "auth.verifier.AIHubCellRequestAuthVerifier.urls.includes=/o/ai-hub-cell/*,/o/search/*",
 	service = AuthVerifier.class
 )
 public class AIHubCellRequestAuthVerifier implements AuthVerifier {
