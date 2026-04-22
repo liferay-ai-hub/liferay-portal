@@ -12,13 +12,21 @@ import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.ai.hub.rest.dto.v1_0.ProvisioningRequest;
 import com.liferay.ai.hub.rest.resource.v1_0.ProvisioningRequestResource;
 import com.liferay.headless.common.spi.service.context.ServiceContextBuilder;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+
+import java.io.Serializable;
 
 import java.util.Calendar;
 
@@ -69,6 +77,8 @@ public class ProvisioningRequestResourceImpl
 				customerAccountEntry.getAccountEntryId()
 			},
 			new long[0], serviceAccountUser.getUserId());
+
+		_getOrAddTokenUsageLimit(customerAccountEntry, serviceContext);
 	}
 
 	private AccountEntry _getOrAddAccountEntry(
@@ -88,6 +98,45 @@ public class ProvisioningRequestResourceImpl
 			AccountConstants.PARENT_ACCOUNT_ENTRY_ID_DEFAULT, name, null, null,
 			null, null, null, AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
+	}
+
+	private void _getOrAddTokenUsageLimit(
+			AccountEntry accountEntry, ServiceContext serviceContext)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_AI_HUB_TOKEN_USAGE_LIMIT",
+					contextCompany.getCompanyId());
+
+		String externalReferenceCode =
+			"TOKEN_LIMIT-" + accountEntry.getExternalReferenceCode();
+
+		ObjectEntry existingObjectEntry =
+			_objectEntryLocalService.fetchObjectEntry(
+				externalReferenceCode, 0,
+				objectDefinition.getObjectDefinitionId());
+
+		if (existingObjectEntry != null) {
+			return;
+		}
+
+		_objectEntryLocalService.addObjectEntry(
+			0, contextUser.getUserId(),
+			objectDefinition.getObjectDefinitionId(), 0,
+			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+			HashMapBuilder.<String, Serializable>put(
+				"externalReferenceCode", externalReferenceCode
+			).put(
+				"maxTokens", 30000000
+			).put(
+				"r_accountToTokenUsageLimits_accountEntryId",
+				accountEntry.getAccountEntryId()
+			).put(
+				"tokensUsed", 0
+			).build(),
+			serviceContext);
 	}
 
 	private User _getOrAddUser(String screenName, ServiceContext serviceContext)
@@ -120,6 +169,12 @@ public class ProvisioningRequestResourceImpl
 
 	@Reference
 	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

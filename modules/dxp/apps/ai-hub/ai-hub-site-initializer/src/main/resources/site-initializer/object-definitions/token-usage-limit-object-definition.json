@@ -1,0 +1,79 @@
+{
+	"accountEntryRestricted": true,
+	"accountEntryRestrictedObjectFieldName": "r_accountToTokenUsageLimits_accountEntryId",
+	"className": "com.liferay.object.model.ObjectDefinition#TUL1",
+	"enableFormContainer": false,
+	"enableIndexSearch": true,
+	"externalReferenceCode": "L_AI_HUB_TOKEN_USAGE_LIMIT",
+	"friendlyURLSeparator": "l",
+	"label": {
+		"en_US": "Token Usage Limit"
+	},
+	"modifiable": true,
+	"name": "AIHubTokenUsageLimit",
+	"objectFields": [
+		{
+			"DBType": "Long",
+			"businessType": "Integer",
+			"defaultValue": "1000000",
+			"externalReferenceCode": "MAX_TOKENS",
+			"indexed": true,
+			"label": {
+				"en_US": "Max Tokens"
+			},
+			"name": "maxTokens",
+			"required": true,
+			"system": true,
+			"type": "Long"
+		},
+		{
+			"DBType": "Long",
+			"businessType": "Integer",
+			"defaultValue": "0",
+			"externalReferenceCode": "TOKENS_USED",
+			"indexed": true,
+			"label": {
+				"en_US": "Tokens Used"
+			},
+			"name": "tokensUsed",
+			"readOnly": "true",
+			"system": true,
+			"type": "Long"
+		},
+		{
+			"DBType": "Long",
+			"businessType": "Relationship",
+			"externalReferenceCode": "ACCOUNT_TO_TOKEN_USAGE_LIMITS",
+			"indexed": true,
+			"label": {
+				"en_US": "Account to Token Usage Limits"
+			},
+			"name": "r_accountToTokenUsageLimits_accountEntryId",
+			"objectDefinitionExternalReferenceCode1": "L_ACCOUNT",
+			"objectFieldSettings": [
+				{
+					"name": "objectDefinition1ShortName",
+					"value": "AccountEntry"
+				},
+				{
+					"name": "objectRelationshipERCObjectFieldName",
+					"value": "r_accountToTokenUsageLimits_accountEntryERC"
+				}
+			],
+			"objectRelationshipExternalReferenceCode": "L_ACCOUNT_TO_L_AI_HUB_TOKEN_USAGE_LIMITS",
+			"readOnly": "false",
+			"relationshipType": "oneToMany",
+			"required": true,
+			"system": true,
+			"type": "Long"
+		}
+	],
+	"objectFolderExternalReferenceCode": "default",
+	"panelCategoryKey": "control_panel.object",
+	"pluralLabel": {
+		"en_US": "Token Usage Limits"
+	},
+	"portlet": true,
+	"scope": "company",
+	"system": true
+}
