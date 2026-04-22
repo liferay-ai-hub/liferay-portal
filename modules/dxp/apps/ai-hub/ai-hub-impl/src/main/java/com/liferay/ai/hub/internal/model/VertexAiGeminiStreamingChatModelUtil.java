@@ -9,14 +9,19 @@ import com.liferay.ai.hub.internal.configuration.VertexAIConfiguration;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 
+import dev.langchain4j.model.chat.listener.ChatModelListener;
 import dev.langchain4j.model.vertexai.gemini.VertexAiGeminiStreamingChatModel;
+
+import java.util.List;
 
 /**
  * @author João Victor Alves
  */
 public class VertexAiGeminiStreamingChatModelUtil {
 
-	public static VertexAiGeminiStreamingChatModel create(long companyId)
+	public static VertexAiGeminiStreamingChatModel create(
+			List<ChatModelListener> chatModelListeners, long companyId,
+			Integer maxOutputTokens)
 		throws ConfigurationException {
 
 		VertexAIConfiguration vertexAIConfiguration =
@@ -24,8 +29,12 @@ public class VertexAiGeminiStreamingChatModelUtil {
 				VertexAIConfiguration.class, companyId);
 
 		return VertexAiGeminiStreamingChatModel.builder(
+		).listeners(
+			chatModelListeners
 		).location(
 			vertexAIConfiguration.location()
+		).maxOutputTokens(
+			maxOutputTokens
 		).modelName(
 			vertexAIConfiguration.modelName()
 		).project(

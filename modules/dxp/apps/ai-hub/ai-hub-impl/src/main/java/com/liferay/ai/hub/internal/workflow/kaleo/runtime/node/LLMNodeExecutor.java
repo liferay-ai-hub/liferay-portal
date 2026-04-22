@@ -12,6 +12,7 @@ import com.liferay.ai.hub.internal.model.VertexAiGeminiStreamingChatModelUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.KaleoLogUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.PromptUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.RetrievalAugmentorUtil;
+import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.TokenUsageUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.ToolsUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.VariablesUtil;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
@@ -106,12 +107,18 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 
 		ServiceContext serviceContext = executionContext.getServiceContext();
 
-		VertexAiGeminiStreamingChatModel vertexAiGeminiStreamingChatModel =
-			VertexAiGeminiStreamingChatModelUtil.create(
-				serviceContext.getCompanyId());
-
 		Map<String, Serializable> workflowContext =
 			executionContext.getWorkflowContext();
+
+		VertexAiGeminiStreamingChatModel vertexAiGeminiStreamingChatModel =
+			VertexAiGeminiStreamingChatModelUtil.create(
+				TokenUsageUtil.createTokenUsageListeners(
+					serviceContext.getCompanyId(), serviceContext,
+					serviceContext.getUserId()),
+				serviceContext.getCompanyId(),
+				TokenUsageUtil.computeMaxOutputTokens(
+					serviceContext.getCompanyId(), prompt,
+					serviceContext.getUserId(), userMessage));
 
 		AtomicReference<ChatResponse> chatResponseAtomicReference =
 			new AtomicReference<>();
