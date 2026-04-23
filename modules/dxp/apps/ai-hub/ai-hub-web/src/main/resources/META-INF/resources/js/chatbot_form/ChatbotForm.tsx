@@ -552,6 +552,7 @@ export default function ChatbotForm({
 
 									<button
 										className="chatbot-code-copy"
+										disabled={!serviceURL}
 										onClick={handleCopyEmbedCode}
 										type="button"
 									>
@@ -572,7 +573,8 @@ export default function ChatbotForm({
 										className="chatbot-code-textarea form-control"
 										readOnly
 										value={
-											formData.externalReferenceCode
+											formData.externalReferenceCode &&
+											serviceURL
 												? generateEmbedCode(
 														formData.externalReferenceCode,
 														serviceURL

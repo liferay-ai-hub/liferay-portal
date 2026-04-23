@@ -9,7 +9,7 @@ import com.liferay.account.model.AccountEntry;
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.ai.hub.util.AccountEntryUtil;
 import com.liferay.ai.hub.web.internal.util.ActionUtil;
-import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -23,7 +23,11 @@ import java.util.Map;
  */
 public class EditChatbotDisplayContext {
 
-	public EditChatbotDisplayContext(HttpServletRequest httpServletRequest) {
+	public EditChatbotDisplayContext(
+		ConfigurationProvider configurationProvider,
+		HttpServletRequest httpServletRequest) {
+
+		_configurationProvider = configurationProvider;
 		_httpServletRequest = httpServletRequest;
 
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
@@ -51,12 +55,13 @@ public class EditChatbotDisplayContext {
 			_httpServletRequest.getParameter("externalReferenceCode")
 		).put(
 			"serviceURL",
-			ConfigurationProviderUtil.getCompanyConfiguration(
+			_configurationProvider.getCompanyConfiguration(
 				AIHubCellConfiguration.class, _themeDisplay.getCompanyId()
 			).serviceURL()
 		).build();
 	}
 
+	private final ConfigurationProvider _configurationProvider;
 	private final HttpServletRequest _httpServletRequest;
 	private final ThemeDisplay _themeDisplay;
 
