@@ -6,8 +6,10 @@
 package com.liferay.ai.hub.web.internal.display.context;
 
 import com.liferay.account.model.AccountEntry;
+import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.ai.hub.util.AccountEntryUtil;
 import com.liferay.ai.hub.web.internal.util.ActionUtil;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -47,6 +49,11 @@ public class EditChatbotDisplayContext {
 		).put(
 			"externalReferenceCode",
 			_httpServletRequest.getParameter("externalReferenceCode")
+		).put(
+			"serviceURL",
+			ConfigurationProviderUtil.getCompanyConfiguration(
+				AIHubCellConfiguration.class, _themeDisplay.getCompanyId()
+			).serviceURL()
 		).build();
 	}
 
