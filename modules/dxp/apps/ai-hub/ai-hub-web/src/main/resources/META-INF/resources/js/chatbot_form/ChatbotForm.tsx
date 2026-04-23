@@ -32,9 +32,9 @@ type AgentDefinitionOption = {
 	title: string;
 };
 
-function generateEmbedCode(externalReferenceCode: string) {
+function generateEmbedCode(externalReferenceCode: string, serviceURL: string) {
 	return `
-<link href="https://ai.hub.liferay.com/index-css" rel="stylesheet">
+<link href="${serviceURL}/documents/d/global/index-css" rel="stylesheet">
 
 <script>
 	(function () {
@@ -46,9 +46,9 @@ function generateEmbedCode(externalReferenceCode: string) {
 			var scriptElement = document.createElement('script');
 
 			scriptElement.id = 'aihub-chatbot-widget-script';
-			scriptElement.setAttribute('ai-hub-url', 'https://ai.hub.liferay.com');
+			scriptElement.setAttribute('ai-hub-url', '${serviceURL}');
 			scriptElement.setAttribute('chatbot-external-reference-code', '${externalReferenceCode}');
-			scriptElement.src = 'https://ai.hub.liferay.com/index-js';
+			scriptElement.src = '${serviceURL}/documents/d/global/index-js';
 
 			document.body.appendChild(scriptElement);
 		}
@@ -83,10 +83,12 @@ export default function ChatbotForm({
 	accountEntryExternalReferenceCode,
 	backURL,
 	externalReferenceCode,
+	serviceURL,
 }: {
 	accountEntryExternalReferenceCode: string;
 	backURL: string;
 	externalReferenceCode: string;
+	serviceURL: string;
 }) {
 	const [formData, setFormData] = useState<Chatbot>({} as Chatbot);
 	const [
@@ -113,7 +115,10 @@ export default function ChatbotForm({
 	};
 
 	const handleCopyEmbedCode = () => {
-		const code = generateEmbedCode(formData.externalReferenceCode);
+		const code = generateEmbedCode(
+			formData.externalReferenceCode,
+			serviceURL
+		);
 
 		navigator.clipboard.writeText(code).then(() => {
 			openToast({
@@ -569,7 +574,8 @@ export default function ChatbotForm({
 										value={
 											formData.externalReferenceCode
 												? generateEmbedCode(
-														formData.externalReferenceCode
+														formData.externalReferenceCode,
+														serviceURL
 													)
 												: ''
 										}
