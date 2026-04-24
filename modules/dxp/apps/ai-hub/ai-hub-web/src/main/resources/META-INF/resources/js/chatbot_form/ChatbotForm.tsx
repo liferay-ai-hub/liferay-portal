@@ -32,9 +32,8 @@ type AgentDefinitionOption = {
 	title: string;
 };
 
-function generateEmbedCode(externalReferenceCode: string, serviceURL: string) {
-	return `
-<link href="${serviceURL}/documents/d/global/index-css" rel="stylesheet">
+const EMBED_CODE_TEMPLATE = `
+<link href="[$SERVICE_URL$]/documents/d/global/index-css" rel="stylesheet">
 
 <script>
 	(function () {
@@ -46,9 +45,9 @@ function generateEmbedCode(externalReferenceCode: string, serviceURL: string) {
 			var scriptElement = document.createElement('script');
 
 			scriptElement.id = 'aihub-chatbot-widget-script';
-			scriptElement.setAttribute('ai-hub-url', '${serviceURL}');
-			scriptElement.setAttribute('chatbot-external-reference-code', '${externalReferenceCode}');
-			scriptElement.src = '${serviceURL}/documents/d/global/index-js';
+			scriptElement.setAttribute('ai-hub-url', '[$SERVICE_URL$]');
+			scriptElement.setAttribute('chatbot-external-reference-code', '[$EXTERNAL_REFERENCE_CODE$]');
+			scriptElement.src = '[$SERVICE_URL$]/documents/d/global/index-js';
 
 			document.body.appendChild(scriptElement);
 		}
@@ -61,6 +60,12 @@ function generateEmbedCode(externalReferenceCode: string, serviceURL: string) {
 		}
 	})();
 </script>`;
+
+function generateEmbedCode(externalReferenceCode: string, serviceURL: string) {
+	return EMBED_CODE_TEMPLATE.replaceAll(
+		'[$SERVICE_URL$]',
+		serviceURL
+	).replaceAll('[$EXTERNAL_REFERENCE_CODE$]', externalReferenceCode);
 }
 
 const availableAgentDefinitions = await (async () => {
