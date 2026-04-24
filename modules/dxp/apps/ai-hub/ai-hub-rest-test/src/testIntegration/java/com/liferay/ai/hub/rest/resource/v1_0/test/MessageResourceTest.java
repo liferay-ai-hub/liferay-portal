@@ -41,6 +41,10 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowInstanceManager;
+import com.liferay.portal.search.test.util.IdempotentRetryAssert;
+import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LogEntry;
+import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.site.initializer.SiteInitializer;
@@ -174,6 +178,158 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 		String firstMessageSent = lines.get(5);
 
 		Assert.assertTrue(firstMessageSent, firstMessageSent.contains(text));
+	}
+
+	@Test
+	public void testPostChatByExternalReferenceCodeMessageWithTokenUsageLimit()
+		throws Exception {
+
+		String customerName = RandomTestUtil.randomString();
+
+		JSONObject tokenJSONObject = TokenTestUtil.postToken();
+
+		HTTPTestUtil.invokeToJSONObject(
+			JSONUtil.put(
+				"customerName", customerName
+			).toString(),
+			"ai-hub/v1.0/provisioning",
+			HashMapBuilder.put(
+				"Authorization",
+				"Bearer " + tokenJSONObject.getString("accessToken")
+			).put(
+				"Liferay-AI-Hub-Cell-On-Behalf-Of",
+				tokenJSONObject.getString("userToken")
+			).build(),
+			Http.Method.POST);
+
+		AccountEntry customerAccountEntry =
+			_accountEntryLocalService.getAccountEntryByExternalReferenceCode(
+				customerName, TestPropsValues.getCompanyId());
+
+		ObjectDefinition tokenUsageLimitObjectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_AI_HUB_TOKEN_USAGE_LIMIT",
+					TestPropsValues.getCompanyId());
+
+		ObjectEntry tokenUsageLimitObjectEntry =
+			_objectEntryLocalService.fetchObjectEntry(
+				"TOKEN_LIMIT-" + customerName, 0,
+				tokenUsageLimitObjectDefinition.getObjectDefinitionId());
+
+		_objectEntryLocalService.partialUpdateObjectEntry(
+			TestPropsValues.getUserId(),
+			tokenUsageLimitObjectEntry.getObjectEntryId(), 0,
+			HashMapBuilder.<String, Serializable>put(
+				"maxTokens", 600
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+
+		String chatbotExternalReferenceCode = RandomTestUtil.randomString();
+
+		ObjectDefinition chatbotObjectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_AI_HUB_CHATBOT", TestPropsValues.getCompanyId());
+
+		ObjectEntry chatbotObjectEntry =
+			_objectEntryLocalService.addObjectEntry(
+				0, TestPropsValues.getUserId(),
+				chatbotObjectDefinition.getObjectDefinitionId(), 0,
+				LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+				HashMapBuilder.<String, Serializable>put(
+					"externalReferenceCode", chatbotExternalReferenceCode
+				).put(
+					"r_accountToAIHubChatbots_accountEntryId",
+					customerAccountEntry.getAccountEntryId()
+				).put(
+					"title_i18n",
+					HashMapBuilder.put(
+						LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+						RandomTestUtil.randomString()
+					).build()
+				).build(),
+				ServiceContextTestUtil.getServiceContext(
+					TestPropsValues.getGroupId(), TestPropsValues.getUserId()));
+
+		ObjectDefinition agentDefinitionObjectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_AI_HUB_AGENT_DEFINITION",
+					TestPropsValues.getCompanyId());
+
+		ObjectEntry agentDefinitionObjectEntry =
+			_objectEntryLocalService.getObjectEntry(
+				"L_MAKE_SHORTER", 0L,
+				agentDefinitionObjectDefinition.getObjectDefinitionId());
+
+		ObjectRelationshipTestUtil.relateObjectEntries(
+			agentDefinitionObjectEntry.getObjectEntryId(),
+			chatbotObjectEntry.getObjectEntryId(),
+			_objectRelationshipLocalService.
+				fetchObjectRelationshipByExternalReferenceCode(
+					"L_AI_HUB_AGENT_DEFINITIONS_TO_L_AI_HUB_CHATBOTS",
+					agentDefinitionObjectDefinition.getObjectDefinitionId()),
+			TestPropsValues.getUserId());
+
+		CountDownLatch countDownLatch1 = new CountDownLatch(4);
+		CountDownLatch countDownLatch2 = new CountDownLatch(6);
+
+		String sseEventSinkKey = SseEventSourceTestUtil.open(
+			List.of(countDownLatch1, countDownLatch2), new ArrayList<>(),
+			"chats/subscribe");
+
+		HTTPTestUtil.customize(
+		).withGuest(
+		).apply(
+			() -> {
+				_postChatMessageAsGuest(
+					chatbotExternalReferenceCode,
+					"This is a long and detailed sentence that should be " +
+						"shortened by the AI model for testing purposes.",
+					sseEventSinkKey);
+
+				Assert.assertTrue(countDownLatch1.await(10, TimeUnit.SECONDS));
+
+				try (LogCapture logCapture =
+						LoggerTestUtil.configureLog4JLogger(
+							"com.liferay.portal.workflow.kaleo.runtime." +
+								"internal.petra.executor." +
+									"GraphWalkerPortalExecutor",
+							LoggerTestUtil.DEBUG)) {
+
+					_postChatMessageAsGuest(
+						chatbotExternalReferenceCode,
+						"This is a long and detailed sentence that should be " +
+							"shortened by the AI model for testing purposes.",
+						sseEventSinkKey);
+
+					IdempotentRetryAssert.retryAssert(
+						20, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
+						() -> {
+							List<LogEntry> entries = logCapture.getLogEntries();
+
+							Assert.assertFalse(entries.isEmpty());
+
+							LogEntry logEntry = entries.get(0);
+
+							Throwable throwable = logEntry.getThrowable();
+
+							String message = throwable.getMessage();
+
+							Assert.assertTrue(
+								message.contains(
+									"Input tokens exceed remaining token " +
+										"budget"));
+
+							return null;
+						});
+
+					Assert.assertTrue(
+						countDownLatch2.await(10, TimeUnit.SECONDS));
+				}
+			}
+		);
 	}
 
 	@Test
@@ -325,6 +481,22 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 				"Liferay-AI-Hub-Cell-On-Behalf-Of",
 				tokenJSONObject.getString("userToken")
 			).build(),
+			Http.Method.POST);
+	}
+
+	private JSONObject _postChatMessageAsGuest(
+			String chatbotExternalReferenceCode, String inputText,
+			String sseEventSinkKey)
+		throws Exception {
+
+		return HTTPTestUtil.invokeToJSONObject(
+			JSONUtil.put(
+				"chatbotExternalReferenceCode", chatbotExternalReferenceCode
+			).put(
+				"text", inputText
+			).toString(),
+			"ai-hub/v1.0/chats/by-external-reference-code/" + sseEventSinkKey +
+				"/messages",
 			Http.Method.POST);
 	}
 
