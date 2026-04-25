@@ -13,10 +13,12 @@
 			return;
 		}
 
+		var aihubServiceURL = '<%= clickToChatAIHubServiceURL %>';
+		var chatProviderAccountId = '<%= clickToChatChatProviderAccountId %>';
+
 		var linkElement = document.createElement('link');
 
-		linkElement.href =
-			'<%= clickToChatAIHubServiceURL %>/documents/d/global/index-css';
+		linkElement.href = aihubServiceURL + '/documents/d/global/index-css';
 		linkElement.rel = 'stylesheet';
 
 		document.head.appendChild(linkElement);
@@ -24,15 +26,11 @@
 		var scriptElement = document.createElement('script');
 
 		scriptElement.id = 'aihub-chatbot-widget-script';
-		scriptElement.src =
-			'<%= clickToChatAIHubServiceURL %>/documents/d/global/index-js';
-		scriptElement.setAttribute(
-			'ai-hub-url',
-			'<%= clickToChatAIHubServiceURL %>'
-		);
+		scriptElement.src = aihubServiceURL + '/documents/d/global/index-js';
+		scriptElement.setAttribute('ai-hub-url', aihubServiceURL);
 		scriptElement.setAttribute(
 			'chatbot-external-reference-code',
-			'<%= clickToChatChatProviderAccountId %>'
+			chatProviderAccountId
 		);
 
 		document.body.appendChild(scriptElement);
