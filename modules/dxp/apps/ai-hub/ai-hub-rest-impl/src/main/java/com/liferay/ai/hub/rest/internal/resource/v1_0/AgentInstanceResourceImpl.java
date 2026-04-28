@@ -5,6 +5,7 @@
 
 package com.liferay.ai.hub.rest.internal.resource.v1_0;
 
+import com.liferay.ai.hub.agent.OnBehalfOfTokenValidator;
 import com.liferay.ai.hub.rest.dto.v1_0.AgentDefinition;
 import com.liferay.ai.hub.rest.dto.v1_0.AgentInstance;
 import com.liferay.ai.hub.rest.manager.v1_0.AgentDefinitionManager;
@@ -104,8 +105,8 @@ public class AgentInstanceResourceImpl extends BaseAgentInstanceResourceImpl {
 				"userToken",
 				_encryptor.encrypt(
 					contextCompany.getKeyObj(),
-					contextHttpServletRequest.getHeader(
-						"Liferay-AI-Hub-Cell-On-Behalf-Of"))
+					_onBehalfOfTokenValidator.validate(
+						contextHttpServletRequest))
 			).build();
 
 		MapUtil.isNotEmptyForEach(
@@ -145,6 +146,9 @@ public class AgentInstanceResourceImpl extends BaseAgentInstanceResourceImpl {
 
 	@Reference
 	private Encryptor _encryptor;
+
+	@Reference
+	private OnBehalfOfTokenValidator _onBehalfOfTokenValidator;
 
 	@Context
 	private Sse _sse;
