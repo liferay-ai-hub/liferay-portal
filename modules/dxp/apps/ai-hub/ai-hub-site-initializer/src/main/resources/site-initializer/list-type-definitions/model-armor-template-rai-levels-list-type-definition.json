@@ -1,0 +1,31 @@
+{
+	"externalReferenceCode": "L_AI_HUB_MODEL_ARMOR_TEMPLATE_RAI_LEVELS",
+	"listTypeEntries": [
+		{
+			"externalReferenceCode": "NONE",
+			"key": "none",
+			"name": "None",
+			"system": true
+		},
+		{
+			"externalReferenceCode": "LOW_AND_ABOVE",
+			"key": "lowAndAbove",
+			"name": "Low and Above",
+			"system": true
+		},
+		{
+			"externalReferenceCode": "MEDIUM_AND_ABOVE",
+			"key": "mediumAndAbove",
+			"name": "Medium and Above",
+			"system": true
+		},
+		{
+			"externalReferenceCode": "HIGH",
+			"key": "high",
+			"name": "High",
+			"system": true
+		}
+	],
+	"name": "AI Hub Model Armor Template RAI Levels",
+	"system": true
+}
