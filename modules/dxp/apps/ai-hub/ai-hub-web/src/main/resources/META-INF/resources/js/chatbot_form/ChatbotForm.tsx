@@ -12,8 +12,9 @@ import ClayMultiSelect from '@clayui/multi-select';
 import ClayPanel from '@clayui/panel';
 import {Provider} from '@clayui/provider';
 import {openToast} from '@liferay/object-js-components-web';
-import {InputLocalized, openSelectionModal} from 'frontend-js-components-web';
-import React, {useEffect, useState} from 'react';
+import {InputLocalized} from 'frontend-js-components-web';
+import {sub} from 'frontend-js-web';
+import React, {useEffect, useRef, useState} from 'react';
 
 import './ChatbotForm.scss';
 import {getAgentDefinitions} from '../agent_definition_form/services/AgentDefinitionService';
@@ -63,6 +64,21 @@ function generateEmbedCode(externalReferenceCode: string) {
 </script>`;
 }
 
+function readFileAsBase64(file: File): Promise<string> {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+
+		reader.onerror = () => reject(reader.error);
+		reader.onload = () => {
+			const dataUrl = reader.result as string;
+
+			resolve(dataUrl.substring(dataUrl.indexOf(',') + 1));
+		};
+
+		reader.readAsDataURL(file);
+	});
+}
+
 const availableAgentDefinitions = await (async () => {
 	try {
 		const response = await getAgentDefinitions();
@@ -82,13 +98,17 @@ const availableAgentDefinitions = await (async () => {
 export default function ChatbotForm({
 	accountEntryExternalReferenceCode,
 	backURL,
+	companyLogoAcceptedFileExtensions,
+	companyLogoMaximumFileSize,
+	companyLogoUploadTip,
 	externalReferenceCode,
-	itemSelectorURL,
 }: {
 	accountEntryExternalReferenceCode: string;
 	backURL: string;
+	companyLogoAcceptedFileExtensions: string;
+	companyLogoMaximumFileSize: number;
+	companyLogoUploadTip: string;
 	externalReferenceCode: string;
-	itemSelectorURL: string;
 }) {
 	const [formData, setFormData] = useState<Chatbot>({} as Chatbot);
 	const [
@@ -102,6 +122,8 @@ export default function ChatbotForm({
 		originalSelectedAgentDefinitions,
 		setOriginalSelectedAgentDefinitions,
 	] = useState<AgentDefinitionOption[]>([]);
+	const [companyLogoChanged, setCompanyLogoChanged] = useState(false);
+	const companyLogoInputRef = useRef<HTMLInputElement>(null);
 
 	const handleInputChange = (
 		event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -115,33 +137,58 @@ export default function ChatbotForm({
 	};
 
 	const handleSelectCompanyLogo = () => {
-		openSelectionModal({
-			onClose: () => {},
-			onSelect: (selectedItem: any) => {
-				if (selectedItem?.value) {
-					try {
-						const fileEntry = JSON.parse(selectedItem.value);
+		const fileInput = companyLogoInputRef.current;
 
-						setFormData((prev) => ({
-							...prev,
-							companyLogo: fileEntry.fileEntryId,
-							companyLogoFileName: fileEntry.title,
-						}));
-					}
-					catch (error) {
-						openToast({
-							message: Liferay.Language.get(
-								'an-unexpected-error-occurred'
-							),
-							type: 'danger',
-						});
-					}
-				}
-			},
-			selectEventName: 'selectDocument',
-			title: Liferay.Language.get('select-company-logo'),
-			url: itemSelectorURL,
-		});
+		if (fileInput) {
+			fileInput.value = '';
+			fileInput.click();
+		}
+	};
+
+	const handleCompanyLogoChange = async (
+		event: React.ChangeEvent<HTMLInputElement>
+	) => {
+		const file = event.target.files?.[0];
+
+		if (!file) {
+			return;
+		}
+
+		if (file.size > companyLogoMaximumFileSize) {
+			openToast({
+				message: sub(
+					Liferay.Language.get(
+						'please-enter-a-file-with-a-valid-file-size-no-larger-than-x'
+					),
+					`${companyLogoMaximumFileSize / 1048576} MB`
+				),
+				type: 'danger',
+			});
+
+			return;
+		}
+
+		try {
+			const fileBase64 = await readFileAsBase64(file);
+
+			setFormData((prev) => ({
+				...prev,
+				companyLogo: {
+					fileBase64,
+					mimeType: file.type,
+					name: file.name,
+				},
+				companyLogoFileName: file.name,
+			}));
+
+			setCompanyLogoChanged(true);
+		}
+		catch (error) {
+			openToast({
+				message: Liferay.Language.get('an-unexpected-error-occurred'),
+				type: 'danger',
+			});
+		}
 	};
 
 	const handleClearCompanyLogo = () => {
@@ -150,6 +197,8 @@ export default function ChatbotForm({
 			companyLogo: null,
 			companyLogoFileName: undefined,
 		}));
+
+		setCompanyLogoChanged(true);
 
 		openToast({
 			message: Liferay.Language.get('company-logo-cleared'),
@@ -172,7 +221,6 @@ export default function ChatbotForm({
 		try {
 			const payload = {
 				active: formData.active,
-				companyLogo: formData.companyLogo,
 				description: formData.description,
 				externalReferenceCode: formData.externalReferenceCode,
 				introMessage_i18n: formData.introMessage_i18n,
@@ -186,6 +234,9 @@ export default function ChatbotForm({
 					Object.values(formData.title_i18n ?? {})[0] ||
 					'',
 				title_i18n: formData.title_i18n,
+				...(companyLogoChanged && {
+					companyLogo: formData.companyLogo,
+				}),
 			};
 
 			let chatbotExternalReferenceCode =
@@ -237,6 +288,8 @@ export default function ChatbotForm({
 			);
 
 			setOriginalSelectedAgentDefinitions(selectedAgentDefinitions);
+
+			setCompanyLogoChanged(false);
 
 			openToast({
 				message: Liferay.Language.get('chatbot-was-saved-successfully'),
@@ -488,34 +541,50 @@ export default function ChatbotForm({
 												)}
 											</Button>
 
-											{formData.companyLogo && (
-												<>
-													<span>
-														{Liferay.Language.get(
-															'file-selected'
-														)}
+											{formData.companyLogo &&
+												formData.companyLogoFileName && (
+													<>
+														<span>
+															{
+																formData.companyLogoFileName
+															}
+														</span>
 
-														:{' '}
+														<Button
+															displayType="danger"
+															onClick={
+																handleClearCompanyLogo
+															}
+															small
+														>
+															{Liferay.Language.get(
+																'clear'
+															)}
+														</Button>
+													</>
+												)}
 
-														{
-															formData.companyLogoFileName
-														}
-													</span>
-
-													<Button
-														displayType="danger"
-														onClick={
-															handleClearCompanyLogo
-														}
-														small
-													>
-														{Liferay.Language.get(
-															'clear'
-														)}
-													</Button>
-												</>
-											)}
+											<input
+												accept={companyLogoAcceptedFileExtensions
+													.split(',')
+													.map(
+														(extension) =>
+															`.${extension.trim()}`
+													)
+													.join(',')}
+												id="companyLogo"
+												onChange={
+													handleCompanyLogoChange
+												}
+												ref={companyLogoInputRef}
+												style={{display: 'none'}}
+												type="file"
+											/>
 										</div>
+
+										<small className="form-text text-secondary">
+											{companyLogoUploadTip}
+										</small>
 									</ClayForm.Group>
 
 									<ClayForm.Group>
