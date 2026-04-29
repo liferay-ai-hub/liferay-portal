@@ -504,6 +504,13 @@ public class SiteBuilderTools {
 		assetLibraryItem.put("name", siteTitle + " Space");
 		assetLibraryItem.put(
 			"name_i18n", _createI18nJSON("en-US", siteTitle + " Space"));
+
+		// AssetLibraryResourceImpl._putUnicodeProperties returns null when
+		// settings is null; the upsert path then NPEs in
+		// UnicodePropertiesBuilder.putAll. Send an empty settings object to
+		// take the non-null branch with default values.
+
+		assetLibraryItem.put("settings", JSONFactoryUtil.createJSONObject());
 		assetLibraryItem.put("type", "Space");
 
 		assetLibraryBatch.put(
