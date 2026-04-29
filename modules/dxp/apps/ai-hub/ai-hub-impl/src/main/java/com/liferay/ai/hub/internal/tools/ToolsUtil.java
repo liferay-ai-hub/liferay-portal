@@ -109,7 +109,7 @@ public class ToolsUtil {
 
 	private static final Set<String> _siteBuilderNodeNames = Set.of(
 		"cacheFragments", "cacheSitePlan", "createFragments", "createPages",
-		"createSite");
+		"createSite", "markRunReady");
 
 	private static final Set<String> _sitePageToolsNodeNames = Set.of(
 		"pageFetcher", "pageUpdater");

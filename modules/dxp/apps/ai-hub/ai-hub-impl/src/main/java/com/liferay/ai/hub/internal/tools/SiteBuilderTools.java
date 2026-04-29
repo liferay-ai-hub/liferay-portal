@@ -6,6 +6,7 @@
 package com.liferay.ai.hub.internal.tools;
 
 import com.liferay.ai.hub.internal.memory.SessionVariablesUtil;
+import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.model.OAuth2Authorization;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalServiceUtil;
@@ -130,6 +131,23 @@ public class SiteBuilderTools {
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(_companyId)) {
 
 			return _writeBatchFiles(null);
+		}
+		catch (Exception exception) {
+			return ReflectionUtil.throwException(exception);
+		}
+	}
+
+	@Tool("Mark the current run as ready. Call this once after every artifact has been posted, signalling the user can press Generate.")
+	public String markRunReady() {
+		try (SafeCloseable safeCloseable =
+				CompanyThreadLocal.setCompanyIdWithSafeCloseable(_companyId)) {
+
+			_patchRunStatus("ready");
+
+			SseUtil.send(
+				"ready", "Run Updated", null, _sseEventSinkKey);
+
+			return "Run marked ready.";
 		}
 		catch (Exception exception) {
 			return ReflectionUtil.throwException(exception);
@@ -941,6 +959,39 @@ public class SiteBuilderTools {
 			responseBody);
 
 		return responseJSONObject.getString("externalReferenceCode");
+	}
+
+	private void _patchRunStatus(String runStatus) throws Exception {
+		JSONObject body = JSONFactoryUtil.createJSONObject();
+
+		body.put("runStatus", runStatus);
+
+		Http.Options options = new Http.Options();
+
+		options.addHeader(
+			HttpHeaders.CONTENT_TYPE, ContentTypes.APPLICATION_JSON);
+		options.addHeader("Liferay-AI-Hub-Cell-On-Behalf-Of", _userToken);
+		options.setBody(
+			body.toString(), ContentTypes.APPLICATION_JSON, "UTF-8");
+		options.setLocation(
+			StringBundler.concat(
+				_getBaseURL(),
+				"/o/content-site-generator/runs/by-external-reference-code/",
+				_sseEventSinkKey));
+		options.setMethod(Http.Method.PATCH);
+
+		String responseBody = HttpUtil.URLtoString(options);
+
+		int responseCode = options.getResponse(
+		).getResponseCode();
+
+		if ((responseCode < 200) || (responseCode >= 300)) {
+			throw new Exception(
+				StringBundler.concat(
+					"PATCH run ", _sseEventSinkKey, " runStatus=", runStatus,
+					" failed with HTTP ", responseCode, ". Response: ",
+					responseBody));
+		}
 	}
 
 	private void _appendDraftSuffix(JSONArray elements) {

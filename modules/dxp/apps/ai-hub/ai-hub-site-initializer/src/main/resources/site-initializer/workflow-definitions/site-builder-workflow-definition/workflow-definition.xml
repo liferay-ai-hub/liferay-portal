@@ -562,6 +562,38 @@ Output:
 			<transition>
 				<labels>
 					<label language-id="en_US">
+						Mark Run Ready
+					</label>
+				</labels>
+				<name>markRunReady</name>
+				<target>markRunReady</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</tool>
+	<tool>
+		<name>markRunReady</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						300,
+						1325
+					]
+				}
+			]]>
+		</metadata>
+		<labels>
+			<label language-id="en_US">
+				Mark Run Ready
+			</label>
+		</labels>
+		<tool-name>markRunReady</tool-name>
+		<output-variables><![CDATA[[{"name":"markRunReadyResult","type":"string"}]]]></output-variables>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
 						End
 					</label>
 				</labels>
