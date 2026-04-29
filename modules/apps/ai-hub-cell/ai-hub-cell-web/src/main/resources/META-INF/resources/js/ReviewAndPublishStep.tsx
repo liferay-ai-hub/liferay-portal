@@ -63,7 +63,7 @@ const getArtifactLanguages = (artifact: Artifact): string[] => {
 	}
 
 
-	if (!artifact.json) {
+	if (typeof artifact.json !== 'string') {
 		return [];
 	}
 
@@ -81,7 +81,7 @@ const getArtifactLanguages = (artifact: Artifact): string[] => {
 };
 
 const getItemCount = (artifact: Artifact): number => {
-	if (!artifact.json) {
+	if (typeof artifact.json !== 'string') {
 		return 1;
 	}
 

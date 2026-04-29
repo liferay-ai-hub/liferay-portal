@@ -148,7 +148,7 @@ const getArtifactLanguages = (artifact: Artifact): string[] => {
 
 	const languages = new Set<string>();
 
-	if (!artifact.json) {
+	if (typeof artifact.json !== 'string') {
 		return [];
 	}
 
@@ -172,7 +172,7 @@ const humanizeKey = (key: string) =>
 		.trim();
 
 const getFirstItem = (artifact: Artifact): Record<string, unknown> | null => {
-	if (!artifact.json) {
+	if (typeof artifact.json !== 'string') {
 		return null;
 	}
 

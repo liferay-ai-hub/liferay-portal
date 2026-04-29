@@ -7,6 +7,6 @@ export interface Artifact {
 	className?: string;
 	fileName?: string;
 	id: number;
-	json?: string;
+	json?: unknown;
 	loadOrder?: number;
 }
