@@ -828,21 +828,29 @@ public class SiteBuilderTools {
 
 			JSONArray blogArray = null;
 
-			if (trimmed.startsWith("[")) {
-				blogArray = JSONFactoryUtil.createJSONArray(trimmed);
-			}
-			else if (trimmed.startsWith("{")) {
-				JSONObject wrapper = JSONFactoryUtil.createJSONObject(trimmed);
+			try {
+				if (trimmed.startsWith("[")) {
+					blogArray = JSONFactoryUtil.createJSONArray(trimmed);
+				}
+				else if (trimmed.startsWith("{")) {
+					JSONObject wrapper = JSONFactoryUtil.createJSONObject(
+						trimmed);
 
-				for (String key : wrapper.keySet()) {
-					Object value = wrapper.get(key);
+					for (String key : wrapper.keySet()) {
+						Object value = wrapper.get(key);
 
-					if (value instanceof JSONArray) {
-						blogArray = (JSONArray)value;
+						if (value instanceof JSONArray) {
+							blogArray = (JSONArray)value;
 
-						break;
+							break;
+						}
 					}
 				}
+			}
+			catch (Exception exception) {
+				_log.error(
+					"Unable to parse blogEntries as JSON; skipping 07-blogs",
+					exception);
 			}
 
 			if (blogArray != null) {
