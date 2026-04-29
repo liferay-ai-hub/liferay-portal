@@ -5,10 +5,12 @@
 
 export type InstructionDefinition = {
 	active: boolean;
+	dateModified?: string;
 	description: string;
 	externalReferenceCode: string;
 	instruction: string;
 	occasion: string;
+	priority: number;
 	r_accountToAIHubInstructionDefinitions_accountEntryERC: string;
 	scope: string;
 	title_i18n: {

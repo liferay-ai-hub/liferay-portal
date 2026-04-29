@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayLabel from '@clayui/label';
 import {getFDSInternalRenderer} from '@liferay/frontend-data-set-web';
 import React from 'react';
 
@@ -22,13 +23,17 @@ const InstructionDefinitionItemTitle = ({
 	value: unknown;
 }) => {
 	return ActionLinkRenderer ? (
-		<ActionLinkRenderer
-			actions={actions}
-			itemData={itemData}
-			itemId={itemId}
-			options={{actionId: 'view'}}
-			value={value}
-		/>
+		<span className="align-items-center d-flex justify-content-between w-100">
+			<ActionLinkRenderer
+				actions={actions}
+				itemData={itemData}
+				itemId={itemId}
+				options={{actionId: 'view'}}
+				value={value}
+			/>
+
+			<ClayLabel displayType="secondary">{`Priority: ${itemData.priority}`}</ClayLabel>
+		</span>
 	) : (
 		<>{value}</>
 	);

@@ -20,6 +20,7 @@ import {InputLocalized} from 'frontend-js-components-web';
 import Toolbar from '../components/ToolBar';
 import {
 	getInstructionDefinition,
+	getMaxPriority,
 	putInstructionDefinition,
 } from './services/InstructionDefinitionService';
 import {
@@ -93,12 +94,17 @@ export default function InstructionDefinitionForm({
 	useEffect(() => {
 		async function fetchFormData() {
 			if (!externalReferenceCode) {
+				const defaultPriority = await getMaxPriority(
+					accountEntryExternalReferenceCode
+				);
+
 				setFormData({
 					active: false,
 					description: '',
 					externalReferenceCode: '',
 					instruction: '',
 					occasion: '',
+					priority: defaultPriority,
 					r_accountToAIHubInstructionDefinitions_accountEntryERC:
 						accountEntryExternalReferenceCode,
 					scope: '',
@@ -120,6 +126,7 @@ export default function InstructionDefinitionForm({
 						instructionDefinition.externalReferenceCode,
 					instruction: instructionDefinition.instruction,
 					occasion: instructionDefinition.occasion || '',
+					priority: instructionDefinition.priority ?? 1,
 					r_accountToAIHubInstructionDefinitions_accountEntryERC:
 						instructionDefinition.r_accountToAIHubInstructionDefinitions_accountEntryERC,
 					scope: instructionDefinition.scope?.key || '',

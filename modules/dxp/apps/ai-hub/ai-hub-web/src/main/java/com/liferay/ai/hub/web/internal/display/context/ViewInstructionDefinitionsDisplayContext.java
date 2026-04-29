@@ -5,18 +5,16 @@
 
 package com.liferay.ai.hub.web.internal.display.context;
 
+import com.liferay.account.model.AccountEntry;
+import com.liferay.ai.hub.util.AccountEntryUtil;
 import com.liferay.ai.hub.web.internal.util.ActionUtil;
-import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
-import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.List;
+import java.util.Map;
 
 /**
  * @author Carolina Barbosa
@@ -32,38 +30,24 @@ public class ViewInstructionDefinitionsDisplayContext {
 			WebKeys.THEME_DISPLAY);
 	}
 
-	public String getAPIURL() {
-		return "/o/ai-hub/instruction-definitions";
-	}
+	public Map<String, Object> getReactData() throws Exception {
+		return HashMapBuilder.<String, Object>put(
+			"accountEntryExternalReferenceCode",
+			() -> {
+				AccountEntry accountEntry =
+					AccountEntryUtil.getUserAccountEntry(
+						_themeDisplay.getUserId());
 
-	public CreationMenu getCreationMenu() throws Exception {
-		return CreationMenuBuilder.addDropdownItem(
-			dropdownItem -> {
-				dropdownItem.setHref(
-					ActionUtil.getAIHubURL(_themeDisplay) + "/instruction");
-				dropdownItem.setLabel(
-					LanguageUtil.get(_httpServletRequest, "new-instruction"));
+				if (accountEntry == null) {
+					return null;
+				}
+
+				return accountEntry.getExternalReferenceCode();
 			}
+		).put(
+			"instructionURL",
+			ActionUtil.getAIHubURL(_themeDisplay) + "/instruction"
 		).build();
-	}
-
-	public List<FDSActionDropdownItem> getFDSActionDropdownItems()
-		throws Exception {
-
-		return List.of(
-			new FDSActionDropdownItem(
-				StringBundler.concat(
-					ActionUtil.getAIHubURL(_themeDisplay), "/instruction",
-					"?externalReferenceCode={externalReferenceCode}"),
-				"view", "view", LanguageUtil.get(_httpServletRequest, "view"),
-				"get", null, null),
-			new FDSActionDropdownItem(
-				StringBundler.concat(
-					getAPIURL(), "/by-external-reference-code",
-					"/{externalReferenceCode}"),
-				"trash", "delete",
-				LanguageUtil.get(_httpServletRequest, "delete"), "delete",
-				"delete", "async"));
 	}
 
 	private final HttpServletRequest _httpServletRequest;

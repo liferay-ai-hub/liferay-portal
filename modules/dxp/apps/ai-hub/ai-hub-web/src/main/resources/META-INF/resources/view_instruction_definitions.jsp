@@ -11,12 +11,7 @@
 ViewInstructionDefinitionsDisplayContext viewInstructionDefinitionsDisplayContext = (ViewInstructionDefinitionsDisplayContext)request.getAttribute(ViewInstructionDefinitionsDisplayContext.class.getName());
 %>
 
-<frontend-data-set:headless-display
-	apiURL="<%= viewInstructionDefinitionsDisplayContext.getAPIURL() %>"
-	creationMenu="<%= viewInstructionDefinitionsDisplayContext.getCreationMenu() %>"
-	fdsActionDropdownItems="<%= viewInstructionDefinitionsDisplayContext.getFDSActionDropdownItems() %>"
-	id="<%= AIHubFDSNames.INSTRUCTION_DEFINITIONS %>"
-	itemsPerPage="<%= 20 %>"
-	propsTransformer="{InstructionDefinitionItemTitlePropsTransformer} from ai-hub-web"
-	style="fluid"
+<react:component
+	module="{InstructionDefinitions} from ai-hub-web"
+	props="<%= viewInstructionDefinitionsDisplayContext.getReactData() %>"
 />

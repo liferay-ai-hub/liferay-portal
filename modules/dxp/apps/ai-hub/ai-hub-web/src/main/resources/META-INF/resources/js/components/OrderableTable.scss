@@ -1,0 +1,53 @@
+.orderable-table-sheet {
+	margin-top: 1rem;
+
+	.c-empty-state {
+		text-align: center;
+	}
+
+	.orderable-table.table-autofit {
+		td,
+		th {
+			width: inherit;
+
+			&.actions-cell {
+				padding-right: 18px;
+				width: 0;
+			}
+
+			&.drag-handle-cell {
+				width: 0;
+			}
+		}
+	}
+
+	.orderable-table-row.dragging {
+		opacity: 0.5;
+
+		td.drag-handle-cell {
+			background-color: #528eff !important;
+		}
+	}
+
+	.sheet-header {
+		border-bottom: 1px solid #e7e8eb;
+		margin-bottom: 0;
+	}
+
+	.management-bar {
+		margin-bottom: 12px;
+		min-height: initial;
+
+		> .container-fluid {
+			padding: 0;
+
+			> .navbar-nav {
+				gap: 16px;
+			}
+		}
+
+		.nav-btn {
+			margin: 0;
+		}
+	}
+}

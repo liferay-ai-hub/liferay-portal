@@ -10,3 +10,4 @@ export {default as ChatbotItemTitlePropsTransformer} from './chatbot_item_title/
 export {default as ContentRetrieverForm} from './content_retriever_form/ContentRetrieverForm';
 export {default as InstructionDefinitionForm} from './instruction_definition_form/InstructionDefinitionForm';
 export {default as InstructionDefinitionItemTitlePropsTransformer} from './instruction_definition_item_title/InstructionDefinitionItemTitlePropsTransformer';
+export {default as InstructionDefinitions} from './instruction_definitions/InstructionDefinitions';
