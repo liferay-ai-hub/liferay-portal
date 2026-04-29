@@ -782,7 +782,11 @@ export default function RefineStep({
 								backDisabled={generating}
 								backLabel={Liferay.Language.get('back-to-prompt')}
 								cancelDisabled={generating}
-								continueDisabled={loading || !runId}
+								continueDisabled={
+									loading ||
+									!runId ||
+									run?.runStatus?.key !== 'ready'
+								}
 								continueLabel={Liferay.Language.get('generate')}
 								continueLoading={generating}
 								onBack={handleBack}
