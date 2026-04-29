@@ -147,6 +147,8 @@ export default function InstructionDefinitions({
 				message: Liferay.Language.get('failed-to-update-priorities'),
 				type: 'danger',
 			});
+
+			fetchInstructions();
 		}
 	};
 

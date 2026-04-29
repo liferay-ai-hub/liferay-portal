@@ -10,6 +10,8 @@ import {InstructionDefinition} from '../types/InstructionDefinition';
 const INSTRUCTION_DEFINITION_BASE_URI =
 	'/o/ai-hub/instruction-definitions/by-external-reference-code/';
 
+const MAX_PAGE_SIZE = 200;
+
 async function getInstructionDefinition(externalReferenceCode: string) {
 	const response = await fetch(
 		`${INSTRUCTION_DEFINITION_BASE_URI}${externalReferenceCode}`,
@@ -19,7 +21,9 @@ async function getInstructionDefinition(externalReferenceCode: string) {
 	);
 
 	if (!response.ok) {
-		throw new Error();
+		throw new Error(
+			`Failed to fetch instruction definition: ${response.status} ${response.statusText}`
+		);
 	}
 
 	return response.json();
@@ -71,7 +75,7 @@ async function getInstructionDefinitions(
 	accountEntryExternalReferenceCode: string
 ): Promise<InstructionDefinition[]> {
 	const response = await fetch(
-		`/o/ai-hub/instruction-definitions?sort=priority:asc&pageSize=200&filter=r_accountToAIHubInstructionDefinitions_accountEntryERC eq '${accountEntryExternalReferenceCode}'`,
+		`/o/ai-hub/instruction-definitions?sort=priority:asc&pageSize=${MAX_PAGE_SIZE}&filter=r_accountToAIHubInstructionDefinitions_accountEntryERC eq '${accountEntryExternalReferenceCode}'`,
 		{
 			method: 'GET',
 		}
@@ -100,7 +104,9 @@ async function deleteInstructionDefinition(
 	);
 
 	if (!response.ok) {
-		throw new Error();
+		throw new Error(
+			`Failed to delete instruction definition: ${response.status} ${response.statusText}`
+		);
 	}
 }
 

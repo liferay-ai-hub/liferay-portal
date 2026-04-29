@@ -13,7 +13,7 @@ import classNames from 'classnames';
 import {ManagementToolbar} from 'frontend-js-components-web';
 import fuzzy from 'fuzzy';
 import React, {useEffect, useRef, useState} from 'react';
-import {DndProvider, useDrag, useDrop} from 'react-dnd';
+import {BackendFactory, DndProvider, useDrag, useDrop} from 'react-dnd';
 import {HTML5Backend} from 'react-dnd-html5-backend';
 
 import './OrderableTable.scss';
@@ -468,10 +468,7 @@ const OrderableTable = ({
 				</ManagementToolbar.Container>
 
 				{items.length ? (
-
-					// @ts-ignore
-
-					<DndProvider backend={HTML5Backend}>
+					<DndProvider backend={HTML5Backend as BackendFactory}>
 						<Table
 							actions={actions}
 							fields={fields}
