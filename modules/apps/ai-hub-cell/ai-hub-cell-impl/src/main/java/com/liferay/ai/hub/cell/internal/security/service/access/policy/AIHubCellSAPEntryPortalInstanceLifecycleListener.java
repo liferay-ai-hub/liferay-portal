@@ -60,6 +60,18 @@ public class AIHubCellSAPEntryPortalInstanceLifecycleListener
 				"PageSpecificationResourceImpl#putSitePageSpecification\n",
 				"com.liferay.headless.admin.site.internal.resource.v1_0.",
 				"SitePageResourceImpl#getSiteSitePagePermissionsPage\n",
+				"com.liferay.object.rest.internal.resource.v1_0.",
+				"ObjectEntryResourceImpl#getByExternalReferenceCode\n",
+				"com.liferay.object.rest.internal.resource.v1_0.",
+				"ObjectEntryResourceImpl#getObjectEntry\n",
+				"com.liferay.object.rest.internal.resource.v1_0.",
+				"ObjectEntryResourceImpl#patchByExternalReferenceCode\n",
+				"com.liferay.object.rest.internal.resource.v1_0.",
+				"ObjectEntryResourceImpl#patchObjectEntry\n",
+				"com.liferay.object.rest.internal.resource.v1_0.",
+				"ObjectEntryResourceImpl#postObjectEntry\n",
+				"com.liferay.object.rest.internal.resource.v1_0.",
+				"ObjectEntryResourceImpl#putObjectEntry\n",
 				"com.liferay.portal.search.rest.internal.resource.v1_0.",
 				"SearchResultResourceImpl#getSearchPage");
 
