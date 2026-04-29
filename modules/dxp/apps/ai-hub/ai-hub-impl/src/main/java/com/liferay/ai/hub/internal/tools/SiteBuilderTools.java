@@ -59,6 +59,8 @@ public class SiteBuilderTools {
 	public String cacheSitePlan(
 		@P("Site plan JSON") String sitePlan) {
 
+		_emitToolProgress("Drafting the site plan...");
+
 		sitePlan = _stripMarkdownFences(sitePlan);
 		sitePlan = _repairJSON(sitePlan);
 
@@ -70,6 +72,8 @@ public class SiteBuilderTools {
 
 	@Tool("Create a new Liferay site using the cached site plan. Returns the created site JSON.")
 	public String createSite() {
+		_emitToolProgress("Creating the site...");
+
 		try (SafeCloseable safeCloseable =
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(_companyId)) {
 
@@ -84,6 +88,8 @@ public class SiteBuilderTools {
 	public String cacheFragments(
 		@P("Enriched site plan JSON with html/css/js in customFragments")
 			String enrichedSitePlan) {
+
+		_emitToolProgress("Designing the fragments...");
 
 		enrichedSitePlan = _stripMarkdownFences(enrichedSitePlan);
 		enrichedSitePlan = _repairJSON(enrichedSitePlan);
@@ -103,6 +109,8 @@ public class SiteBuilderTools {
 
 	@Tool("Create the fragment set and all fragments on the site using the cached enriched site plan")
 	public String createFragments() {
+		_emitToolProgress("Generating the fragments...");
+
 		try (SafeCloseable safeCloseable =
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(_companyId)) {
 
@@ -116,6 +124,8 @@ public class SiteBuilderTools {
 	@Tool("Create all site pages from the cached enriched site plan, converting each page IR to a Liferay page specification")
 	public String createPages(
 		@P("Blog entries JSON array") String blogEntries) {
+
+		_emitToolProgress("Building the pages...");
 
 		try (SafeCloseable safeCloseable =
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(_companyId)) {
@@ -979,7 +989,13 @@ public class SiteBuilderTools {
 
 		SseUtil.send(fileName, "Artifacts Updated", null, _sseEventSinkKey);
 
+		_emitToolProgress("Posted artifact " + loadOrder + ": " + fileName);
+
 		return responseJSONObject.getString("externalReferenceCode");
+	}
+
+	private void _emitToolProgress(String label) {
+		SseUtil.send(label, "Tool Progress", null, _sseEventSinkKey);
 	}
 
 	private String _detectLanguages(JSONArray items, String fileName) {

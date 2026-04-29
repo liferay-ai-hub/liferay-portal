@@ -23,6 +23,7 @@ interface AIAssistantChatProps {
 	compact?: boolean;
 	embedded?: boolean;
 	externalEventTypes?: string[];
+	generatingLabel?: string;
 	getContext: () => ChatContext;
 	initialAssistantReply?: string;
 	initialMessage?: string;
@@ -35,6 +36,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	compact = false,
 	embedded = false,
 	externalEventTypes,
+	generatingLabel,
 	getContext,
 	initialAssistantReply,
 	initialMessage,
@@ -208,6 +210,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 		return (
 			<AIAssistantChatBody
 				embedded={embedded}
+				generatingLabel={generatingLabel}
 				isGenerating={isGenerating}
 				message={message}
 				messages={messages}
@@ -262,6 +265,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 		>
 			<AIAssistantChatBody
 				embedded={embedded}
+				generatingLabel={generatingLabel}
 				isGenerating={isGenerating}
 				message={message}
 				messages={messages}

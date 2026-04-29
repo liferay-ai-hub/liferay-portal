@@ -40,6 +40,8 @@ interface IProps {
 	runId?: number;
 }
 
+const PROGRESS_EVENT_TYPE = 'Tool Progress';
+
 const REGENERATION_EVENT_TYPES = ['Run Updated', 'Artifacts Updated'];
 
 const PAGE_CLASS_NAMES = [
@@ -413,6 +415,7 @@ export default function RefineStep({
 	const [generating, setGenerating] = useState(false);
 	const [loading, setLoading] = useState(!!runId);
 	const [previewLoading, setPreviewLoading] = useState(false);
+	const [progressLabel, setProgressLabel] = useState<string | null>(null);
 	const [run, setRun] = useState<Run | null>(null);
 	const [showTip, setShowTip] = useState(true);
 
@@ -491,8 +494,27 @@ export default function RefineStep({
 	}, [runId]);
 
 	const handleChatExternalEvent = useCallback(
-		(type: string) => {
+		(type: string, data: string) => {
+			if (type === PROGRESS_EVENT_TYPE) {
+				try {
+					const parsed = JSON.parse(data);
+
+					if (typeof parsed?.data === 'string' && parsed.data) {
+						setProgressLabel(parsed.data);
+					}
+				}
+				catch {
+					// ignore malformed payload
+				}
+
+				return;
+			}
+
 			if (REGENERATION_EVENT_TYPES.includes(type)) {
+				if (type === 'Run Updated') {
+					setProgressLabel(null);
+				}
+
 				refreshPreview();
 			}
 		},
@@ -640,7 +662,11 @@ export default function RefineStep({
 						<AIAssistantChat
 							autoSendInitialMessage
 							embedded
-							externalEventTypes={REGENERATION_EVENT_TYPES}
+							externalEventTypes={[
+								...REGENERATION_EVENT_TYPES,
+								PROGRESS_EVENT_TYPE,
+							]}
+							generatingLabel={progressLabel ?? undefined}
 							getContext={getChatContext}
 							initialMessage={promptText}
 							onExternalEvent={handleChatExternalEvent}

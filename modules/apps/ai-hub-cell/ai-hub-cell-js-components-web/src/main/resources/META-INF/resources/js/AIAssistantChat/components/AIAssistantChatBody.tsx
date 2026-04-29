@@ -20,6 +20,7 @@ export interface Message {
 
 interface AIAssistantChatBodyProps {
 	embedded: boolean;
+	generatingLabel?: string;
 	isGenerating: boolean;
 	message: string;
 	messages: Message[];
@@ -30,6 +31,7 @@ interface AIAssistantChatBodyProps {
 
 const AIAssistantChatBody: React.FC<AIAssistantChatBodyProps> = ({
 	embedded,
+	generatingLabel,
 	isGenerating,
 	message,
 	messages,
@@ -165,7 +167,8 @@ const AIAssistantChatBody: React.FC<AIAssistantChatBodyProps> = ({
 						</div>
 
 						<span className="ai-assistant-chat__generating-loading-text font-weight-semi-bold m-2 tex">
-							{Liferay.Language.get('generating')}
+							{generatingLabel ??
+								Liferay.Language.get('generating')}
 						</span>
 					</div>
 				)}
