@@ -35,6 +35,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -907,6 +909,20 @@ public class SiteBuilderTools {
 
 		JSONObject configuration = envelope.getJSONObject("configuration");
 
+		JSONArray items = envelope.getJSONArray("items");
+
+		int itemCount = (items != null) ? items.length() : 0;
+
+		String previewItem = "";
+
+		if (itemCount > 0) {
+			JSONObject firstItem = items.getJSONObject(0);
+
+			previewItem = _stripMetadata(firstItem).toString();
+		}
+
+		String languages = _detectLanguages(items, fileName);
+
 		String uniqueFileName = StringBundler.concat(
 			_sseEventSinkKey, "-", System.currentTimeMillis(), "-", fileName);
 
@@ -916,6 +932,7 @@ public class SiteBuilderTools {
 		artifactBody.put(
 			"delegateName", configuration.getString("taskItemDelegateName"));
 		artifactBody.put("fileName", fileName);
+		artifactBody.put("itemCount", itemCount);
 		artifactBody.put(
 			"json",
 			JSONUtil.put(
@@ -928,7 +945,9 @@ public class SiteBuilderTools {
 			).put(
 				"name", uniqueFileName
 			));
+		artifactBody.put("languages", languages);
 		artifactBody.put("loadOrder", loadOrder);
+		artifactBody.put("previewItem", previewItem);
 		artifactBody.put(
 			"r_artifacts_l_contentGeneratorRunERC", _sseEventSinkKey);
 
@@ -958,7 +977,36 @@ public class SiteBuilderTools {
 		JSONObject responseJSONObject = JSONFactoryUtil.createJSONObject(
 			responseBody);
 
+		SseUtil.send(fileName, "Artifacts Updated", null, _sseEventSinkKey);
+
 		return responseJSONObject.getString("externalReferenceCode");
+	}
+
+	private String _detectLanguages(JSONArray items, String fileName) {
+		Set<String> locales = new TreeSet<>();
+
+		if ((items != null) && (items.length() > 0)) {
+			Matcher i18nMatcher = _i18nBlockPattern.matcher(items.toString());
+
+			while (i18nMatcher.find()) {
+				Matcher localeMatcher = _localeKeyPattern.matcher(
+					i18nMatcher.group(1));
+
+				while (localeMatcher.find()) {
+					locales.add(localeMatcher.group(1).toLowerCase());
+				}
+			}
+		}
+
+		if (locales.isEmpty()) {
+			Matcher matcher = _fileNameLanguagePattern.matcher(fileName);
+
+			if (matcher.find()) {
+				locales.add(matcher.group(1).toLowerCase());
+			}
+		}
+
+		return String.join(",", locales);
 	}
 
 	private void _patchRunStatus(String runStatus) throws Exception {
@@ -1393,12 +1441,41 @@ public class SiteBuilderTools {
 		return text.trim();
 	}
 
+	private static JSONObject _stripMetadata(JSONObject item) {
+		JSONObject stripped = JSONFactoryUtil.createJSONObject();
+
+		for (String key : item.keySet()) {
+			if (_METADATA_KEYS.contains(key)) {
+				continue;
+			}
+
+			stripped.put(key, item.get(key));
+		}
+
+		return stripped;
+	}
+
+	private static final Set<String> _METADATA_KEYS = Set.of(
+		"actions", "classNameId", "classPK", "createDate", "creator",
+		"dateCreated", "dateModified", "externalReferenceCode", "groupId", "id",
+		"modifiedDate", "parentExternalReferenceCode", "priority", "siteId",
+		"sortOrder", "status", "userId");
+
 	private static final String _NAV_MENU_CONFIGURATION =
 		"{\"fieldSets\":[{\"fields\":[{\"name\":\"source\"," +
 			"\"label\":\"source\",\"type\":\"navigationMenuSelector\"}]}]}";
 
 	private static final Pattern _editableIdPattern = Pattern.compile(
 		"data-lfr-editable-id=\"([^\"]+)\"");
+
+	private static final Pattern _fileNameLanguagePattern = Pattern.compile(
+		"-([a-z]{2})(?:[-_][A-Z]{2})?\\.json$");
+
+	private static final Pattern _i18nBlockPattern = Pattern.compile(
+		"\"[a-zA-Z]+_i18n\"\\s*:\\s*\\{([^{}]*)\\}");
+
+	private static final Pattern _localeKeyPattern = Pattern.compile(
+		"\"([a-z]{2})(?:_[A-Z]{2})?\"\\s*:");
 
 	private static final Pattern _missingCommaPattern = Pattern.compile(
 		"(\"\\s*(?:\"[^\"]*\"|\\d+(?:\\.\\d+)?|true|false|null|\\}|\\]))\\s*(\"[^\"]*\"\\s*:)");

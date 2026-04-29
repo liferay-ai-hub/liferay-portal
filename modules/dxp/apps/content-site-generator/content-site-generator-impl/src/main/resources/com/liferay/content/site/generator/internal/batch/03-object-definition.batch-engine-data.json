@@ -113,6 +113,53 @@
 					"state": false,
 					"system": true,
 					"type": "Integer"
+				},
+				{
+					"DBType": "Integer",
+					"businessType": "Integer",
+					"externalReferenceCode": "L_CSG_ARTIFACT_ITEM_COUNT",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Item Count"
+					},
+					"name": "itemCount",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Integer"
+				},
+				{
+					"DBType": "String",
+					"businessType": "Text",
+					"externalReferenceCode": "L_CSG_ARTIFACT_LANGUAGES",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Languages"
+					},
+					"localized": false,
+					"name": "languages",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "String"
+				},
+				{
+					"DBType": "Clob",
+					"businessType": "LongText",
+					"externalReferenceCode": "L_CSG_ARTIFACT_PREVIEW_ITEM",
+					"indexed": false,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Preview Item"
+					},
+					"localized": false,
+					"name": "previewItem",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "String"
 				}
 			],
 			"objectFolderExternalReferenceCode": "L_CSG_FOLDER",
