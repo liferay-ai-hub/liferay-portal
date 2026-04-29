@@ -4,6 +4,7 @@
  */
 
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import ClayLink from '@clayui/link';
 import ClayDropDown, {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayEmptyState from '@clayui/empty-state';
 import ClayIcon from '@clayui/icon';
@@ -45,6 +46,7 @@ interface IContentRenderer {
 interface IField {
 	contentRenderer?: IContentRenderer;
 	headingTitle?: boolean;
+	href?: (item: any) => string;
 	label: string;
 	name: string;
 }
@@ -231,19 +233,32 @@ const Row = ({
 					FUZZY_OPTIONS
 				);
 
+				const cellContent = fuzzyMatch ? (
+					<span
+						dangerouslySetInnerHTML={{
+							__html: fuzzyMatch.rendered,
+						}}
+					/>
+				) : (
+					<span>{itemFieldValue}</span>
+				);
+
 				return (
 					<ClayTable.Cell
 						headingTitle={field.headingTitle}
 						key={field.name}
 					>
-						{fuzzyMatch ? (
-							<span
-								dangerouslySetInnerHTML={{
-									__html: fuzzyMatch.rendered,
-								}}
-							/>
+						{field.href ? (
+							<div className="table-list-title">
+								<ClayLink
+									data-senna-off
+									href={field.href(item)}
+								>
+									{cellContent}
+								</ClayLink>
+							</div>
 						) : (
-							<span>{itemFieldValue}</span>
+							cellContent
 						)}
 					</ClayTable.Cell>
 				);

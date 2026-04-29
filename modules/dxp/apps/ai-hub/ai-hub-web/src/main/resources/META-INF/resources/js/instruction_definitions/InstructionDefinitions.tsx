@@ -200,6 +200,8 @@ export default function InstructionDefinitions({
 			fields={[
 				{
 					headingTitle: true,
+					href: (item) =>
+						`${instructionURL}?externalReferenceCode=${item.externalReferenceCode}`,
 					label: Liferay.Language.get('title'),
 					name: 'title',
 				},
