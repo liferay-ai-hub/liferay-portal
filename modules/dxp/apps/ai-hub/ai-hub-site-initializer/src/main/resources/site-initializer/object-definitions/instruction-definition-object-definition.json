@@ -97,6 +97,20 @@
 			"type": "Clob"
 		},
 		{
+			"DBType": "Integer",
+			"businessType": "Integer",
+			"defaultValue": "1",
+			"externalReferenceCode": "PRIORITY",
+			"indexed": true,
+			"label": {
+				"en_US": "Priority"
+			},
+			"name": "priority",
+			"required": true,
+			"system": true,
+			"type": "Integer"
+		},
+		{
 			"DBType": "String",
 			"businessType": "Picklist",
 			"externalReferenceCode": "SCOPE",
