@@ -479,7 +479,7 @@ public class CommitContentSiteGeneratorRunObjectActionExecutor
 		CommitContentSiteGeneratorRunObjectActionExecutor.class);
 
 	private static final List<String> _committableStates = List.of(
-		"failed", "ready", "refining");
+		"failed", "ready");
 
 	@Reference
 	private BatchEngineImportTaskExecutor _batchEngineImportTaskExecutor;
