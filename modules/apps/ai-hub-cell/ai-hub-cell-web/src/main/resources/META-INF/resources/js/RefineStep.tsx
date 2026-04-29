@@ -95,8 +95,6 @@ const LANGUAGE_LABELS: Record<string, string> = {
 };
 
 const LANGUAGE_FROM_FILENAME = /-([a-z]{2})(?:[-_][A-Z]{2})?\.json$/i;
-const LANGUAGE_FROM_I18N = /"[a-zA-Z]+_i18n"\s*:\s*\{([^{}]*)\}/g;
-const LOCALE_KEY = /"([a-z]{2})(?:_[A-Z]{2})?"\s*:/g;
 
 const METADATA_KEYS = new Set([
 	'actions',
@@ -139,28 +137,20 @@ const getLanguageLabel = (code: string) =>
 	LANGUAGE_LABELS[code.toLowerCase()] ?? code.toUpperCase();
 
 const getArtifactLanguages = (artifact: Artifact): string[] => {
+	if (artifact.languages) {
+		return artifact.languages
+			.split(',')
+			.map((language) => language.trim().toLowerCase())
+			.filter(Boolean);
+	}
+
 	const fromFilename = artifact.fileName?.match(LANGUAGE_FROM_FILENAME);
 
 	if (fromFilename) {
 		return [fromFilename[1].toLowerCase()];
 	}
 
-
-	const languages = new Set<string>();
-
-	if (typeof artifact.json !== 'string') {
-		return [];
-	}
-
-	for (const i18nMatch of artifact.json.matchAll(LANGUAGE_FROM_I18N)) {
-		const block = i18nMatch[1];
-
-		for (const localeMatch of block.matchAll(LOCALE_KEY)) {
-			languages.add(localeMatch[1].toLowerCase());
-		}
-	}
-
-	return Array.from(languages);
+	return [];
 };
 
 const humanizeKey = (key: string) =>
@@ -172,22 +162,16 @@ const humanizeKey = (key: string) =>
 		.trim();
 
 const getFirstItem = (artifact: Artifact): Record<string, unknown> | null => {
-	if (typeof artifact.json !== 'string') {
+	if (!artifact.previewItem) {
 		return null;
 	}
 
 	try {
-		const parsed = JSON.parse(artifact.json);
-
-		if (Array.isArray(parsed?.items) && parsed.items.length) {
-			return parsed.items[0];
-		}
+		return JSON.parse(artifact.previewItem);
 	}
 	catch (exception) {
-		// Fall through.
+		return null;
 	}
-
-	return null;
 };
 
 const getEntityName = (item: Record<string, unknown> | null): string | null => {
@@ -227,6 +211,11 @@ const buildSummary = (
 		(artifact) => PAGE_CLASS_NAMES.includes(artifact.className ?? '')
 	).length;
 
+	const totalEntries = artifacts.reduce(
+		(sum, artifact) => sum + (artifact.itemCount ?? 1),
+		0
+	);
+
 	return [
 		{
 			icon: 'document',
@@ -246,7 +235,7 @@ const buildSummary = (
 		{
 			icon: 'document',
 			title: Liferay.Language.get('total-entries'),
-			value: artifacts.length,
+			value: totalEntries,
 		},
 	];
 };
@@ -374,6 +363,11 @@ const buildGeneratedItems = (
 	artifacts: Artifact[],
 	languages: string[]
 ): GeneratedItem[] => {
+	const totalEntries = artifacts.reduce(
+		(sum, artifact) => sum + (artifact.itemCount ?? 1),
+		0
+	);
+
 	const items: GeneratedItem[] = [
 		{
 			description: sub(
@@ -389,7 +383,7 @@ const buildGeneratedItems = (
 			),
 			title: sub(
 				Liferay.Language.get('x-complete-content-entries'),
-				String(artifacts.length)
+				String(totalEntries)
 			),
 		},
 	];

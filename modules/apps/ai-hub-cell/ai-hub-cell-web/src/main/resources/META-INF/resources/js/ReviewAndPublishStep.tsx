@@ -32,10 +32,6 @@ const PAGE_CLASS_NAMES = [
 
 const LANGUAGE_FROM_FILENAME = /-([a-z]{2})(?:[-_][A-Z]{2})?\.json$/i;
 
-const LANGUAGE_FROM_I18N = /"[a-zA-Z]+_i18n"\s*:\s*\{([^{}]*)\}/g;
-
-const LOCALE_KEY = /"([a-z]{2})(?:_[A-Z]{2})?"\s*:/g;
-
 const PHASE_KEYS = [
 	'analyzing-reference-documents',
 	'extracting-key-topics-and-features',
@@ -56,48 +52,23 @@ const sleep = (ms: number) =>
 	new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 const getArtifactLanguages = (artifact: Artifact): string[] => {
+	if (artifact.languages) {
+		return artifact.languages
+			.split(',')
+			.map((language) => language.trim().toLowerCase())
+			.filter(Boolean);
+	}
+
 	const fromFilename = artifact.fileName?.match(LANGUAGE_FROM_FILENAME);
 
 	if (fromFilename) {
 		return [fromFilename[1].toLowerCase()];
 	}
 
-
-	if (typeof artifact.json !== 'string') {
-		return [];
-	}
-
-	const languages = new Set<string>();
-
-	for (const i18nMatch of artifact.json.matchAll(LANGUAGE_FROM_I18N)) {
-		const block = i18nMatch[1];
-
-		for (const localeMatch of block.matchAll(LOCALE_KEY)) {
-			languages.add(localeMatch[1].toLowerCase());
-		}
-	}
-
-	return Array.from(languages);
+	return [];
 };
 
-const getItemCount = (artifact: Artifact): number => {
-	if (typeof artifact.json !== 'string') {
-		return 1;
-	}
-
-	try {
-		const parsed = JSON.parse(artifact.json);
-
-		if (Array.isArray(parsed?.items)) {
-			return parsed.items.length;
-		}
-	}
-	catch (exception) {
-		// Fall through to default.
-	}
-
-	return 1;
-};
+const getItemCount = (artifact: Artifact): number => artifact.itemCount ?? 1;
 
 export default function ReviewAndPublishStep({
 	cancelURL,

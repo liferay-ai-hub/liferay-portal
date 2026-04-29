@@ -7,6 +7,9 @@ export interface Artifact {
 	className?: string;
 	fileName?: string;
 	id: number;
+	itemCount?: number;
 	json?: unknown;
+	languages?: string;
 	loadOrder?: number;
+	previewItem?: string;
 }
