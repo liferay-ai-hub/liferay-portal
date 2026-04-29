@@ -209,9 +209,11 @@ const buildSummary = (
 	languages: string[],
 	templateCount: number
 ): SummaryItem[] => {
-	const pages = artifacts.filter(
-		(artifact) => PAGE_CLASS_NAMES.includes(artifact.className ?? '')
-	).length;
+	const pages = artifacts
+		.filter(
+			(artifact) => PAGE_CLASS_NAMES.includes(artifact.className ?? '')
+		)
+		.reduce((sum, artifact) => sum + (artifact.itemCount ?? 1), 0);
 
 	const totalEntries = artifacts.reduce(
 		(sum, artifact) => sum + (artifact.itemCount ?? 1),
@@ -256,24 +258,33 @@ const buildTemplates = (
 		grouped.set(key, list);
 	}
 
-	return Array.from(grouped.entries()).map(([className, list]) => ({
-		entries: list.length,
-		icon: getTypeIcon(className),
-		labels: [
-			{
-				text: sub(
-					Liferay.Language.get('x-languages'),
-					String(languageCount || 1)
-				),
-				type: 'success' as const,
-			},
-			{
-				text: sub(Liferay.Language.get('x-entries'), String(list.length)),
-				type: 'info' as const,
-			},
-		],
-		name: getTypeLabel(className),
-	}));
+	return Array.from(grouped.entries()).map(([className, list]) => {
+		const entries = list.reduce(
+			(sum, artifact) => sum + (artifact.itemCount ?? 1),
+			0
+		);
+
+		return {
+			entries,
+			icon: getTypeIcon(className),
+			labels: [
+				{
+					text: sub(
+						Liferay.Language.get('x-languages'),
+						String(languageCount || 1)
+					),
+					type: 'success' as const,
+				},
+				{
+					text: sub(
+						Liferay.Language.get('x-entries'), String(entries)
+					),
+					type: 'info' as const,
+				},
+			],
+			name: getTypeLabel(className),
+		};
+	});
 };
 
 const buildSampleField = (

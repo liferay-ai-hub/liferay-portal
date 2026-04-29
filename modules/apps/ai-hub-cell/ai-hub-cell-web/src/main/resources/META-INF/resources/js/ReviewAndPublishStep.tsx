@@ -251,9 +251,11 @@ export default function ReviewAndPublishStep({
 		0
 	);
 
-	const pageCount = artifacts.filter((artifact) =>
-		PAGE_CLASS_NAMES.includes(artifact.className ?? '')
-	).length;
+	const pageCount = artifacts
+		.filter((artifact) =>
+			PAGE_CLASS_NAMES.includes(artifact.className ?? '')
+		)
+		.reduce((sum, artifact) => sum + getItemCount(artifact), 0);
 
 	const handleBack = () => {
 		if (onBack) {
