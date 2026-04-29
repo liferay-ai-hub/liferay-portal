@@ -74,7 +74,7 @@
 		},
 		{
 			"active": true,
-			"description": "This agent builds or updates Liferay Content Pages from natural-language instructions, producing a full SitePage payload that can be persisted via the headless-admin-site API.",
+			"description": "This agent edits ONE existing Liferay Content Page in place, given its siteExternalReferenceCode and sitePageExternalReferenceCode, by reading the live page specification and writing back an updated one. It REQUIRES the site and the page to already exist. Do NOT invoke this agent to bootstrap a new site or to create new pages from scratch — Site Builder already produces complete page artifacts for that case.",
 			"externalReferenceCode": "L_PAGE_BUILDER",
 			"inputVariables": "request,siteExternalReferenceCode,sitePageExternalReferenceCode",
 			"outputVariable": "response",
@@ -86,7 +86,7 @@
 		},
 		{
 			"active": true,
-			"description": "This agent builds or updates Liferay CMS Blogs from natural-language instructions, producing a JSON array of CMSBlog payloads (one or many) that can be persisted via the headless-delivery cms/blogs API.",
+			"description": "This agent generates standalone CMS Blog posts when the user asks specifically for blogs/articles/posts in the context of an existing site or space. It produces a JSON array of CMSBlog payloads. Do NOT invoke this agent during a 'create a website / site / portfolio' flow — Site Builder already produces all the CMSBlog artifacts needed for a brand-new site. Use this agent only for blog-only requests against an already-existing site context.",
 			"externalReferenceCode": "L_CMS_BLOG_BUILDER",
 			"inputVariables": "request",
 			"outputVariable": "response",
@@ -98,7 +98,7 @@
 		},
 		{
 			"active": true,
-			"description": "This agent builds Liferay Spaces (Asset Libraries) from natural-language instructions, producing a JSON array of AssetLibrary payloads (one or many) that can be persisted via the headless-asset-library asset-libraries API.",
+			"description": "This agent generates standalone Liferay Spaces (Asset Libraries) when the user asks specifically for a space/asset-library outside of a full site flow. It produces a JSON array of AssetLibrary payloads. Do NOT invoke this agent during a 'create a website / site / portfolio' flow — Site Builder already produces the Space artifact needed for a brand-new site. Use this agent only for standalone Space-creation requests.",
 			"externalReferenceCode": "L_SPACE_BUILDER",
 			"inputVariables": "request",
 			"outputVariable": "response",
@@ -110,7 +110,7 @@
 		},
 		{
 			"active": true,
-			"description": "This agent analyzes a website use case description and generates a complete site plan with site metadata, sitemap, per-page layout IR, custom fragment specifications, and full HTML/CSS/JS for each custom fragment.",
+			"description": "This agent bootstraps a brand-new website end-to-end from a natural-language description. It produces all the publish-ready batch artifacts (Site, Asset Library / Space, Connected Site, Fragment Set, Fragments with full HTML/CSS/JS, Site Pages with their content page specifications, and CMS Blogs when explicitly requested) and writes them as ContentGeneratorArtifact rows. It does NOT touch the live site — nothing is persisted until the user runs the commit action. Use this agent for any 'create a website / site / portfolio / landing page' request. Do NOT chain Page Builder, Fragment Builder, or CMS Blog Builder afterwards: this agent already covers all of them.",
 			"externalReferenceCode": "L_SITE_BUILDER",
 			"inputVariables": "request",
 			"outputVariable": "response",
