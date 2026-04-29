@@ -16,6 +16,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -28,6 +29,9 @@ import com.liferay.portal.kernel.util.Validator;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 
+import java.nio.charset.StandardCharsets;
+
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -885,13 +889,27 @@ public class SiteBuilderTools {
 
 		JSONObject configuration = envelope.getJSONObject("configuration");
 
+		String uniqueFileName = StringBundler.concat(
+			_sseEventSinkKey, "-", System.currentTimeMillis(), "-", fileName);
+
 		JSONObject artifactBody = JSONFactoryUtil.createJSONObject();
 
 		artifactBody.put("className", configuration.getString("className"));
 		artifactBody.put(
 			"delegateName", configuration.getString("taskItemDelegateName"));
 		artifactBody.put("fileName", fileName);
-		artifactBody.put("json", envelope.toString());
+		artifactBody.put(
+			"json",
+			JSONUtil.put(
+				"fileBase64",
+				Base64.getEncoder(
+				).encodeToString(
+					envelope.toString(
+					).getBytes(StandardCharsets.UTF_8)
+				)
+			).put(
+				"name", uniqueFileName
+			));
 		artifactBody.put("loadOrder", loadOrder);
 		artifactBody.put(
 			"r_artifacts_l_contentGeneratorRunERC", _sseEventSinkKey);

@@ -71,8 +71,8 @@
 					"type": "String"
 				},
 				{
-					"DBType": "Clob",
-					"businessType": "LongText",
+					"DBType": "Long",
+					"businessType": "Attachment",
 					"externalReferenceCode": "L_CSG_ARTIFACT_JSON",
 					"indexed": false,
 					"indexedAsKeyword": false,
@@ -80,10 +80,24 @@
 						"en_US": "JSON"
 					},
 					"name": "json",
+					"objectFieldSettings": [
+						{
+							"name": "acceptedFileExtensions",
+							"value": "json"
+						},
+						{
+							"name": "fileSource",
+							"value": "userComputerToDocumentsAndMedia"
+						},
+						{
+							"name": "maximumFileSize",
+							"value": "20"
+						}
+					],
 					"required": true,
 					"state": false,
 					"system": true,
-					"type": "String"
+					"type": "Long"
 				},
 				{
 					"DBType": "Integer",

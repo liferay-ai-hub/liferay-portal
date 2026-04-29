@@ -12,6 +12,7 @@ import com.liferay.batch.engine.BatchEngineTaskItemDelegateRegistry;
 import com.liferay.batch.engine.constants.BatchEngineImportTaskConstants;
 import com.liferay.batch.engine.model.BatchEngineImportTask;
 import com.liferay.batch.engine.service.BatchEngineImportTaskLocalService;
+import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.object.action.executor.BaseObjectActionExecutor;
 import com.liferay.object.action.executor.ObjectActionExecutor;
 import com.liferay.object.model.ObjectDefinition;
@@ -26,12 +27,16 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Serializable;
 
 import java.nio.charset.StandardCharsets;
@@ -255,20 +260,33 @@ public class CommitContentSiteGeneratorRunObjectActionExecutor
 					artifact.getObjectEntryId());
 
 				String fileName = GetterUtil.getString(values.get("fileName"));
-				String json = GetterUtil.getString(values.get("json"));
+				long fileEntryId = GetterUtil.getLong(values.get("json"));
 
-				if (Validator.isBlank(json)) {
+				if (fileEntryId <= 0) {
 					if (_log.isWarnEnabled()) {
 						_log.warn(
 							"Skipping artifact " + fileName +
-								" due to missing envelope");
+								" due to missing envelope file entry");
+					}
+
+					continue;
+				}
+
+				String envelopeJSON = _readFileEntry(fileEntryId);
+
+				if (Validator.isBlank(envelopeJSON)) {
+					if (_log.isWarnEnabled()) {
+						_log.warn(
+							"Skipping artifact " + fileName +
+								" due to empty envelope file entry " +
+									fileEntryId);
 					}
 
 					continue;
 				}
 
 				BatchEngineImportTask batchEngineImportTask = _submitEnvelope(
-					companyId, userId, fileName, json);
+					companyId, userId, fileName, envelopeJSON);
 
 				if (batchEngineImportTask == null) {
 					continue;
@@ -377,6 +395,18 @@ public class CommitContentSiteGeneratorRunObjectActionExecutor
 		return batchEngineImportTask;
 	}
 
+	private String _readFileEntry(long fileEntryId) throws PortalException {
+		FileEntry fileEntry = _dlAppLocalService.getFileEntry(fileEntryId);
+
+		try (InputStream inputStream = fileEntry.getContentStream()) {
+			return StringUtil.read(inputStream);
+		}
+		catch (IOException ioException) {
+			throw new PortalException(
+				"Unable to read file entry " + fileEntryId, ioException);
+		}
+	}
+
 	private Map<String, Serializable> _toSerializableMap(
 		JSONObject jsonObject) {
 
@@ -461,6 +491,9 @@ public class CommitContentSiteGeneratorRunObjectActionExecutor
 	@Reference
 	private BatchEngineTaskItemDelegateRegistry
 		_batchEngineTaskItemDelegateRegistry;
+
+	@Reference
+	private DLAppLocalService _dlAppLocalService;
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
