@@ -282,6 +282,7 @@ public class AgentInstanceResourceTest
 		_testPostAgentInstanceWithTypeAIDecisionNodeWithToolWorkflowDefinition();
 		_testPostAgentInstanceWithTypeAIDecisionNodeWorkflowDefinition();
 		_testPostAgentInstanceWithTypeFixSpellingAndGrammarWithInstruction();
+		_testPostAgentInstanceWithInstructionPriorityOrdering();
 		_testPostAgentInstanceWithTypeLLMNodeWithRAGWorkflowDefinition();
 		_testPostAgentInstanceWithTypeLLMNodeWithRAGWorkflowDefinitionWithRestrictedUser();
 		_testPostAgentInstanceWithTypeLLMNodeWithToolWorkflowDefinition();
@@ -343,6 +344,26 @@ public class AgentInstanceResourceTest
 		return StringUtil.read(inputStream);
 	}
 
+	private ObjectEntry _addInstructionDefinitionObjectEntry(
+			Map<String, Serializable> values)
+		throws Exception {
+
+		return _objectEntryLocalService.addObjectEntry(
+			0, TestPropsValues.getUserId(),
+			_instructionObjectDefinition.getObjectDefinitionId(), 0,
+			LocaleUtil.toLanguageId(LocaleUtil.getDefault()),
+			HashMapBuilder.<String, Serializable>put(
+				"r_accountToAIHubInstructionDefinitions_accountEntryId",
+				_accountEntry.getAccountEntryId()
+			).put(
+				"title_i18n",
+				(Serializable)RandomTestUtil.randomLanguageIdStringMap()
+			).putAll(
+				values
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+	}
+
 	private ObjectEntry _addOrUpdateInstructionDefinitionObjectEntry(
 			Map<String, Serializable> values)
 		throws Exception {
@@ -351,6 +372,8 @@ public class AgentInstanceResourceTest
 			"L_AI_HUB_INSTRUCTION_DEFINITION", 0, TestPropsValues.getUserId(),
 			_instructionObjectDefinition.getObjectDefinitionId(), 0,
 			HashMapBuilder.<String, Serializable>put(
+				"priority", 1
+			).put(
 				"r_accountToAIHubInstructionDefinitions_accountEntryId",
 				_accountEntry.getAccountEntryId()
 			).put(
@@ -742,6 +765,81 @@ public class AgentInstanceResourceTest
 			});
 
 		SseUtil.closeAll();
+	}
+
+	private void _testPostAgentInstanceWithInstructionPriorityOrdering()
+		throws Exception {
+
+		String highPriorityInstruction = "Always respond in formal English.";
+		String lowPriorityInstruction = "Always end your response with a period.";
+
+		ObjectEntry highPriorityEntry = _addInstructionDefinitionObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"active", true
+			).put(
+				"instruction", highPriorityInstruction
+			).put(
+				"priority", 1
+			).put(
+				"scope", "everywhere"
+			).build());
+		ObjectEntry lowPriorityEntry = _addInstructionDefinitionObjectEntry(
+			HashMapBuilder.<String, Serializable>put(
+				"active", true
+			).put(
+				"instruction", lowPriorityInstruction
+			).put(
+				"priority", 2
+			).put(
+				"scope", "everywhere"
+			).build());
+
+		try {
+			CountDownLatch countDownLatch = new CountDownLatch(4);
+			List<String> lines = new ArrayList<>();
+
+			String sseEventSinkKey = SseEventSourceTestUtil.open(
+				List.of(countDownLatch), lines, "agent-instances/subscribe");
+
+			JSONObject jsonObject = _postAgentInstance(
+				"L_FIX_SPELLING_AND_GRAMMAR", "Thi text ix wrong.", "text",
+				"everywhere", sseEventSinkKey);
+
+			Assert.assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
+
+			IdempotentRetryAssert.retryAssert(
+				5, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
+				() -> {
+					WorkflowInstance workflowInstance =
+						_workflowInstanceManager.getWorkflowInstance(
+							TestPropsValues.getCompanyId(),
+							jsonObject.getLong("externalReferenceCode"));
+
+					String promptInput = MapUtil.getString(
+						workflowInstance.getWorkflowContext(), "promptInput");
+
+					int highPriorityIndex = promptInput.indexOf(
+						highPriorityInstruction);
+					int lowPriorityIndex = promptInput.indexOf(
+						lowPriorityInstruction);
+
+					Assert.assertTrue(
+						"Expected priority 1 instruction before priority 2 " +
+							"instruction in: " + promptInput,
+						(highPriorityIndex >= 0) &&
+							(highPriorityIndex < lowPriorityIndex));
+
+					return null;
+				});
+		}
+		finally {
+			_objectEntryLocalService.deleteObjectEntry(
+				highPriorityEntry.getObjectEntryId());
+			_objectEntryLocalService.deleteObjectEntry(
+				lowPriorityEntry.getObjectEntryId());
+
+			SseUtil.closeAll();
+		}
 	}
 
 	private void _testPostAgentInstanceWithTypeLLMNodeWithRAGWorkflowDefinition()
