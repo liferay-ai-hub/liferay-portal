@@ -13,6 +13,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -110,7 +111,7 @@ public class PromptUtil {
 					serviceContext.getLocale(), null,
 					UserServiceUtil.getUserById(serviceContext.getUserId())),
 				_createFilterString(instructionDefinitionScope), null, null,
-				null);
+				new Sort[] {new Sort("priority", Sort.INT_TYPE, false)});
 
 			List<String> instructions = TransformUtil.transform(
 				page.getItems(),
