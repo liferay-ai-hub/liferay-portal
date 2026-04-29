@@ -13,8 +13,10 @@ import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
 import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -81,10 +83,15 @@ public class AIHubSiteInitializerTest {
 		_assertObjectDefinitionExists("L_AI_HUB_INSTRUCTION_DEFINITION");
 		_assertObjectDefinitionExists("L_AI_HUB_MCP_SERVER");
 
+		_assertObjectFieldIndexedAndRequired(
+			"L_AI_HUB_INSTRUCTION_DEFINITION", "priority");
+
 		_assertObjectRelationshipExists(
 			"L_ACCOUNT", "L_ACCOUNT_TO_L_AI_HUB_AGENT_DEFINITIONS");
 		_assertObjectRelationshipExists(
 			"L_ACCOUNT", "L_ACCOUNT_TO_L_AI_HUB_CONTENT_RETRIEVERS");
+		_assertObjectRelationshipExists(
+			"L_ACCOUNT", "L_ACCOUNT_TO_L_AI_HUB_INSTRUCTION_DEFINITIONS");
 		_assertObjectRelationshipExists(
 			"L_ACCOUNT", "L_ACCOUNT_TO_L_AI_HUB_MCP_SERVERS");
 		_assertObjectRelationshipExists(
@@ -125,6 +132,23 @@ public class AIHubSiteInitializerTest {
 				listTypeDefinition.getListTypeDefinitionId(), "clickToChat");
 
 		Assert.assertTrue(listTypeEntry.isSystem());
+	}
+
+	private void _assertObjectFieldIndexedAndRequired(
+			String objectDefinitionERC, String fieldName)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					objectDefinitionERC, TestPropsValues.getCompanyId());
+
+		ObjectField objectField = _objectFieldLocalService.fetchObjectField(
+			objectDefinition.getObjectDefinitionId(), fieldName);
+
+		Assert.assertNotNull(objectField);
+		Assert.assertTrue(objectField.isIndexed());
+		Assert.assertTrue(objectField.isRequired());
 	}
 
 	private void _assertObjectDefinitionExists(String externalReferenceCode)
@@ -187,6 +211,9 @@ public class AIHubSiteInitializerTest {
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Inject
+	private ObjectFieldLocalService _objectFieldLocalService;
 
 	@Inject
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;
