@@ -28,9 +28,6 @@ import com.liferay.portal.kernel.util.Validator;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 
-import java.io.File;
-import java.io.FileWriter;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -123,7 +120,7 @@ public class SiteBuilderTools {
 		}
 	}
 
-	@Tool("Write batch engine JSON files for site, fragment-set, fragments, and pages to bundles/data/")
+	@Tool("Post batch engine artifacts for site, asset library, connected site, fragment set, fragments, and pages to the current run.")
 	public String writeBatchFiles() {
 		try (SafeCloseable safeCloseable =
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(_companyId)) {
@@ -435,12 +432,6 @@ public class SiteBuilderTools {
 		String siteERC = siteJSON.getString("externalReferenceCode");
 		String siteTitle = siteJSON.getString("name");
 
-		String dataDir = System.getProperty("liferay.home", ".") + "/data";
-
-		File dataDirFile = new File(dataDir);
-
-		dataDirFile.mkdirs();
-
 		StringBuilder results = new StringBuilder();
 
 		// 01-site
@@ -460,9 +451,9 @@ public class SiteBuilderTools {
 		siteBatch.put(
 			"items", JSONFactoryUtil.createJSONArray().put(siteItem));
 
-		_writeFile(dataDir + "/01-site.batch-engine-data.json", siteBatch);
+		_postArtifact(1, "01-site.batch-engine-data.json", siteBatch);
 
-		results.append("Wrote 01-site.batch-engine-data.json\n");
+		results.append("Posted 01-site.batch-engine-data.json\n");
 
 		// 02-asset-library
 
@@ -485,11 +476,10 @@ public class SiteBuilderTools {
 			"items",
 			JSONFactoryUtil.createJSONArray().put(assetLibraryItem));
 
-		_writeFile(
-			dataDir + "/02-asset-library.batch-engine-data.json",
-			assetLibraryBatch);
+		_postArtifact(
+			2, "02-asset-library.batch-engine-data.json", assetLibraryBatch);
 
-		results.append("Wrote 02-asset-library.batch-engine-data.json\n");
+		results.append("Posted 02-asset-library.batch-engine-data.json\n");
 
 		// 03-connected-site
 
@@ -529,12 +519,12 @@ public class SiteBuilderTools {
 			"items",
 			JSONFactoryUtil.createJSONArray().put(connectedSiteItem));
 
-		_writeFile(
-			dataDir + "/03-connected-site.batch-engine-data.json",
+		_postArtifact(
+			3, "03-connected-site.batch-engine-data.json",
 			connectedSiteBatch);
 
 		results.append(
-			"Wrote 03-connected-site.batch-engine-data.json\n");
+			"Posted 03-connected-site.batch-engine-data.json\n");
 
 		// 04-fragment-set
 
@@ -553,11 +543,10 @@ public class SiteBuilderTools {
 		fragmentSetBatch.put(
 			"items", JSONFactoryUtil.createJSONArray().put(fragmentSetItem));
 
-		_writeFile(
-			dataDir + "/04-fragment-set.batch-engine-data.json",
-			fragmentSetBatch);
+		_postArtifact(
+			4, "04-fragment-set.batch-engine-data.json", fragmentSetBatch);
 
-		results.append("Wrote 04-fragment-set.batch-engine-data.json\n");
+		results.append("Posted 04-fragment-set.batch-engine-data.json\n");
 
 		// 05-fragments
 
@@ -612,10 +601,10 @@ public class SiteBuilderTools {
 
 		fragmentsBatch.put("items", fragmentItems);
 
-		_writeFile(
-			dataDir + "/05-fragments.batch-engine-data.json", fragmentsBatch);
+		_postArtifact(
+			5, "05-fragments.batch-engine-data.json", fragmentsBatch);
 
-		results.append("Wrote 05-fragments.batch-engine-data.json\n");
+		results.append("Posted 05-fragments.batch-engine-data.json\n");
 
 		// 06-pages
 
@@ -784,10 +773,9 @@ public class SiteBuilderTools {
 
 		pagesBatch.put("items", pageItems);
 
-		_writeFile(
-			dataDir + "/06-pages.batch-engine-data.json", pagesBatch);
+		_postArtifact(6, "06-pages.batch-engine-data.json", pagesBatch);
 
-		results.append("Wrote 06-pages.batch-engine-data.json\n");
+		results.append("Posted 06-pages.batch-engine-data.json\n");
 
 		// 07-blogs
 
@@ -841,10 +829,10 @@ public class SiteBuilderTools {
 				blogsBatch.put("configuration", blogsConfig);
 				blogsBatch.put("items", blogArray);
 
-				_writeFile(
-					dataDir + "/07-blogs.batch-engine-data.json", blogsBatch);
+				_postArtifact(
+					7, "07-blogs.batch-engine-data.json", blogsBatch);
 
-				results.append("Wrote 07-blogs.batch-engine-data.json\n");
+				results.append("Posted 07-blogs.batch-engine-data.json\n");
 			}
 			else {
 				_log.error(
@@ -891,12 +879,50 @@ public class SiteBuilderTools {
 		return wrapper;
 	}
 
-	private void _writeFile(String path, JSONObject jsonObject)
+	private String _postArtifact(
+			int loadOrder, String fileName, JSONObject envelope)
 		throws Exception {
 
-		try (FileWriter writer = new FileWriter(path)) {
-			writer.write(jsonObject.toString());
+		JSONObject configuration = envelope.getJSONObject("configuration");
+
+		JSONObject artifactBody = JSONFactoryUtil.createJSONObject();
+
+		artifactBody.put("className", configuration.getString("className"));
+		artifactBody.put(
+			"delegateName", configuration.getString("taskItemDelegateName"));
+		artifactBody.put("fileName", fileName);
+		artifactBody.put("json", envelope.toString());
+		artifactBody.put("loadOrder", loadOrder);
+		artifactBody.put(
+			"r_artifacts_l_contentGeneratorRunERC", _sseEventSinkKey);
+
+		Http.Options options = new Http.Options();
+
+		options.addHeader(
+			HttpHeaders.CONTENT_TYPE, ContentTypes.APPLICATION_JSON);
+		options.addHeader("Liferay-AI-Hub-Cell-On-Behalf-Of", _userToken);
+		options.setBody(
+			artifactBody.toString(), ContentTypes.APPLICATION_JSON, "UTF-8");
+		options.setLocation(
+			_getBaseURL() + "/o/content-site-generator/artifacts/");
+		options.setMethod(Http.Method.POST);
+
+		String responseBody = HttpUtil.URLtoString(options);
+
+		int responseCode = options.getResponse(
+		).getResponseCode();
+
+		if ((responseCode < 200) || (responseCode >= 300)) {
+			throw new Exception(
+				StringBundler.concat(
+					"POST artifact ", fileName, " failed with HTTP ",
+					responseCode, ". Response: ", responseBody));
 		}
+
+		JSONObject responseJSONObject = JSONFactoryUtil.createJSONObject(
+			responseBody);
+
+		return responseJSONObject.getString("externalReferenceCode");
 	}
 
 	private void _appendDraftSuffix(JSONArray elements) {
