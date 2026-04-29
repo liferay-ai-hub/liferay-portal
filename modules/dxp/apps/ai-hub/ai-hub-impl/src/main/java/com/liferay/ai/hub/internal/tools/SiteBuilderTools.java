@@ -839,6 +839,8 @@ public class SiteBuilderTools {
 			}
 
 			if (blogArray != null) {
+				_sanitizeBlogKeywords(blogArray);
+
 				JSONObject blogsBatch = JSONFactoryUtil.createJSONObject();
 
 				JSONObject blogsConfig = JSONFactoryUtil.createJSONObject();
@@ -994,10 +996,6 @@ public class SiteBuilderTools {
 		return responseJSONObject.getString("externalReferenceCode");
 	}
 
-	private void _emitToolProgress(String label) {
-		SseUtil.send(label, "Tool Progress", null, _sseEventSinkKey);
-	}
-
 	private String _detectLanguages(JSONArray items, String fileName) {
 		Set<String> locales = new TreeSet<>();
 
@@ -1023,6 +1021,10 @@ public class SiteBuilderTools {
 		}
 
 		return String.join(",", locales);
+	}
+
+	private void _emitToolProgress(String label) {
+		SseUtil.send(label, "Tool Progress", null, _sseEventSinkKey);
 	}
 
 	private void _patchRunStatus(String runStatus) throws Exception {
@@ -1457,6 +1459,56 @@ public class SiteBuilderTools {
 		return text.trim();
 	}
 
+	private static void _sanitizeBlogKeywords(JSONArray blogArray) {
+
+		// Asset tag validation rejects ~26 special characters (see
+		// AssetTagLocalServiceImpl). LLM-emitted keywords with characters like
+		// '&', '/', or "'" would otherwise fail the entire batch under
+		// ON_ERROR_FAIL. Strip invalid characters; drop keywords that go blank.
+
+		for (int i = 0; i < blogArray.length(); i++) {
+			JSONObject blog = blogArray.getJSONObject(i);
+
+			if (blog == null) {
+				continue;
+			}
+
+			JSONArray keywords = blog.getJSONArray("keywords");
+
+			if (keywords == null) {
+				continue;
+			}
+
+			JSONArray sanitized = JSONFactoryUtil.createJSONArray();
+
+			for (int j = 0; j < keywords.length(); j++) {
+				String keyword = keywords.getString(j);
+
+				if (Validator.isNull(keyword)) {
+					continue;
+				}
+
+				StringBuilder sb = new StringBuilder(keyword.length());
+
+				for (int k = 0; k < keyword.length(); k++) {
+					char c = keyword.charAt(k);
+
+					if (_INVALID_ASSET_TAG_CHARS.indexOf(c) < 0) {
+						sb.append(c);
+					}
+				}
+
+				String cleaned = sb.toString().trim();
+
+				if (!cleaned.isEmpty()) {
+					sanitized.put(cleaned);
+				}
+			}
+
+			blog.put("keywords", sanitized);
+		}
+	}
+
 	private static JSONObject _stripMetadata(JSONObject item) {
 		JSONObject stripped = JSONFactoryUtil.createJSONObject();
 
@@ -1470,6 +1522,9 @@ public class SiteBuilderTools {
 
 		return stripped;
 	}
+
+	private static final String _INVALID_ASSET_TAG_CHARS =
+		"&'@\\]}:,=>/<\n[{%|+#`?\"\r;*~";
 
 	private static final Set<String> _METADATA_KEYS = Set.of(
 		"actions", "classNameId", "classPK", "createDate", "creator",
