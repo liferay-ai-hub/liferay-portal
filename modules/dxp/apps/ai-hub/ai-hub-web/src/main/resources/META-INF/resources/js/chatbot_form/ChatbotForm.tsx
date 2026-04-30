@@ -13,7 +13,7 @@ import ClayPanel from '@clayui/panel';
 import {Provider} from '@clayui/provider';
 import {openToast} from '@liferay/object-js-components-web';
 import {InputLocalized} from 'frontend-js-components-web';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import './ChatbotForm.scss';
 import {getAgentDefinitions} from '../agent_definition_form/services/AgentDefinitionService';
@@ -31,6 +31,25 @@ type AgentDefinitionOption = {
 	externalReferenceCode: string;
 	title: string;
 };
+
+function getServiceURL(serviceURL: string) {
+	if (!serviceURL) {
+		return '';
+	}
+
+	try {
+		const url = new URL(serviceURL);
+
+		if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+			return '';
+		}
+
+		return url.toString().replace(/\/$/, '');
+	}
+	catch {
+		return '';
+	}
+}
 
 function generateEmbedCode(externalReferenceCode: string, serviceURL: string) {
 	return `
@@ -103,6 +122,11 @@ export default function ChatbotForm({
 		setOriginalSelectedAgentDefinitions,
 	] = useState<AgentDefinitionOption[]>([]);
 
+	const safeServiceURL = useMemo(
+		() => getServiceURL(serviceURL),
+		[serviceURL]
+	);
+
 	const handleInputChange = (
 		event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
 	) => {
@@ -117,7 +141,7 @@ export default function ChatbotForm({
 	const handleCopyEmbedCode = () => {
 		const code = generateEmbedCode(
 			formData.externalReferenceCode,
-			serviceURL
+			safeServiceURL
 		);
 
 		navigator.clipboard.writeText(code).then(() => {
@@ -552,7 +576,7 @@ export default function ChatbotForm({
 
 									<button
 										className="chatbot-code-copy"
-										disabled={!serviceURL}
+										disabled={!safeServiceURL}
 										onClick={handleCopyEmbedCode}
 										type="button"
 									>
@@ -574,10 +598,10 @@ export default function ChatbotForm({
 										readOnly
 										value={
 											formData.externalReferenceCode &&
-											serviceURL
+											safeServiceURL
 												? generateEmbedCode(
 														formData.externalReferenceCode,
-														serviceURL
+														safeServiceURL
 													)
 												: ''
 										}

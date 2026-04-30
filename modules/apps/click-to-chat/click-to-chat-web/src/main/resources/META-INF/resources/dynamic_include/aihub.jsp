@@ -16,7 +16,7 @@
 		var linkElement = document.createElement('link');
 
 		linkElement.href =
-			'<%= clickToChatAIHubServiceURL %>/documents/d/global/index-css';
+			'<%= HtmlUtil.escapeJS(clickToChatAIHubServiceURL) %>/documents/d/global/index-css';
 		linkElement.rel = 'stylesheet';
 
 		document.head.appendChild(linkElement);
@@ -25,10 +25,10 @@
 
 		scriptElement.id = 'aihub-chatbot-widget-script';
 		scriptElement.src =
-			'<%= clickToChatAIHubServiceURL %>/documents/d/global/index-js';
+			'<%= HtmlUtil.escapeJS(clickToChatAIHubServiceURL) %>/documents/d/global/index-js';
 		scriptElement.setAttribute(
 			'ai-hub-url',
-			'<%= clickToChatAIHubServiceURL %>'
+			'<%= HtmlUtil.escapeJS(clickToChatAIHubServiceURL) %>'
 		);
 		scriptElement.setAttribute(
 			'chatbot-external-reference-code',
