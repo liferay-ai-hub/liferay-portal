@@ -119,13 +119,15 @@ public class ClickToChatBottomJSPDynamicInclude extends BaseJSPDynamicInclude {
 						AIHubCellConfiguration.class,
 						themeDisplay.getCompanyId());
 
-				if (Validator.isNull(aiHubCellConfiguration.serviceURL())) {
+				String serviceURL = aiHubCellConfiguration.serviceURL();
+
+				if (Validator.isNull(serviceURL)) {
 					return;
 				}
 
 				httpServletRequest.setAttribute(
 					ClickToChatWebKeys.CLICK_TO_CHAT_AIHUB_SERVICE_URL,
-					aiHubCellConfiguration.serviceURL());
+					serviceURL);
 			}
 			catch (ConfigurationException configurationException) {
 				_log.error(configurationException);
