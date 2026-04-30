@@ -10,7 +10,7 @@ import com.liferay.click.to.chat.web.internal.configuration.ClickToChatConfigura
 import com.liferay.click.to.chat.web.internal.configuration.ClickToChatConfigurationUtil;
 import com.liferay.click.to.chat.web.internal.constants.ClickToChatConstants;
 import com.liferay.click.to.chat.web.internal.constants.ClickToChatWebKeys;
-import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -115,7 +115,7 @@ public class ClickToChatBottomJSPDynamicInclude extends BaseJSPDynamicInclude {
 
 			try {
 				AIHubCellConfiguration aiHubCellConfiguration =
-					ConfigurationProviderUtil.getCompanyConfiguration(
+					_configurationProvider.getCompanyConfiguration(
 						AIHubCellConfiguration.class,
 						themeDisplay.getCompanyId());
 
@@ -167,6 +167,9 @@ public class ClickToChatBottomJSPDynamicInclude extends BaseJSPDynamicInclude {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ClickToChatBottomJSPDynamicInclude.class);
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference(target = "(osgi.web.symbolicname=com.liferay.click.to.chat.web)")
 	private ServletContext _servletContext;
