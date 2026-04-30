@@ -10,6 +10,9 @@ import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.ai.hub.util.AccountEntryUtil;
 import com.liferay.ai.hub.web.internal.util.ActionUtil;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -54,12 +57,27 @@ public class EditChatbotDisplayContext {
 			"externalReferenceCode",
 			_httpServletRequest.getParameter("externalReferenceCode")
 		).put(
-			"serviceURL",
-			_configurationProvider.getCompanyConfiguration(
-				AIHubCellConfiguration.class, _themeDisplay.getCompanyId()
-			).serviceURL()
+			"serviceURL", _getServiceURL()
 		).build();
 	}
+
+	private String _getServiceURL() {
+		try {
+			AIHubCellConfiguration aiHubCellConfiguration =
+				_configurationProvider.getCompanyConfiguration(
+					AIHubCellConfiguration.class, _themeDisplay.getCompanyId());
+
+			return aiHubCellConfiguration.serviceURL();
+		}
+		catch (ConfigurationException configurationException) {
+			_log.error(configurationException);
+
+			return "";
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		EditChatbotDisplayContext.class);
 
 	private final ConfigurationProvider _configurationProvider;
 	private final HttpServletRequest _httpServletRequest;
