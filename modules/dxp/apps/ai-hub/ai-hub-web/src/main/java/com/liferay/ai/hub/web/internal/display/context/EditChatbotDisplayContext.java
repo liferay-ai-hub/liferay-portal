@@ -15,6 +15,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,7 +68,13 @@ public class EditChatbotDisplayContext {
 				_configurationProvider.getCompanyConfiguration(
 					AIHubCellConfiguration.class, _themeDisplay.getCompanyId());
 
-			return aiHubCellConfiguration.serviceURL();
+			String serviceURL = aiHubCellConfiguration.serviceURL();
+
+			if (Validator.isNotNull(serviceURL) && serviceURL.endsWith("/")) {
+				serviceURL = serviceURL.substring(0, serviceURL.length() - 1);
+			}
+
+			return serviceURL;
 		}
 		catch (ConfigurationException configurationException) {
 			_log.error(configurationException);

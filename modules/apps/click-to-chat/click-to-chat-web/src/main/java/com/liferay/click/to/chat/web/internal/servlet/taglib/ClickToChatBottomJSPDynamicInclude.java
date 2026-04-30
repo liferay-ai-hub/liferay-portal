@@ -125,6 +125,11 @@ public class ClickToChatBottomJSPDynamicInclude extends BaseJSPDynamicInclude {
 					return;
 				}
 
+				if (serviceURL.endsWith("/")) {
+					serviceURL = serviceURL.substring(
+						0, serviceURL.length() - 1);
+				}
+
 				httpServletRequest.setAttribute(
 					ClickToChatWebKeys.CLICK_TO_CHAT_AIHUB_SERVICE_URL,
 					serviceURL);
