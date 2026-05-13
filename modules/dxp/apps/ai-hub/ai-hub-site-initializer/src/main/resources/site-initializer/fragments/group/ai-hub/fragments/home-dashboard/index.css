@@ -1,0 +1,208 @@
+/* ============================================================
+   Home Dashboard Fragment
+   ============================================================ */
+
+.home-dashboard {
+	background: var(--body-bg);
+	padding: 32px 24px 48px;
+
+	/* ── Hero ── */
+
+	.home-dashboard__hero {
+		align-items: center;
+		border-bottom: 1px solid var(--border-color);
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		padding-bottom: 40px;
+		padding-top: 48px;
+		text-align: center;
+	}
+
+	.home-dashboard__hero-title {
+		color: var(--body-color);
+		font-size: 1.75rem;
+		font-weight: 600;
+		margin-bottom: 8px;
+	}
+
+	.home-dashboard__hero-subtitle {
+		color: var(--secondary);
+		font-size: var(--font-size-base, 1rem);
+		margin-bottom: 24px;
+		max-width: 480px;
+	}
+
+	.home-dashboard__hero-btn {
+		font-size: var(--font-size-base, 1rem);
+		font-weight: 600;
+		padding: 10px 24px;
+	}
+
+	/* ── Section ── */
+
+	.home-dashboard__section {
+		margin-top: 40px;
+	}
+
+	.home-dashboard__section-header {
+		align-items: center;
+		display: flex;
+		justify-content: space-between;
+		margin-bottom: 16px;
+	}
+
+	.home-dashboard__section-title {
+		color: var(--body-color);
+		font-size: 1rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.home-dashboard__section-link {
+		color: var(--primary);
+		font-size: var(--font-size-sm, 0.875rem);
+		text-decoration: none;
+
+		&:hover {
+			color: var(--primary-d1, var(--primary));
+			text-decoration: underline;
+		}
+	}
+
+	/* ── Cards grid ── */
+
+	.home-dashboard__cards {
+		display: grid;
+		gap: 16px;
+
+		grid-template-columns: repeat(4, 1fr);
+
+		@media (max-width: 1024px) {
+			grid-template-columns: repeat(2, 1fr);
+		}
+
+		@media (max-width: 640px) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* ── Agent Card ── */
+
+	.agent-card {
+		background: var(--body-bg);
+		border: 1px solid var(--gray-300, #e7e7ed);
+		border-radius: var(--border-radius-lg, 8px);
+		color: inherit;
+		cursor: pointer;
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		padding: 16px;
+		text-decoration: none;
+		transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+		&:hover {
+			border-color: var(--primary-l2, #a7b4e7);
+			box-shadow: var(--box-shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.08));
+			color: inherit;
+			text-decoration: none;
+		}
+	}
+
+	.agent-card__header {
+		align-items: flex-start;
+		display: flex;
+	}
+
+	.agent-card__icon {
+		align-items: center;
+		border-radius: var(--border-radius, 6px);
+		display: flex;
+		flex-shrink: 0;
+		height: 40px;
+		justify-content: center;
+		width: 40px;
+
+		.lexicon-icon {
+			height: 20px;
+			width: 20px;
+		}
+	}
+
+	.agent-card__body {
+		flex: 1;
+	}
+
+	.agent-card__title {
+		color: var(--body-color);
+		font-size: var(--font-size-sm, 0.875rem);
+		font-weight: 600;
+		margin-bottom: 4px;
+		margin-top: 0;
+	}
+
+	.agent-card__description {
+		-webkit-box-orient: vertical;
+		color: var(--secondary);
+		display: -webkit-box;
+		font-size: var(--font-size-xs, 0.75rem);
+		-webkit-line-clamp: 2;
+		line-height: 1.5;
+		margin: 0;
+		overflow: hidden;
+	}
+
+	.agent-card__footer {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+	}
+
+	/* Labels use Clay's .label classes — no custom color overrides needed */
+
+	/* ── Skeleton ── */
+
+	.agent-card--skeleton {
+		pointer-events: none;
+	}
+
+	.agent-card__skeleton-icon {
+		animation: skeleton-pulse 1.4s ease-in-out infinite;
+		background: var(--light, #f1f2f5);
+		border-radius: var(--border-radius, 6px);
+		height: 40px;
+		width: 40px;
+	}
+
+	.agent-card__skeleton-line {
+		animation: skeleton-pulse 1.4s ease-in-out infinite;
+		background: var(--light, #f1f2f5);
+		border-radius: var(--border-radius-sm, 4px);
+		height: 12px;
+
+		&.agent-card__skeleton-line--title {
+			width: 70%;
+		}
+
+		&.agent-card__skeleton-line--desc {
+			height: 20px;
+			width: 100%;
+		}
+
+		&.agent-card__skeleton-line--tags {
+			width: 50%;
+		}
+	}
+}
+
+@keyframes skeleton-pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+
+	50% {
+		opacity: 0.4;
+	}
+}

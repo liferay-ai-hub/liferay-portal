@@ -68,7 +68,16 @@ public class EditAgentDefinitionDisplayContext {
 				return accountEntry.getExternalReferenceCode();
 			}
 		).put(
-			"backURL", aiHubURL + "/agent-builder"
+			"backURL",
+			() -> {
+				String backURL = _httpServletRequest.getParameter("backURL");
+
+				if ((backURL != null) && !backURL.isEmpty()) {
+					return backURL;
+				}
+
+				return aiHubURL + "/agent-builder";
+			}
 		).put(
 			"externalReferenceCode",
 			_httpServletRequest.getParameter("externalReferenceCode")

@@ -1,0 +1,9 @@
+{
+	"configurationPath": "configuration.json",
+	"cssPath": "index.css",
+	"htmlPath": "index.html",
+	"icon": "home",
+	"jsPath": "index.js",
+	"name": "Home Dashboard",
+	"type": "component"
+}

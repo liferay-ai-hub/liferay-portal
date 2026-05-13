@@ -1,0 +1,66 @@
+<div class="home-dashboard" id="home-dashboard-${fragmentEntryLinkNamespace}">
+
+	<!-- Hero -->
+	<div class="home-dashboard__hero">
+		<h2 class="home-dashboard__hero-title">Start Creating Something</h2>
+		<p class="home-dashboard__hero-subtitle">An agent or automation can help you and your customers with daily tasks doing your day to day easier.</p>
+		<a
+			class="btn btn-primary home-dashboard__hero-btn rounded-pill"
+			href="#"
+			id="home-dashboard-create-btn-${fragmentEntryLinkNamespace}"
+		>
+			Create New Agent
+		</a>
+	</div>
+
+	<!-- Latest Agents -->
+	<div class="home-dashboard__section">
+		<div class="home-dashboard__section-header">
+			<h3 class="home-dashboard__section-title">Latest Agents</h3>
+			<a
+				class="home-dashboard__section-link"
+				href="#"
+				id="home-dashboard-agents-link-${fragmentEntryLinkNamespace}"
+			>See Agents</a>
+		</div>
+		<div
+			class="home-dashboard__cards home-dashboard__cards"
+			id="home-dashboard-agents-${fragmentEntryLinkNamespace}"
+		>
+			[#list 1..4 as i]
+			<div class="agent-card agent-card--skeleton">
+				<div class="agent-card__skeleton-icon"></div>
+				<div class="agent-card__skeleton-line agent-card__skeleton-line--title"></div>
+				<div class="agent-card__skeleton-line agent-card__skeleton-line--desc"></div>
+				<div class="agent-card__skeleton-line agent-card__skeleton-line--tags"></div>
+			</div>
+			[/#list]
+		</div>
+	</div>
+
+	<!-- Latest Chatbots -->
+	<div class="home-dashboard__section">
+		<div class="home-dashboard__section-header">
+			<h3 class="home-dashboard__section-title">Latest Chatbots</h3>
+			<a
+				class="home-dashboard__section-link"
+				href="#"
+				id="home-dashboard-chatbots-link-${fragmentEntryLinkNamespace}"
+			>See Chatbots</a>
+		</div>
+		<div
+			class="home-dashboard__cards home-dashboard__cards"
+			id="home-dashboard-chatbots-${fragmentEntryLinkNamespace}"
+		>
+			[#list 1..3 as i]
+			<div class="agent-card agent-card--skeleton">
+				<div class="agent-card__skeleton-icon"></div>
+				<div class="agent-card__skeleton-line agent-card__skeleton-line--title"></div>
+				<div class="agent-card__skeleton-line agent-card__skeleton-line--desc"></div>
+				<div class="agent-card__skeleton-line agent-card__skeleton-line--tags"></div>
+			</div>
+			[/#list]
+		</div>
+	</div>
+
+</div>
