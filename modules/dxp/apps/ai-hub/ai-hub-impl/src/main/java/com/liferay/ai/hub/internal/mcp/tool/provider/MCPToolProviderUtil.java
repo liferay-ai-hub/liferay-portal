@@ -11,10 +11,13 @@ import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.UserServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -71,14 +74,18 @@ public class MCPToolProviderUtil {
 	}
 
 	public static McpToolProvider create(
-		long companyId, DTOConverterRegistry dtoConverterRegistry, long groupId,
-		Locale locale, List<String> mcpServerExternalReferenceCodes,
-		ObjectEntryManager objectEntryManager, String sseEventSinkKey,
-		long userId, Map<String, Serializable> workflowContext) {
+			long companyId, DTOConverterRegistry dtoConverterRegistry,
+			long groupId, Locale locale,
+			List<String> mcpServerExternalReferenceCodes,
+			ObjectEntryManager objectEntryManager, String sseEventSinkKey,
+			long userId, Map<String, Serializable> workflowContext)
+		throws Exception {
 
 		if (ListUtil.isEmpty(mcpServerExternalReferenceCodes)) {
 			return null;
 		}
+
+		Company company = CompanyLocalServiceUtil.getCompany(companyId);
 
 		List<McpClient> mcpClients = TransformUtil.transform(
 			_getMCPServerObjectEntries(
@@ -87,7 +94,9 @@ public class MCPToolProviderUtil {
 			objectEntry -> {
 				McpTransport mcpTransport = _createMcpTransport(
 					objectEntry.getProperties(),
-					GetterUtil.getString(workflowContext.get("userToken")));
+					EncryptorUtil.decrypt(
+						company.getKeyObj(),
+						(String)workflowContext.get("userToken")));
 
 				return new DefaultMcpClient.Builder(
 				).transport(
