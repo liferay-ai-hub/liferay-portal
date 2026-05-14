@@ -107,6 +107,8 @@ public class InternalAgentImpl implements InternalAgent, InvocationHandler {
 				).put(
 					"sseEventSinkKey", _agentContext.getSseEventSinkKey()
 				).put(
+					"startTime", System.currentTimeMillis()
+				).put(
 					"userToken",
 					() -> {
 						if (_agentContext.getUserToken() == null) {

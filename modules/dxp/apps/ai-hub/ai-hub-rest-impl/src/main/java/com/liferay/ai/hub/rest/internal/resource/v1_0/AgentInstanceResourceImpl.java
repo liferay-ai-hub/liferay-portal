@@ -101,6 +101,8 @@ public class AgentInstanceResourceImpl extends BaseAgentInstanceResourceImpl {
 			).put(
 				"sseEventSinkKey", agentInstance.getSseEventSinkKey()
 			).put(
+				"startTime", System.currentTimeMillis()
+			).put(
 				"userToken",
 				_encryptor.encrypt(
 					contextCompany.getKeyObj(),
