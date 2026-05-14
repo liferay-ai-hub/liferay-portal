@@ -9,6 +9,7 @@ import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
+import com.liferay.ai.hub.audit.constants.AIHubEventTypes;
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.ai.hub.rest.dto.v1_0.ModelArmorTemplate;
 import com.liferay.ai.hub.rest.manager.v1_0.ModelArmorTemplateManager;
@@ -28,11 +29,14 @@ import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
+import com.liferay.portal.kernel.audit.AuditMessage;
+import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.messaging.MessageListener;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
@@ -48,6 +52,7 @@ import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.HTTPTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -62,6 +67,7 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -91,6 +97,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -102,6 +109,7 @@ import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -275,8 +283,31 @@ public class AgentInstanceResourceTest
 		PrincipalThreadLocal.setName(_originalName);
 	}
 
+	@Before
+	public void setUp() throws Exception {
+		_auditRouter = (AuditRouter)ReflectionTestUtil.getAndSetFieldValue(
+			_messageListener, "_auditRouter",
+			ProxyUtil.newProxyInstance(
+				AuditRouter.class.getClassLoader(),
+				new Class<?>[] {AuditRouter.class},
+				(proxy, method, arguments) -> {
+					AuditMessage auditMessage = (AuditMessage)arguments[0];
+
+					_auditMessages.put(
+						GetterUtil.getLong(auditMessage.getClassPK()),
+						auditMessage);
+
+					return null;
+				}));
+	}
+
 	@After
 	public void tearDown() throws Exception {
+		ReflectionTestUtil.setFieldValue(
+			_messageListener, "_auditRouter", _auditRouter);
+
+		_auditMessages.clear();
+
 		ServiceContextThreadLocal.popServiceContext();
 		SseUtil.closeAll();
 		ConfigurationTestUtil.deleteConfiguration(
@@ -382,6 +413,86 @@ public class AgentInstanceResourceTest
 				values
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
+	}
+
+	private void _assertAuditMessage(
+			String expectedAgentDefinitionExternalReferenceCode,
+			String expectedInstructionDefinitionScope, String expectedOutput,
+			String expectedSSEEventSinkKey, String expectedUserMessageInput,
+			WorkflowInstance workflowInstance)
+		throws Exception {
+
+		AuditMessage auditMessage = _auditMessages.get(
+			workflowInstance.getWorkflowInstanceId());
+
+		Assert.assertNotNull(auditMessage);
+
+		List<WorkflowLog> workflowLogs =
+			_workflowLogManager.getWorkflowLogsByWorkflowInstance(
+				TestPropsValues.getCompanyId(),
+				workflowInstance.getWorkflowInstanceId(),
+				List.of(WorkflowLog.NODE_USAGE_METADATA), QueryUtil.ALL_POS,
+				QueryUtil.ALL_POS, null);
+
+		WorkflowLog workflowLog = workflowLogs.get(0);
+
+		Map<String, Serializable> workflowContext = WorkflowContextUtil.convert(
+			workflowLog.getWorkflowContext());
+
+		JSONAssert.assertEquals(
+			JSONUtil.put(
+				"agentDefinitionExternalReferenceCode",
+				expectedAgentDefinitionExternalReferenceCode
+			).put(
+				"errorMessage", StringPool.BLANK
+			).put(
+				"inputTokenCount",
+				MapUtil.getLong(workflowContext, "inputTokenCount")
+			).put(
+				"instructionDefinitionScope", expectedInstructionDefinitionScope
+			).put(
+				"llmModelProvider", "vertex-ai"
+			).put(
+				"outputs", JSONUtil.putAll(expectedOutput)
+			).put(
+				"outputTokenCount",
+				MapUtil.getLong(workflowContext, "outputTokenCount")
+			).put(
+				"promptInputs",
+				JSONUtil.putAll(
+					MapUtil.getString(workflowContext, "promptInput"))
+			).put(
+				"sseEventSinkKey", expectedSSEEventSinkKey
+			).put(
+				"status", "success"
+			).put(
+				"thoughtsTokenCount",
+				MapUtil.getLong(workflowContext, "thoughtsTokenCount")
+			).put(
+				"totalTokenCount",
+				MapUtil.getLong(workflowContext, "totalTokenCount")
+			).put(
+				"userMessageInputs", JSONUtil.putAll(expectedUserMessageInput)
+			).put(
+				"workflowDefinitionName",
+				workflowInstance.getWorkflowDefinitionName()
+			).put(
+				"workflowDefinitionVersion",
+				workflowInstance.getWorkflowDefinitionVersion()
+			).put(
+				"workflowInstanceId", workflowInstance.getWorkflowInstanceId()
+			).toString(),
+			String.valueOf(auditMessage.getAdditionalInfo()),
+			JSONCompareMode.LENIENT);
+
+		Assert.assertEquals(
+			WorkflowInstance.class.getName(), auditMessage.getClassName());
+		Assert.assertEquals(
+			workflowInstance.getWorkflowInstanceId(),
+			GetterUtil.getLong(auditMessage.getClassPK()));
+		Assert.assertEquals(
+			AIHubEventTypes.AI_HUB_AGENT_EXECUTION,
+			auditMessage.getEventType());
 	}
 
 	private void _assertContains(String line, String... texts) {
@@ -771,6 +882,11 @@ public class AgentInstanceResourceTest
 					"This is the text to be fixed: " + input,
 					workflowContext.get("userMessageInput"));
 
+				_assertAuditMessage(
+					"L_FIX_SPELLING_AND_GRAMMAR", instructionDefinitionScope,
+					expectedOutput, sseEventSinkKey,
+					"This is the text to be fixed: " + input, workflowInstance);
+
 				return null;
 			});
 
@@ -996,6 +1112,11 @@ public class AgentInstanceResourceTest
 					workflowContext.get("rewrittenText"));
 
 				Assert.assertTrue(rewrittenText.length() < inputText.length());
+
+				_assertAuditMessage(
+					"L_MAKE_SHORTER", null, output, sseEventSinkKey,
+					"This is the text to be shortened: " + inputText,
+					workflowInstance);
 
 				return null;
 			});
@@ -1295,11 +1416,23 @@ public class AgentInstanceResourceTest
 	@Inject
 	private static WorkflowDefinitionManager _workflowDefinitionManager;
 
+	private final Map<Long, AuditMessage> _auditMessages =
+		new ConcurrentHashMap<>();
+	private AuditRouter _auditRouter;
+
 	@Inject
 	private DTOConverterRegistry _dtoConverterRegistry;
 
 	@Inject
 	private JSONFactory _jsonFactory;
+
+	@Inject(
+		filter = "component.name=com.liferay.ai.hub.internal.messaging.WorkflowInstanceMessageListener"
+	)
+	private MessageListener _messageListener;
+
+	@Inject
+	private ObjectRelationshipLocalService _objectRelationshipLocalService;
 
 	@Inject
 	private ModelArmorTemplateManager _modelArmorTemplateManager;
