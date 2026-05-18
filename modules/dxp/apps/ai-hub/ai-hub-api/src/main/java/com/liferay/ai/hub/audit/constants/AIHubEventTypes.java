@@ -13,4 +13,12 @@ public interface AIHubEventTypes {
 	public static final String AI_HUB_AGENT_EXECUTION =
 		"AI_HUB_AGENT_EXECUTION";
 
+	public static final String AI_HUB_AGENT_FLOW_ADD = "AI_HUB_AGENT_FLOW_ADD";
+
+	public static final String AI_HUB_AGENT_FLOW_DELETE =
+		"AI_HUB_AGENT_FLOW_DELETE";
+
+	public static final String AI_HUB_AGENT_FLOW_UPDATE =
+		"AI_HUB_AGENT_FLOW_UPDATE";
+
 }
