@@ -10,6 +10,9 @@ package com.liferay.ai.hub.audit.constants;
  */
 public interface AIHubEventTypes {
 
+	public static final String AI_HUB_AGENT_CONFIG_CHANGE =
+		"AI_HUB_AGENT_CONFIG_CHANGE";
+
 	public static final String AI_HUB_AGENT_EXECUTION =
 		"AI_HUB_AGENT_EXECUTION";
 
