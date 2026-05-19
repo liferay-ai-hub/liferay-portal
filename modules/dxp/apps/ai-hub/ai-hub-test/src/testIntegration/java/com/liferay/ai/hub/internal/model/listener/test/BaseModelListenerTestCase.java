@@ -83,13 +83,13 @@ public abstract class BaseModelListenerTestCase {
 		siteInitializer.initialize(TestPropsValues.getGroupId());
 
 		AccountEntry accountEntry1 =
-			_accountEntryLocalService.getAccountEntryByExternalReferenceCode(
+			accountEntryLocalService.getAccountEntryByExternalReferenceCode(
 				"L_AI_HUB", TestPropsValues.getCompanyId());
 
 		_accountEntryUserRelLocalService.addAccountEntryUserRel(
 			accountEntry1.getAccountEntryId(), TestPropsValues.getUserId());
 
-		AccountEntry accountEntry2 = _accountEntryLocalService.addAccountEntry(
+		AccountEntry accountEntry2 = accountEntryLocalService.addAccountEntry(
 			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
 			AccountConstants.PARENT_ACCOUNT_ENTRY_ID_DEFAULT,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
@@ -155,15 +155,15 @@ public abstract class BaseModelListenerTestCase {
 
 	protected abstract ModelListener<?> getModelListener();
 
+	@Inject
+	protected static AccountEntryLocalService accountEntryLocalService;
+
 	protected static ObjectEntry objectEntry;
 
 	@Inject
 	protected static ObjectEntryLocalService objectEntryLocalService;
 
 	protected final Queue<AuditMessage> auditMessages = new LinkedList<>();
-
-	@Inject
-	private static AccountEntryLocalService _accountEntryLocalService;
 
 	@Inject
 	private static AccountEntryUserRelLocalService
