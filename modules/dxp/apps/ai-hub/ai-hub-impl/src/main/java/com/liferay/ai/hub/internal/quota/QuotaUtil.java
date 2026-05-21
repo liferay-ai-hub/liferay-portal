@@ -10,7 +10,7 @@ import com.google.cloud.vertexai.api.CountTokensResponse;
 import com.google.cloud.vertexai.generativeai.GenerativeModel;
 
 import com.liferay.account.model.AccountEntry;
-import com.liferay.ai.hub.internal.configuration.VertexAIConfiguration;
+import com.liferay.ai.hub.configuration.VertexAIConfiguration;
 import com.liferay.ai.hub.util.AccountEntryUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
