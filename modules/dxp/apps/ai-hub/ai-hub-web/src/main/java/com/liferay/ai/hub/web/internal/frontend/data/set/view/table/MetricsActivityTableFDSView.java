@@ -35,7 +35,7 @@ public class MetricsActivityTableFDSView extends BaseTableFDSView {
 			"date", "date",
 			fdsTableSchemaField -> fdsTableSchemaField.setSortable(true)
 		).add(
-			"agentName", "name"
+			"nodeName", "name"
 		).add(
 			"userName", "user"
 		).add(

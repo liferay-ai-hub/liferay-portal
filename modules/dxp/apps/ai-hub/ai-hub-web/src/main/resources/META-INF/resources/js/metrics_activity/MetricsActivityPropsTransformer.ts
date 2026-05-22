@@ -5,8 +5,8 @@
 
 const HIDDEN_FIELDS = [
 	'id',
+	'agentName',
 	'duration',
-	'nodeName',
 	'output',
 	'promptInput',
 	'inputTokensCount',

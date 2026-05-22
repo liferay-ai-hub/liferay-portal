@@ -261,7 +261,10 @@ public class MetricsActivityResourceImpl
 				metricsActivity.setOutput(jsonObject.getString("output"));
 				metricsActivity.setPromptInput(
 					jsonObject.getString("promptInput"));
-				metricsActivity.setType(jsonObject.getString("processType"));
+				String processType = jsonObject.getString("processType");
+
+				metricsActivity.setType(
+					processType.isEmpty() ? "Agent" : processType);
 				metricsActivity.setUserMessage(
 					jsonObject.getString("userMessageInput"));
 			}
