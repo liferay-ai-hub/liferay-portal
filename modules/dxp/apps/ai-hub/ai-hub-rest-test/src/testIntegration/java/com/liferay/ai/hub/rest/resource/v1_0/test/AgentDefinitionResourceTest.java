@@ -9,6 +9,7 @@ import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
+import com.liferay.ai.hub.audit.constants.AIHubEventTypes;
 import com.liferay.ai.hub.rest.client.dto.v1_0.AgentDefinition;
 import com.liferay.ai.hub.rest.client.dto.v1_0.Variable;
 import com.liferay.ai.hub.rest.client.pagination.Page;
@@ -22,18 +23,24 @@ import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.audit.AuditMessage;
+import com.liferay.portal.kernel.audit.AuditRouter;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.AssertUtils;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.NoSuchWorkflowDefinitionException;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -47,22 +54,32 @@ import com.liferay.portal.vulcan.fields.NestedFieldsContext;
 import com.liferay.portal.vulcan.fields.NestedFieldsContextThreadLocal;
 import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
 import com.liferay.portal.workflow.kaleo.exception.NoSuchDefinitionException;
+import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.manager.WorkflowDefinitionManager;
 import com.liferay.site.initializer.SiteInitializer;
 import com.liferay.site.initializer.SiteInitializerRegistry;
 
+import java.nio.charset.StandardCharsets;
+
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
 
 /**
  * @author Feliphe Marinho
@@ -129,6 +146,32 @@ public class AgentDefinitionResourceTest
 		ServiceContextThreadLocal.popServiceContext();
 	}
 
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+
+		_auditRouter = (AuditRouter)ReflectionTestUtil.getAndSetFieldValue(
+			_modelListener, "_auditRouter",
+			ProxyUtil.newProxyInstance(
+				AuditRouter.class.getClassLoader(),
+				new Class<?>[] {AuditRouter.class},
+				(proxy, method, arguments) -> {
+					_auditMessages.add((AuditMessage)arguments[0]);
+
+					return null;
+				}));
+	}
+
+	@After
+	@Override
+	public void tearDown() throws Exception {
+		super.tearDown();
+
+		ReflectionTestUtil.setFieldValue(
+			_modelListener, "_auditRouter", _auditRouter);
+	}
+
 	@Override
 	@Test
 	public void testDeleteAgentDefinitionByExternalReferenceCode()
@@ -147,8 +190,22 @@ public class AgentDefinitionResourceTest
 				TestPropsValues.getCompanyId(),
 				agentDefinition.getWorkflowDefinitionName(), 1);
 
+		_assertAuditMessage(
+			JSONUtil.put("content", workflowDefinition.getContent()),
+			workflowDefinition.getWorkflowDefinitionId(),
+			AIHubEventTypes.AI_HUB_AGENT_FLOW_ADD);
+
 		agentDefinitionResource.deleteAgentDefinitionByExternalReferenceCode(
 			agentDefinition.getExternalReferenceCode());
+
+		_assertAuditMessage(
+			JSONUtil.put(
+				"content", workflowDefinition.getContent()
+			).put(
+				"version", workflowDefinition.getVersion()
+			),
+			workflowDefinition.getWorkflowDefinitionId(),
+			AIHubEventTypes.AI_HUB_AGENT_FLOW_DELETE);
 
 		AssertUtils.assertFailure(
 			NoSuchObjectEntryException.class,
@@ -380,6 +437,45 @@ public class AgentDefinitionResourceTest
 			Assert.assertNotEquals(
 				workflowDefinition1.getWorkflowDefinitionId(),
 				workflowDefinition2.getWorkflowDefinitionId());
+
+			_assertAuditMessage(
+				JSONUtil.put("content", workflowDefinition2.getContent()),
+				workflowDefinition2.getWorkflowDefinitionId(),
+				AIHubEventTypes.AI_HUB_AGENT_FLOW_ADD);
+
+			String oldContent = workflowDefinition2.getContent();
+			int oldVersion = workflowDefinition2.getVersion();
+
+			String newContent = StringUtil.replaceFirst(
+				workflowDefinition2.getContentAsXML(),
+				"<label language-id=\"en_US\">",
+				"<label language-id=\"en_US\">" +
+					RandomTestUtil.randomString());
+
+			workflowDefinition2 =
+				_workflowDefinitionManager.saveWorkflowDefinition(
+					newContent.getBytes(StandardCharsets.UTF_8),
+					TestPropsValues.getCompanyId(),
+					workflowDefinition2.getExternalReferenceCode(),
+					workflowDefinition2.getGroupId(),
+					workflowDefinition2.getName(),
+					WorkflowDefinitionConstants.SCOPE_AI,
+					workflowDefinition2.getTitle(
+						LocaleUtil.toLanguageId(LocaleUtil.US)),
+					TestPropsValues.getUserId());
+
+			_assertAuditMessage(
+				JSONUtil.put(
+					"newContent", workflowDefinition2.getContent()
+				).put(
+					"newVersion", workflowDefinition2.getVersion()
+				).put(
+					"oldContent", oldContent
+				).put(
+					"oldVersion", oldVersion
+				),
+				workflowDefinition2.getWorkflowDefinitionId(),
+				AIHubEventTypes.AI_HUB_AGENT_FLOW_UPDATE);
 		}
 		finally {
 			NestedFieldsContextThreadLocal.setNestedFieldsContext(
@@ -423,6 +519,26 @@ public class AgentDefinitionResourceTest
 			postAgentDefinitionByExternalReferenceCodeCopy(
 				WorkflowDefinitionConstants.
 					EXTERNAL_REFERENCE_CODE_CHANGE_TONE);
+	}
+
+	private void _assertAuditMessage(
+			JSONObject expectedAdditionalInfoJSONObject, long expectedClassPK,
+			String expectedEventType)
+		throws Exception {
+
+		AuditMessage auditMessage = _auditMessages.poll();
+
+		JSONAssert.assertEquals(
+			expectedAdditionalInfoJSONObject.toString(),
+			String.valueOf(auditMessage.getAdditionalInfo()),
+			JSONCompareMode.STRICT);
+		Assert.assertEquals(
+			KaleoDefinition.class.getName(), auditMessage.getClassName());
+		Assert.assertEquals(
+			String.valueOf(expectedClassPK), auditMessage.getClassPK());
+		Assert.assertEquals(expectedEventType, auditMessage.getEventType());
+
+		_auditMessages.clear();
 	}
 
 	private ObjectDefinition _getObjectDefinition() throws Exception {
@@ -637,6 +753,14 @@ public class AgentDefinitionResourceTest
 						WorkflowDefinitionConstants.NAME_MAKE_SHORTER;
 				}
 			});
+
+	private final Queue<AuditMessage> _auditMessages = new LinkedList<>();
+	private AuditRouter _auditRouter;
+
+	@Inject(
+		filter = "component.name=com.liferay.ai.hub.internal.model.listener.KaleoDefinitionModelListener"
+	)
+	private ModelListener<KaleoDefinition> _modelListener;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
