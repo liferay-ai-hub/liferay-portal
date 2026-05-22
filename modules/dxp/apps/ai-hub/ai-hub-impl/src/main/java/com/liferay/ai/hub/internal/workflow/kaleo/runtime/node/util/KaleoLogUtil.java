@@ -8,9 +8,12 @@ package com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.search.Indexer;
+import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
+import com.liferay.portal.workflow.kaleo.model.KaleoLog;
 import com.liferay.portal.workflow.kaleo.service.KaleoLogLocalServiceUtil;
 
 import dev.langchain4j.model.chat.response.ChatResponse;
@@ -41,24 +44,30 @@ public class KaleoLogUtil {
 			int thoughtsTokenCount =
 				totalTokenCount - inputTokenCount - outputTokenCount;
 
-			KaleoLogLocalServiceUtil.addNodeUsageMetadataKaleoLog(
-				kaleoInstanceToken,
-				HashMapBuilder.<String, Serializable>put(
-					"inputTokenCount", String.valueOf(inputTokenCount)
-				).put(
-					"output", output
-				).put(
-					"outputTokenCount", String.valueOf(outputTokenCount)
-				).put(
-					"promptInput", prompt
-				).put(
-					"thoughtsTokenCount", String.valueOf(thoughtsTokenCount)
-				).put(
-					"totalTokenCount", String.valueOf(totalTokenCount)
-				).put(
-					"userMessageInput", userMessage
-				).build(),
-				serviceContext);
+			KaleoLog kaleoLog =
+				KaleoLogLocalServiceUtil.addNodeUsageMetadataKaleoLog(
+					kaleoInstanceToken,
+					HashMapBuilder.<String, Serializable>put(
+						"inputTokenCount", String.valueOf(inputTokenCount)
+					).put(
+						"output", output
+					).put(
+						"outputTokenCount", String.valueOf(outputTokenCount)
+					).put(
+						"promptInput", prompt
+					).put(
+						"thoughtsTokenCount", String.valueOf(thoughtsTokenCount)
+					).put(
+						"totalTokenCount", String.valueOf(totalTokenCount)
+					).put(
+						"userMessageInput", userMessage
+					).build(),
+					serviceContext);
+
+			Indexer<KaleoLog> indexer = IndexerRegistryUtil.getIndexer(
+				KaleoLog.class);
+
+			indexer.reindex(kaleoLog);
 		}
 		catch (PortalException portalException) {
 			_log.error(portalException);
