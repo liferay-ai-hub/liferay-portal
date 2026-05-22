@@ -16,8 +16,9 @@ import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.search.Sort;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
@@ -48,6 +49,11 @@ public class MetricsActivityResourceImpl
 	public Page<MetricsActivity> getMetricActivitiesPage(
 			Pagination pagination, Sort[] sorts)
 		throws Exception {
+
+		if (!PermissionThreadLocal.getPermissionChecker().isCompanyAdmin()) {
+			throw new com.liferay.portal.kernel.security.auth.PrincipalException.MustBeCompanyAdmin(
+				contextUser.getUserId());
+		}
 
 		long companyId = contextCompany.getCompanyId();
 
@@ -226,7 +232,6 @@ public class MetricsActivityResourceImpl
 		metricsActivity.setDate(kaleoLog.getCreateDate());
 		metricsActivity.setNodeName(kaleoLog.getKaleoNodeName());
 		metricsActivity.setUserName(kaleoLog.getUserName());
-		metricsActivity.setDuration(kaleoLog.getDuration());
 		metricsActivity.setAgentName(
 			_getAgentName(kaleoLog.getKaleoDefinitionVersionId()));
 

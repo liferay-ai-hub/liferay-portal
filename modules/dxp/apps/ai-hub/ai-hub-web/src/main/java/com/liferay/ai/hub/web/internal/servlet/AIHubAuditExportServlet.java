@@ -7,13 +7,14 @@ package com.liferay.ai.hub.web.internal.servlet;
 
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
 import com.liferay.portal.kernel.dao.orm.OrderFactoryUtil;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.workflow.kaleo.model.KaleoLog;
@@ -63,6 +64,16 @@ public class AIHubAuditExportServlet extends HttpServlet {
 				return;
 			}
 
+			PermissionChecker permissionChecker =
+				_permissionCheckerFactory.create(user);
+
+			if (!permissionChecker.isCompanyAdmin()) {
+				httpServletResponse.sendError(
+					HttpServletResponse.SC_FORBIDDEN);
+
+				return;
+			}
+
 			long companyId = _portal.getCompanyId(httpServletRequest);
 
 			DynamicQuery dynamicQuery = _kaleoLogLocalService.dynamicQuery();
@@ -74,7 +85,7 @@ public class AIHubAuditExportServlet extends HttpServlet {
 			dynamicQuery.addOrder(OrderFactoryUtil.desc("createDate"));
 
 			List<KaleoLog> kaleoLogs = _kaleoLogLocalService.dynamicQuery(
-				dynamicQuery, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+				dynamicQuery, 0, _MAX_EXPORT_ROWS);
 
 			SimpleDateFormat dateFormat = new SimpleDateFormat(
 				"yyyy-MM-dd HH:mm:ss");
@@ -161,6 +172,8 @@ public class AIHubAuditExportServlet extends HttpServlet {
 		return sb.toString();
 	}
 
+	private static final int _MAX_EXPORT_ROWS = 10000;
+
 	private static final String _NODE_USAGE_METADATA_TYPE =
 		"NODE_USAGE_METADATA";
 
@@ -169,6 +182,9 @@ public class AIHubAuditExportServlet extends HttpServlet {
 
 	@Reference
 	private KaleoLogLocalService _kaleoLogLocalService;
+
+	@Reference
+	private PermissionCheckerFactory _permissionCheckerFactory;
 
 	@Reference
 	private Portal _portal;

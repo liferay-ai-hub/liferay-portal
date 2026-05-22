@@ -14,6 +14,7 @@ import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.workflow.kaleo.service.KaleoLogLocalService;
 
 import java.util.Collections;
@@ -51,6 +52,9 @@ public class MetricsActivityNodeSelectionFDSFilter
 		try {
 			DynamicQuery dynamicQuery = _kaleoLogLocalService.dynamicQuery();
 
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eq(
+					"companyId", CompanyThreadLocal.getCompanyId()));
 			dynamicQuery.add(
 				RestrictionsFactoryUtil.eq("type", _NODE_USAGE_METADATA_TYPE));
 			dynamicQuery.setProjection(
