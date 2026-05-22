@@ -41,7 +41,7 @@ public class MetricsActivityNodeSelectionFDSFilter
 
 	@Override
 	public String getLabel() {
-		return "node";
+		return "name";
 	}
 
 	@Override
