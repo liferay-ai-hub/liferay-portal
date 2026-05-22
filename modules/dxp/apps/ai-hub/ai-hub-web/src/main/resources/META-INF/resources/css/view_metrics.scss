@@ -6,31 +6,6 @@
 		width: 100%;
 	}
 
-	// Tabs
-
-	.ai-hub-metrics-tabs {
-		border-bottom: 2px solid #e7e7ed;
-		margin-bottom: 24px;
-
-		.nav-link {
-			border-bottom: 2px solid transparent;
-			color: #6b6c7e;
-			font-size: 14px;
-			font-weight: 600;
-			margin-bottom: -2px;
-			padding: 8px 16px;
-
-			&:hover {
-				color: #272833;
-			}
-
-			&.active {
-				border-bottom-color: #0b5fff;
-				color: #0b5fff;
-			}
-		}
-	}
-
 	// Section headers
 
 	.ai-hub-metrics-section-header,

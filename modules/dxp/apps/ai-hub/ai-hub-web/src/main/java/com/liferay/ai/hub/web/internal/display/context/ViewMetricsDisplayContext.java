@@ -123,6 +123,53 @@ public class ViewMetricsDisplayContext {
 		}
 	}
 
+	public String getAverageResponseTime() {
+		try {
+			DynamicQuery dynamicQuery = _kaleoLogLocalService.dynamicQuery();
+
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eq(
+					"companyId", _themeDisplay.getCompanyId()));
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eq("type", _NODE_USAGE_METADATA_TYPE));
+
+			List<KaleoLog> kaleoLogs = _kaleoLogLocalService.dynamicQuery(
+				dynamicQuery, 0, 1000);
+
+			long total = 0;
+			int count = 0;
+
+			for (KaleoLog kaleoLog : kaleoLogs) {
+				String durationMs = getWorkflowContextValue(
+					kaleoLog, "durationMs");
+
+				if (!durationMs.isEmpty()) {
+					long ms = GetterUtil.getLong(durationMs);
+
+					if (ms > 0) {
+						total += ms;
+						count++;
+					}
+				}
+			}
+
+			if (count == 0) {
+				return "-";
+			}
+
+			double avgSeconds = (total / (double)count) / 1000.0;
+
+			if (avgSeconds < 10) {
+				return String.format("%.1fs", avgSeconds);
+			}
+
+			return String.format("%.0fs", avgSeconds);
+		}
+		catch (Exception exception) {
+			return "-";
+		}
+	}
+
 	public long getTotalInteractions() {
 		try {
 			DynamicQuery dynamicQuery = _kaleoLogLocalService.dynamicQuery();
