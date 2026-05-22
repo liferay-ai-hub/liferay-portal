@@ -76,6 +76,8 @@ public class StateNodeExecutor extends BaseNodeExecutor {
 
 			Message message = new Message();
 
+			message.put("companyId", kaleoInstanceToken.getCompanyId());
+			message.put("userId", kaleoInstanceToken.getUserId());
 			message.put(
 				"workflowContext", executionContext.getWorkflowContext());
 			message.put(

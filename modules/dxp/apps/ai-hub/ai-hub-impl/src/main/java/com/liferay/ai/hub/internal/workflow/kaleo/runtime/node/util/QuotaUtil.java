@@ -40,7 +40,9 @@ public class QuotaUtil {
 		catch (UnsupportedOperationException unsupportedOperationException) {
 			Message message = new Message();
 
+			message.put("companyId", companyId);
 			message.put("exception", unsupportedOperationException);
+			message.put("userId", userId);
 			message.put("workflowInstanceId", workflowInstanceId);
 
 			MessageBusUtil.sendMessage(
