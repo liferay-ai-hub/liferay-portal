@@ -3,3 +3,4 @@ Bundle-SymbolicName: com.liferay.ai.hub.web
 Bundle-Version: 1.0.2
 Web-ContextPath: /ai-hub-web
 -dsannotations-options: inherit
+Provide-Capability: liferay.resource.bundle;resource.bundle.base.name="content.Language"

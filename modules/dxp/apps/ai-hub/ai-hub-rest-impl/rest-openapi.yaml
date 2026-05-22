@@ -1,5 +1,53 @@
 components:
     schemas:
+        MetricsActivity:
+            properties:
+                agentName:
+                    readOnly: true
+                    type: string
+                date:
+                    format: date-time
+                    readOnly: true
+                    type: string
+                duration:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                id:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                inputTokensCount:
+                    format: int32
+                    readOnly: true
+                    type: integer
+                nodeName:
+                    readOnly: true
+                    type: string
+                output:
+                    readOnly: true
+                    type: string
+                outputTokensCount:
+                    format: int32
+                    readOnly: true
+                    type: integer
+                promptInput:
+                    readOnly: true
+                    type: string
+                totalTokenCount:
+                    format: int32
+                    readOnly: true
+                    type: integer
+                userMessage:
+                    readOnly: true
+                    type: string
+                type:
+                    readOnly: true
+                    type: string
+                userName:
+                    readOnly: true
+                    type: string
+            type: object
         AgentDefinition:
             properties:
                 actions:
@@ -148,6 +196,36 @@ info:
     version: v1.0
 openapi: 3.0.1
 paths:
+    "/metrics/activities":
+        get:
+            operationId: getMetricActivitiesPage
+            parameters:
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/MetricsActivity"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/MetricsActivity"
+                                type: array
+            tags: ["MetricsActivity"]
     "/agent-definitions":
         get:
             operationId: getAgentDefinitionsPage

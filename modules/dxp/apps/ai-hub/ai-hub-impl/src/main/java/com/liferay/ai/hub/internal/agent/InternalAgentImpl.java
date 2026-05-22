@@ -98,6 +98,10 @@ public class InternalAgentImpl implements InternalAgent, InvocationHandler {
 				).put(
 					"memoryId", _agentContext.getSseEventSinkKey()
 				).put(
+					"processType",
+					(_agentContext.getChatbotExternalReferenceCode() != null)
+						? "Chatbot" : "Agent"
+				).put(
 					"sseEventSinkKey", _agentContext.getSseEventSinkKey()
 				).put(
 					"userToken", _agentContext.getUserToken()

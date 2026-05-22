@@ -165,6 +165,8 @@ public class AIDecisionNodeExecutor extends BaseNodeExecutor {
 			VertexAiGeminiUtil.createVertexAiGeminiStreamingChatModel(
 				serviceContext.getCompanyId());
 
+		long startTimeMs = System.currentTimeMillis();
+
 		String sseEventSinkKey = GetterUtil.getString(
 			workflowContext.get("sseEventSinkKey"));
 
@@ -186,8 +188,11 @@ public class AIDecisionNodeExecutor extends BaseNodeExecutor {
 					vertexAiGeminiStreamingChatModel.close();
 
 					KaleoLogUtil.addNodeUsageKaleoLog(
-						response, kaleoInstanceToken,
+						response, System.currentTimeMillis() - startTimeMs,
+						kaleoInstanceToken, currentKaleoNode.getName(),
 						GetterUtil.getString(workflowContext.get("reason")),
+						GetterUtil.getString(
+							workflowContext.get("processType")),
 						prompt, executionContext.getServiceContext(),
 						userMessage);
 

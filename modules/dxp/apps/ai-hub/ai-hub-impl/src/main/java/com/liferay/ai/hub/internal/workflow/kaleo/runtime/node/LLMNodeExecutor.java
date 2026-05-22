@@ -116,20 +116,48 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			kaleoInstanceToken.getKaleoInstanceId(),
 			serviceContext.getUserId());
 
-		VertexAiGeminiStreamingChatModel vertexAiGeminiStreamingChatModel =
-			VertexAiGeminiUtil.createVertexAiGeminiStreamingChatModel(
-				serviceContext.getCompanyId());
+		VertexAiGeminiStreamingChatModel vertexAiGeminiStreamingChatModel;
+
+		try {
+			vertexAiGeminiStreamingChatModel =
+				VertexAiGeminiUtil.createVertexAiGeminiStreamingChatModel(
+					serviceContext.getCompanyId());
+		}
+		catch (Exception exception) {
+			String errorMessage = exception.getMessage();
+
+			_log.error(
+				"Failed to initialize Vertex AI model. Check Vertex AI " +
+					"configuration in System Settings > AI Hub > Vertex AI. " +
+						"Cause: " + errorMessage);
+
+			String sseErrorKey = GetterUtil.getString(
+				workflowContext.get("sseEventSinkKey"));
+
+			SseUtil.send(
+				"Configuration error: " + errorMessage,
+				GetterUtil.getString(workflowContext.get("outBoundEventName")),
+				currentKaleoNode.getName(), sseErrorKey);
+
+			MCPToolProviderUtil.close(sseErrorKey);
+
+			throw new PortalException(
+				"Vertex AI is not configured: " + errorMessage, exception);
+		}
 
 		AtomicReference<ChatResponse> chatResponseAtomicReference =
 			new AtomicReference<>();
+
+		long startTimeMs = System.currentTimeMillis();
 
 		Callable<Void> completeResponseCallable =
 			new CompanyInheritableThreadLocalCallable<>(
 				() -> {
 					_completeResponse(
-						chatResponseAtomicReference.get(), executionContext,
-						currentKaleoNode, kaleoNodeSettingValues, prompt,
-						userMessage);
+						chatResponseAtomicReference.get(),
+						System.currentTimeMillis() - startTimeMs,
+						executionContext, currentKaleoNode,
+						kaleoNodeSettingValues, prompt, userMessage);
 
 					return null;
 				});
@@ -170,6 +198,13 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 					vertexAiGeminiStreamingChatModel.close();
 
 					_log.error(throwable);
+
+					KaleoLogUtil.addErrorKaleoLog(
+						throwable.getMessage(), kaleoInstanceToken,
+						GetterUtil.getString(
+							workflowContext.get("processType")),
+						serviceContext, currentKaleoNode.getName(),
+						userMessage);
 				}
 			).retrievalAugmentor(
 				RetrievalAugmentorUtil.createRetrievalAugmentor(
@@ -221,9 +256,10 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 	}
 
 	private void _completeResponse(
-		ChatResponse chatResponse, ExecutionContext executionContext,
-		KaleoNode kaleoNode, Map<String, String> kaleoNodeSettingValues,
-		String prompt, String userMessage) {
+		ChatResponse chatResponse, long durationMs,
+		ExecutionContext executionContext, KaleoNode kaleoNode,
+		Map<String, String> kaleoNodeSettingValues, String prompt,
+		String userMessage) {
 
 		AiMessage aiMessage = chatResponse.aiMessage();
 
@@ -251,7 +287,9 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			executionContext.getKaleoInstanceToken();
 
 		KaleoLogUtil.addNodeUsageKaleoLog(
-			chatResponse, kaleoInstanceToken, aiMessage.text(), prompt,
+			chatResponse, durationMs, kaleoInstanceToken, kaleoNode.getName(),
+			aiMessage.text(),
+			GetterUtil.getString(workflowContext.get("processType")), prompt,
 			executionContext.getServiceContext(), userMessage);
 
 		QuotaUtil.updateUsage(
