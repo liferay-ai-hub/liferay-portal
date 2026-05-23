@@ -134,6 +134,9 @@ public class ProvisioningRequestResourceTest
 
 		Assert.assertEquals(
 			33333333, GetterUtil.getInteger(values.get("limit")));
+		Assert.assertEquals(
+			21367000L, GetterUtil.getLong(values.get("lrtLimit")));
+		Assert.assertEquals(0L, GetterUtil.getLong(values.get("lrtUsage")));
 		Assert.assertEquals(0, GetterUtil.getInteger(values.get("usage")));
 	}
 
