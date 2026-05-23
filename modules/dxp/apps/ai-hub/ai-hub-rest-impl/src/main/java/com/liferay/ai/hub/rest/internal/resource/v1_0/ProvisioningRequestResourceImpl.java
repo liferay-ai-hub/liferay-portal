@@ -102,6 +102,10 @@ public class ProvisioningRequestResourceImpl
 			).put(
 				"limit", _QUOTA_TOKEN_LIMIT
 			).put(
+				"lrtLimit", _QUOTA_LRT_LIMIT_MILLI
+			).put(
+				"lrtUsage", 0
+			).put(
 				"r_accountToAIHubQuotas_accountEntryId",
 				accountEntry.getAccountEntryId()
 			).put(
@@ -170,6 +174,8 @@ public class ProvisioningRequestResourceImpl
 
 		return _userLocalService.updateUser(user);
 	}
+
+	private static final long _QUOTA_LRT_LIMIT_MILLI = 21367000L;
 
 	private static final int _QUOTA_TOKEN_LIMIT = 33333333;
 
