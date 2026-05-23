@@ -28,6 +28,31 @@
 		{
 			"DBType": "Long",
 			"businessType": "LongInteger",
+			"externalReferenceCode": "LRT_LIMIT",
+			"indexed": true,
+			"label": {
+				"en_US": "LRT Limit"
+			},
+			"name": "lrtLimit",
+			"required": true,
+			"system": true,
+			"type": "Long"
+		},
+		{
+			"DBType": "Long",
+			"businessType": "LongInteger",
+			"externalReferenceCode": "LRT_USAGE",
+			"indexed": true,
+			"label": {
+				"en_US": "LRT Usage"
+			},
+			"name": "lrtUsage",
+			"system": true,
+			"type": "Long"
+		},
+		{
+			"DBType": "Long",
+			"businessType": "LongInteger",
 			"externalReferenceCode": "USAGE",
 			"indexed": true,
 			"label": {
