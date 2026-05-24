@@ -7,7 +7,7 @@ package com.liferay.ai.hub.web.internal.display.context;
 
 import com.liferay.account.model.AccountEntry;
 import com.liferay.ai.hub.util.AccountEntryUtil;
-import com.liferay.ai.hub.web.internal.util.ActionUtil;
+import com.liferay.ai.hub.web.internal.display.context.util.DisplayContextUtil;
 import com.liferay.object.constants.ObjectFieldSettingConstants;
 import com.liferay.object.field.attachment.AttachmentManager;
 import com.liferay.object.field.setting.util.ObjectFieldSettingUtil;
@@ -74,7 +74,8 @@ public class EditChatbotDisplayContext {
 				return accountEntry.getExternalReferenceCode();
 			}
 		).put(
-			"backURL", ActionUtil.getAIHubURL(_themeDisplay) + "/chatbots"
+			"backURL",
+			DisplayContextUtil.getAIHubURL(_themeDisplay) + "/chatbots"
 		).put(
 			"companyLogoAcceptedFileExtensions", acceptedFileExtensions
 		).put(

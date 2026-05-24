@@ -7,6 +7,11 @@ package com.liferay.ai.hub.web.internal.display.context;
 
 import com.liferay.account.model.AccountEntry;
 import com.liferay.ai.hub.util.AccountEntryUtil;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
+import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+import com.liferay.object.service.ObjectEntryServiceUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Company;
@@ -14,9 +19,9 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -60,6 +65,15 @@ public class EditAgentDefinitionDisplayContext {
 			company.getPortalURL(GroupConstants.DEFAULT_PARENT_GROUP_ID),
 			"/web", group.getFriendlyURL());
 
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_AI_HUB_AGENT_DEFINITION", company.getCompanyId());
+
+		ObjectEntry objectEntry = ObjectEntryLocalServiceUtil.fetchObjectEntry(
+			_httpServletRequest.getParameter("externalReferenceCode"), 0,
+			objectDefinition.getObjectDefinitionId());
+
 		return HashMapBuilder.<String, Object>put(
 			"accountEntryExternalReferenceCode",
 			() -> {
@@ -87,19 +101,12 @@ public class EditAgentDefinitionDisplayContext {
 		).put(
 			"readonly",
 			() -> {
-				String workflowDefinitionName =
-					_httpServletRequest.getParameter("workflowDefinitionName");
-
-				if ((workflowDefinitionName != null) &&
-					ArrayUtil.contains(
-						WorkflowDefinitionConstants.
-							SYSTEM_WORKFLOW_DEFINITION_NAMES,
-						workflowDefinitionName)) {
-
-					return true;
+				if (objectEntry == null) {
+					return false;
 				}
 
-				return false;
+				return !ObjectEntryServiceUtil.hasModelResourcePermission(
+					objectEntry, "UPDATE");
 			}
 		).put(
 			"workflowDefinitionURL",
@@ -111,7 +118,7 @@ public class EditAgentDefinitionDisplayContext {
 					accountEntry, namespace, aiHubURL + "/workflow-definition");
 
 				return HttpComponentsUtil.addParameters(
-					_addNameParameter(namespace, url), "p_p_id",
+					_addNameParameter(namespace, objectEntry, url), "p_p_id",
 					WorkflowPortletKeys.KALEO_DESIGNER, "p_p_lifecycle", "0",
 					"p_p_state", WindowState.MAXIMIZED.toString(), "p_p_mode",
 					PortletMode.VIEW.toString(), namespace + "mvcPath",
@@ -141,11 +148,17 @@ public class EditAgentDefinitionDisplayContext {
 			group.getExternalReferenceCode());
 	}
 
-	private String _addNameParameter(String namespace, String url) {
-		String workflowDefinitionName = _httpServletRequest.getParameter(
-			"workflowDefinitionName");
+	private String _addNameParameter(
+		String namespace, ObjectEntry objectEntry, String url) {
 
-		if (workflowDefinitionName == null) {
+		if (objectEntry == null) {
+			return url;
+		}
+
+		String workflowDefinitionName = MapUtil.getString(
+			objectEntry.getValues(), "workflowDefinitionName");
+
+		if (Validator.isNull(workflowDefinitionName)) {
 			return url;
 		}
 

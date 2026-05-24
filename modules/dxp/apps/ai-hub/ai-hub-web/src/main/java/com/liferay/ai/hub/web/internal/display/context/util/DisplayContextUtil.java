@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.ai.hub.web.internal.util;
+package com.liferay.ai.hub.web.internal.display.context.util;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.Company;
@@ -14,7 +14,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 /**
  * @author Carolina Barbosa
  */
-public class ActionUtil {
+public class DisplayContextUtil {
 
 	public static String getAIHubURL(ThemeDisplay themeDisplay)
 		throws Exception {
