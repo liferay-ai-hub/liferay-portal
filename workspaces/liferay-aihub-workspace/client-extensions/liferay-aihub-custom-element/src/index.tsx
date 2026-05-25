@@ -23,20 +23,11 @@ if (!document.getElementById(CHATBOT_WIDGET_ID)) {
 		);
 	}
 	else {
-		const aiHubURL =
-			scriptTag.getAttribute('ai-hub-url') ||
-			'https://ai.hub.liferay.com';
-
-		if (!aiHubURL) {
-			console.warn(
-				'Attribute "ai-hub-url" is missing from the widget script tag.'
-			);
-		}
-
 		const widgetConfiguration: WidgetConfiguration = {
-			aiHubURL,
+			aiHubURL: scriptTag.getAttribute('ai-hub-url') || '',
 			chatbotExternalReferenceCode:
 				scriptTag.getAttribute('chatbot-external-reference-code') || '',
+			liferayDXPURL: scriptTag.getAttribute('liferay-dxp-url') || '',
 		};
 
 		const element = document.createElement('div');

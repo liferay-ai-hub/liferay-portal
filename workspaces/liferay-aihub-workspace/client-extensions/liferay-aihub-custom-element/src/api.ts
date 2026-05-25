@@ -9,15 +9,16 @@ import type {ChatbotConfiguration} from './types';
 
 let aiHubURL = '';
 
-export function setAIHubURL(url: string) {
+export function setURLs(url: string) {
 	aiHubURL = url;
+	//
 }
 
 export async function getChatbotConfiguration(
 	chatbotExternalReferenceCode: string
 ): Promise<ChatbotConfiguration> {
 	const response = await fetch(
-		`${aiHubURL}/o/ai-hub/chatbots/by-external-reference-code/${chatbotExternalReferenceCode}`,
+		`${liferayDXPURL}/o/ai-hub/chatbots/by-external-reference-code/${chatbotExternalReferenceCode}`,
 		{
 			headers: new Headers({
 				Accept: 'application/json',

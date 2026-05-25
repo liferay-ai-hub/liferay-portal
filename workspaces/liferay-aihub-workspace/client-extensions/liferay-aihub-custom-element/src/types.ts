@@ -22,4 +22,5 @@ export interface ChatMessage {
 export interface WidgetConfiguration {
 	aiHubURL: string;
 	chatbotExternalReferenceCode: string;
+	liferayDXPURL: string;
 }
