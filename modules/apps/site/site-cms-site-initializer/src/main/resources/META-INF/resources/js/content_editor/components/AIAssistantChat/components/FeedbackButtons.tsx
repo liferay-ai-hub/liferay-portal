@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayIcon from '@clayui/icon';
 import {fetch} from 'frontend-js-web';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import FeedbackModal from './FeedbackModal';
 
@@ -32,6 +33,17 @@ export default function FeedbackButtons({
 }) {
 	const [modalOpen, setModalOpen] = useState(false);
 	const [selected, setSelected] = useState<FeedbackType>(null);
+	const [showConfirmation, setShowConfirmation] = useState(false);
+
+	useEffect(() => {
+		if (!showConfirmation) {
+			return;
+		}
+
+		const timer = setTimeout(() => setShowConfirmation(false), 3000);
+
+		return () => clearTimeout(timer);
+	}, [showConfirmation]);
 
 	async function submitFeedback(
 		feedbackType: 'NEGATIVE' | 'POSITIVE',
@@ -49,6 +61,8 @@ export default function FeedbackButtons({
 				sessionId,
 				surface: 'AI_ASSISTANT_CHAT',
 			});
+
+			setShowConfirmation(true);
 		}
 		catch (error) {
 			console.warn('Failed to submit agent feedback:', error);
@@ -80,53 +94,63 @@ export default function FeedbackButtons({
 
 	return (
 		<>
-			<div className="ai-assistant-chat__feedback-buttons">
-				<span className="ai-assistant-chat__feedback-label">
-					{Liferay.Language.get('was-this-helpful')}
-				</span>
+			{showConfirmation ? (
+				<ClayAlert
+					className="ai-assistant-chat__feedback-confirmation"
+					displayType="success"
+					spritemap={Liferay.Icons.spritemap}
+					title={Liferay.Language.get('thanks-for-your-feedback')}
+					variant="inline"
+				/>
+			) : (
+				<div className="ai-assistant-chat__feedback-buttons">
+					<span className="ai-assistant-chat__feedback-label">
+						{Liferay.Language.get('was-this-helpful')}
+					</span>
 
-				<div className="ai-assistant-chat__feedback-group">
-					<button
-						aria-label={Liferay.Language.get('helpful')}
-						className={
-							'ai-assistant-chat__feedback-btn' +
-							(selected === 'POSITIVE'
-								? ' ai-assistant-chat__feedback-btn--selected'
-								: '')
-						}
-						disabled={selected !== null}
-						onClick={handleThumbsUp}
-						type="button"
-					>
-						<ClayIcon
-							height={14}
-							spritemap={Liferay.Icons.spritemap}
-							symbol="thumbs-up"
-							width={14}
-						/>
-					</button>
+					<div className="ai-assistant-chat__feedback-group">
+						<button
+							aria-label={Liferay.Language.get('helpful')}
+							className={
+								'ai-assistant-chat__feedback-btn' +
+								(selected === 'POSITIVE'
+									? ' ai-assistant-chat__feedback-btn--selected'
+									: '')
+							}
+							disabled={selected !== null}
+							onClick={handleThumbsUp}
+							type="button"
+						>
+							<ClayIcon
+								height={14}
+								spritemap={Liferay.Icons.spritemap}
+								symbol="thumbs-up"
+								width={14}
+							/>
+						</button>
 
-					<button
-						aria-label={Liferay.Language.get('not-helpful')}
-						className={
-							'ai-assistant-chat__feedback-btn' +
-							(selected === 'NEGATIVE'
-								? ' ai-assistant-chat__feedback-btn--selected'
-								: '')
-						}
-						disabled={selected !== null}
-						onClick={handleThumbsDown}
-						type="button"
-					>
-						<ClayIcon
-							height={14}
-							spritemap={Liferay.Icons.spritemap}
-							symbol="thumbs-down"
-							width={14}
-						/>
-					</button>
+						<button
+							aria-label={Liferay.Language.get('not-helpful')}
+							className={
+								'ai-assistant-chat__feedback-btn' +
+								(selected === 'NEGATIVE'
+									? ' ai-assistant-chat__feedback-btn--selected'
+									: '')
+							}
+							disabled={selected !== null}
+							onClick={handleThumbsDown}
+							type="button"
+						>
+							<ClayIcon
+								height={14}
+								spritemap={Liferay.Icons.spritemap}
+								symbol="thumbs-down"
+								width={14}
+							/>
+						</button>
+					</div>
 				</div>
-			</div>
+			)}
 
 			{modalOpen && (
 				<FeedbackModal

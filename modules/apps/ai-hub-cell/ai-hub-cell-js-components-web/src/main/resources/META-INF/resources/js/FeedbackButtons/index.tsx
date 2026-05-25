@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayIcon, {ClayIconSpriteContext} from '@clayui/icon';
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import FeedbackModal from './FeedbackModal';
 import {AgentFeedbackPayload, postAgentFeedback} from './api';
@@ -26,10 +27,22 @@ export default function FeedbackButtons({
 }: FeedbackButtonsProps) {
 	const [modalOpen, setModalOpen] = useState(false);
 	const [selected, setSelected] = useState<FeedbackType>(null);
+	const [showConfirmation, setShowConfirmation] = useState(false);
+
+	useEffect(() => {
+		if (!showConfirmation) {
+			return;
+		}
+
+		const timer = setTimeout(() => setShowConfirmation(false), 3000);
+
+		return () => clearTimeout(timer);
+	}, [showConfirmation]);
 
 	async function submitFeedback(payload: AgentFeedbackPayload) {
 		try {
 			await postAgentFeedback(payload);
+			setShowConfirmation(true);
 		}
 		catch (error) {
 			console.warn('Failed to submit agent feedback:', error);
@@ -79,53 +92,62 @@ export default function FeedbackButtons({
 
 	return (
 		<ClayIconSpriteContext.Provider value={Liferay.Icons.spritemap}>
-			<div className="feedback-buttons-container">
-				<span className="feedback-buttons-label">
-					{Liferay.Language.get('was-this-helpful')}
-				</span>
+			{showConfirmation ? (
+				<ClayAlert
+					className="feedback-buttons-confirmation"
+					displayType="success"
+					title={Liferay.Language.get('thanks-for-your-feedback')}
+					variant="inline"
+				/>
+			) : (
+				<div className="feedback-buttons-container">
+					<span className="feedback-buttons-label">
+						{Liferay.Language.get('was-this-helpful')}
+					</span>
 
-				<div className="feedback-buttons-group">
-					<button
-						aria-label={Liferay.Language.get('helpful')}
-						className={
-							'feedback-button' +
-							(selected === 'POSITIVE'
-								? ' feedback-button--selected'
-								: '')
-						}
-						disabled={selected !== null}
-						onClick={handleThumbsUp}
-						onMouseDown={(event) => event.stopPropagation()}
-						type="button"
-					>
-						<ClayIcon
-							height={16}
-							symbol="thumbs-up"
-							width={16}
-						/>
-					</button>
+					<div className="feedback-buttons-group">
+						<button
+							aria-label={Liferay.Language.get('helpful')}
+							className={
+								'feedback-button' +
+								(selected === 'POSITIVE'
+									? ' feedback-button--selected'
+									: '')
+							}
+							disabled={selected !== null}
+							onClick={handleThumbsUp}
+							onMouseDown={(event) => event.stopPropagation()}
+							type="button"
+						>
+							<ClayIcon
+								height={16}
+								symbol="thumbs-up"
+								width={16}
+							/>
+						</button>
 
-					<button
-						aria-label={Liferay.Language.get('not-helpful')}
-						className={
-							'feedback-button' +
-							(selected === 'NEGATIVE'
-								? ' feedback-button--selected'
-								: '')
-						}
-						disabled={selected !== null}
-						onClick={handleThumbsDown}
-						onMouseDown={(event) => event.stopPropagation()}
-						type="button"
-					>
-						<ClayIcon
-							height={16}
-							symbol="thumbs-down"
-							width={16}
-						/>
-					</button>
+						<button
+							aria-label={Liferay.Language.get('not-helpful')}
+							className={
+								'feedback-button' +
+								(selected === 'NEGATIVE'
+									? ' feedback-button--selected'
+									: '')
+							}
+							disabled={selected !== null}
+							onClick={handleThumbsDown}
+							onMouseDown={(event) => event.stopPropagation()}
+							type="button"
+						>
+							<ClayIcon
+								height={16}
+								symbol="thumbs-down"
+								width={16}
+							/>
+						</button>
+					</div>
 				</div>
-			</div>
+			)}
 
 			{modalOpen && (
 				<FeedbackModal
