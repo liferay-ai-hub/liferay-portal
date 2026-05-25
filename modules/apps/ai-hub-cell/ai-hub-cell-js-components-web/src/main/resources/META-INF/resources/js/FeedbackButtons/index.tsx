@@ -122,6 +122,9 @@ export default function FeedbackButtons({
 						disabled={selected !== null}
 						onClick={handleThumbsDown}
 						onMouseDown={(event) => event.stopPropagation()}
+						title={Liferay.Language.get(
+							'send-negative-feedback-or-report-legal-concern'
+						)}
 						type="button"
 					>
 						<ClayIcon
