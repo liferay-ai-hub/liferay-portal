@@ -4,6 +4,15 @@
 			"VIEW"
 		],
 		"primKey": "0",
+		"resourceName": "com.liferay.object.model.ObjectDefinition#A1F2",
+		"roleName": "User",
+		"scope": "1"
+	},
+	{
+		"actionIds": [
+			"VIEW"
+		],
+		"primKey": "0",
 		"resourceName": "com.liferay.object.model.ObjectDefinition#S4K8",
 		"roleName": "Guest",
 		"scope": "1"

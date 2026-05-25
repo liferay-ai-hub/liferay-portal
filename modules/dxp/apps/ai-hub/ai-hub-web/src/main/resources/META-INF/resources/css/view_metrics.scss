@@ -336,3 +336,32 @@
 		color: #da1414;
 	}
 }
+
+.ai-hub-metrics-tabs {
+	border-bottom: 2px solid #e7e7ed;
+	gap: 1.5rem;
+	margin-bottom: 1.5rem;
+	padding: 0;
+
+	.nav-link {
+		border-bottom: 2px solid transparent;
+		color: #6b6c7e;
+		font-weight: 600;
+		margin-bottom: -2px;
+		padding: 0.5rem 0;
+
+		&.active {
+			border-bottom-color: #0b5fff;
+			color: #0b5fff;
+		}
+
+		&:hover {
+			color: #0b5fff;
+			text-decoration: none;
+		}
+	}
+}
+
+.ai-hub-metrics-tab-panel--hidden {
+	display: none;
+}

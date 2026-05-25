@@ -9,8 +9,10 @@ import com.liferay.account.model.AccountEntry;
 import com.liferay.ai.hub.util.AccountEntryUtil;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -32,8 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 /**
  * @author Eugenio Ortiz
@@ -121,6 +121,39 @@ public class ViewMetricsDisplayContext {
 		catch (Exception exception) {
 			return "";
 		}
+	}
+
+	public String getFeedbackAPIURL() {
+		return "/o/ai-hub/agent-feedbacks";
+	}
+
+	public long getFeedbackTotalCount() {
+		return _getObjectEntriesCount("L_AI_HUB_AGENT_FEEDBACK");
+	}
+
+	public long getPositiveFeedbackCount() {
+		return _getObjectEntriesCountByFieldValue(
+			"L_AI_HUB_AGENT_FEEDBACK", "feedbackType", "POSITIVE");
+	}
+
+	public long getNegativeFeedbackCount() {
+		return _getObjectEntriesCountByFieldValue(
+			"L_AI_HUB_AGENT_FEEDBACK", "feedbackType", "NEGATIVE");
+	}
+
+	public int getPositiveFeedbackPercent() {
+		long total = getFeedbackTotalCount();
+
+		if (total == 0) {
+			return 0;
+		}
+
+		return (int)(getPositiveFeedbackCount() * 100 / total);
+	}
+
+	public long getIssueReportCount() {
+		return _getObjectEntriesCountByFieldNonEmpty(
+			"L_AI_HUB_AGENT_FEEDBACK", "issueType");
 	}
 
 	public String getAverageResponseTime() {
@@ -225,6 +258,80 @@ public class ViewMetricsDisplayContext {
 
 	public long getTokenUsage() {
 		return _getQuotaValue("usage");
+	}
+
+	private long _getObjectEntriesCountByFieldValue(
+		String externalReferenceCode, String fieldName, String fieldValue) {
+
+		try {
+			ObjectDefinition objectDefinition =
+				_objectDefinitionLocalService.
+					fetchObjectDefinitionByExternalReferenceCode(
+						externalReferenceCode, _themeDisplay.getCompanyId());
+
+			if (objectDefinition == null) {
+				return 0;
+			}
+
+			List<ObjectEntry> objectEntries =
+				_objectEntryLocalService.getObjectEntries(
+					0, objectDefinition.getObjectDefinitionId(),
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+			long count = 0;
+
+			for (ObjectEntry objectEntry : objectEntries) {
+				Map<String, Serializable> values = objectEntry.getValues();
+
+				if (fieldValue.equals(String.valueOf(values.get(fieldName)))) {
+					count++;
+				}
+			}
+
+			return count;
+		}
+		catch (Exception exception) {
+			return 0;
+		}
+	}
+
+	private long _getObjectEntriesCountByFieldNonEmpty(
+		String externalReferenceCode, String fieldName) {
+
+		try {
+			ObjectDefinition objectDefinition =
+				_objectDefinitionLocalService.
+					fetchObjectDefinitionByExternalReferenceCode(
+						externalReferenceCode, _themeDisplay.getCompanyId());
+
+			if (objectDefinition == null) {
+				return 0;
+			}
+
+			List<ObjectEntry> objectEntries =
+				_objectEntryLocalService.getObjectEntries(
+					0, objectDefinition.getObjectDefinitionId(),
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+			long count = 0;
+
+			for (ObjectEntry objectEntry : objectEntries) {
+				Map<String, Serializable> values = objectEntry.getValues();
+
+				Object value = values.get(fieldName);
+
+				if ((value != null) && !String.valueOf(value).isEmpty() &&
+					!"null".equals(String.valueOf(value))) {
+
+					count++;
+				}
+			}
+
+			return count;
+		}
+		catch (Exception exception) {
+			return 0;
+		}
 	}
 
 	private int _getObjectEntriesCount(String externalReferenceCode) {

@@ -25,4 +25,7 @@ public class AIHubFDSNames {
 	public static final String METRICS_ACTIVITIES =
 		AIHubWebConstants.BUNDLE_SYMBOLIC_NAME + "-metricsActivities";
 
+	public static final String METRICS_FEEDBACK =
+		AIHubWebConstants.BUNDLE_SYMBOLIC_NAME + "-metricsFeedback";
+
 }

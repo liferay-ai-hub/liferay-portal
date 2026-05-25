@@ -12,3 +12,4 @@ export {default as InstructionDefinitionForm} from './instruction_definition_for
 export {default as InstructionDefinitionItemTitlePropsTransformer} from './instruction_definition_item_title/InstructionDefinitionItemTitlePropsTransformer';
 export {default as MetricsActivityInfoPanel} from './metrics_activity/MetricsActivityInfoPanel';
 export {default as MetricsActivityPropsTransformer} from './metrics_activity/MetricsActivityPropsTransformer';
+export {default as MetricsFeedbackPropsTransformer} from './metrics_feedback/MetricsFeedbackPropsTransformer';

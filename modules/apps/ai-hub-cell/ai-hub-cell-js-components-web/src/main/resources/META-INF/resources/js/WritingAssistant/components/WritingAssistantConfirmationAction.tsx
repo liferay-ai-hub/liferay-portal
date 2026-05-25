@@ -5,20 +5,27 @@
 
 import React, {useEffect, useState} from 'react';
 
+import FeedbackButtons from '../../FeedbackButtons';
 import ConfirmationBalloon from './ConfirmationBalloon';
 
+type Phase = 'confirming' | 'feedback';
+
 export default function WritingAssistantConfirmationAction({
+	agentERC,
 	containerRef,
 	handleAccept,
 	handleDiscard,
 	hideBalloon,
+	sessionId,
 }: {
+	agentERC: string;
 	containerRef: HTMLElement;
 	handleAccept: () => void;
 	handleDiscard: () => void;
 	hideBalloon: () => void;
+	sessionId?: string;
 }) {
-	const [active, setActive] = useState(true);
+	const [phase, setPhase] = useState<Phase>('confirming');
 
 	const actions = [
 		{
@@ -26,8 +33,7 @@ export default function WritingAssistantConfirmationAction({
 			name: Liferay.Language.get('accept'),
 			onClick: () => {
 				handleAccept();
-				setActive(false);
-				hideBalloon();
+				setPhase('feedback');
 			},
 			symbolLeft: 'check',
 		},
@@ -36,8 +42,7 @@ export default function WritingAssistantConfirmationAction({
 			name: Liferay.Language.get('discard'),
 			onClick: () => {
 				handleDiscard();
-				setActive(false);
-				hideBalloon();
+				setPhase('feedback');
 			},
 			symbolLeft: 'times',
 		},
@@ -52,23 +57,30 @@ export default function WritingAssistantConfirmationAction({
 	useEffect(() => {
 		function handleDocumentClick(event: MouseEvent) {
 			if (
-				active &&
+				phase === 'confirming' &&
 				containerRef &&
 				!containerRef.contains(event.target as Node)
 			) {
-				setActive(false);
 				hideBalloon();
 			}
 		}
+
 		document.addEventListener('mousedown', handleDocumentClick);
 
 		return () => {
 			document.removeEventListener('mousedown', handleDocumentClick);
 		};
-	}, [active, containerRef, hideBalloon]);
+	}, [containerRef, hideBalloon, phase]);
 
-	if (!active) {
-		return null;
+	if (phase === 'feedback') {
+		return (
+			<FeedbackButtons
+				agentERC={agentERC}
+				agentName={agentERC}
+				sessionId={sessionId}
+				surface="WRITING_ASSISTANT"
+			/>
+		);
 	}
 
 	return <ConfirmationBalloon actions={actions} />;

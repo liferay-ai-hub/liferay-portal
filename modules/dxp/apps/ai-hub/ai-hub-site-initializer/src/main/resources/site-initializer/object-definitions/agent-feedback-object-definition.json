@@ -1,0 +1,160 @@
+{
+	"className": "com.liferay.object.model.ObjectDefinition#A1F2",
+	"enableFormContainer": false,
+	"enableIndexSearch": true,
+	"externalReferenceCode": "L_AI_HUB_AGENT_FEEDBACK",
+	"friendlyURLSeparator": "l",
+	"label": {
+		"en_US": "Agent Feedback"
+	},
+	"modifiable": true,
+	"name": "AIHubAgentFeedback",
+	"objectFields": [
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "AGENT_ERC",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Agent ERC"
+			},
+			"name": "agentERC",
+			"readOnly": "false",
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "AGENT_NAME",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Agent Name"
+			},
+			"name": "agentName",
+			"readOnly": "false",
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "Clob",
+			"businessType": "LongText",
+			"defaultValue": "null",
+			"externalReferenceCode": "DESCRIPTION",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Description"
+			},
+			"name": "description",
+			"readOnly": "false",
+			"system": true,
+			"type": "Clob"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "FEEDBACK_TYPE",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Feedback Type"
+			},
+			"name": "feedbackType",
+			"readOnly": "false",
+			"required": true,
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "ISSUE_TYPE",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Issue Type"
+			},
+			"name": "issueType",
+			"readOnly": "false",
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "PAGE_URL",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Page URL"
+			},
+			"name": "pageUrl",
+			"readOnly": "false",
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "SESSION_ID",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Session ID"
+			},
+			"name": "sessionId",
+			"readOnly": "false",
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "SURFACE",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Surface"
+			},
+			"name": "surface",
+			"readOnly": "false",
+			"required": true,
+			"system": true,
+			"type": "String"
+		},
+		{
+			"DBType": "String",
+			"businessType": "Text",
+			"defaultValue": "null",
+			"externalReferenceCode": "USER_EMAIL",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "User Email"
+			},
+			"name": "userEmail",
+			"readOnly": "false",
+			"system": true,
+			"type": "String"
+		}
+	],
+	"objectFolderExternalReferenceCode": "default",
+	"panelCategoryKey": "control_panel.object",
+	"pluralLabel": {
+		"en_US": "Agent Feedbacks"
+	},
+	"portlet": true,
+	"scope": "company",
+	"system": true,
+	"titleObjectFieldName": "agentName"
+}

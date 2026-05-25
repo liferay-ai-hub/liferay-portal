@@ -73,6 +73,50 @@
 		}
 	}
 
+	.feedback-buttons-container {
+		align-items: center;
+		border-top: 1px solid $gray-300;
+		display: flex;
+		gap: 0.5rem;
+		justify-content: space-between;
+		padding: 0.5rem 1rem;
+
+		.feedback-buttons-label {
+			color: #6b6c7e;
+			font-size: 0.75rem;
+		}
+
+		.feedback-buttons-group {
+			display: flex;
+			gap: 0.25rem;
+		}
+
+		.feedback-button {
+			align-items: center;
+			background: none;
+			border: 1px solid transparent;
+			border-radius: 0.25rem;
+			color: #6b6c7e;
+			cursor: pointer;
+			display: flex;
+			padding: 0.25rem;
+
+			&:hover {
+				background-color: $gray-100;
+				border-color: $gray-300;
+			}
+
+			&--selected {
+				color: #0b5fff;
+			}
+
+			&:disabled {
+				cursor: default;
+				opacity: 0.6;
+			}
+		}
+	}
+
 	.custom-react-balloon {
 		.confirmation-balloon-container {
 			padding: 0.8rem 0;
@@ -102,6 +146,71 @@
 				cursor: not-allowed;
 				opacity: 0.5;
 			}
+		}
+	}
+}
+
+.feedback-modal-overlay {
+	align-items: center;
+	background-color: rgb(0 0 0 / 50%);
+	display: flex;
+	inset: 0;
+	justify-content: center;
+	position: fixed;
+	z-index: 9999;
+
+	.feedback-modal {
+		background: #fff;
+		border-radius: 0.5rem;
+		box-shadow: 0 4px 16px rgb(0 0 0 / 20%);
+		max-width: 32rem;
+		width: 100%;
+
+		.feedback-modal-header {
+			border-bottom: 1px solid $gray-300;
+			padding: 1rem 1.5rem;
+
+			.feedback-modal-title {
+				font-size: 1rem;
+				font-weight: 600;
+				margin: 0;
+			}
+		}
+
+		.feedback-modal-body {
+			padding: 1rem 1.5rem;
+
+			.feedback-modal-field {
+				margin-bottom: 1rem;
+
+				&:last-child {
+					margin-bottom: 0;
+				}
+			}
+
+			.feedback-modal-label {
+				display: block;
+				font-size: 0.875rem;
+				font-weight: 600;
+				margin-bottom: 0.25rem;
+			}
+
+			.feedback-modal-required {
+				color: #da1414;
+			}
+
+			.feedback-modal-select,
+			.feedback-modal-textarea {
+				width: 100%;
+			}
+		}
+
+		.feedback-modal-footer {
+			border-top: 1px solid $gray-300;
+			display: flex;
+			gap: 0.5rem;
+			justify-content: flex-end;
+			padding: 1rem 1.5rem;
 		}
 	}
 }

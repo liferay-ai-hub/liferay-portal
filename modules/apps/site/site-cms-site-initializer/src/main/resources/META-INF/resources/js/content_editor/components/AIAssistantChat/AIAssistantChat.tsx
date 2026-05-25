@@ -274,9 +274,13 @@ const AIAssistantChat: React.FC = () => {
 							/>
 						) : (
 							<AIAssistantMessageBalloon
+								agentERC="AI_ASSISTANT_CHAT"
 								error={false}
 								key={index}
 								message={item.text}
+								sessionId={
+									eventSourceReference.current ?? undefined
+								}
 							/>
 						)
 					)}

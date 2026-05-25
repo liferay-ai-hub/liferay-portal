@@ -20,6 +20,7 @@ export default class WritingAssistant extends Plugin {
 	public balloonView: View | null = null;
 	public contentSelection: string = '';
 	public eventSourceReference: string = '';
+	public lastActionType: string = '';
 	public reactRoot: Root | null = null;
 	public confirmationBalloonOpen: boolean = false;
 
@@ -54,6 +55,8 @@ export default class WritingAssistant extends Plugin {
 			Object.values(EActionType).forEach((type) => {
 				eventSource.addEventListener(type, (event) => {
 					const dataJSON = JSON.parse(event.data);
+
+					this.lastActionType = type;
 
 					this._changeContent(dataJSON['data']);
 				});
@@ -275,6 +278,7 @@ export default class WritingAssistant extends Plugin {
 
 			root.render(
 				<WritingAssistantConfirmationAction
+					agentERC={this.lastActionType}
 					containerRef={reactView.element}
 					handleAccept={() => {
 						this._removeMarker(editor.model);
@@ -290,6 +294,7 @@ export default class WritingAssistant extends Plugin {
 						this.confirmationBalloonOpen = false;
 						this._hideBalloon(balloon);
 					}}
+					sessionId={this.eventSourceReference}
 				/>
 			);
 

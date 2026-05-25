@@ -8,36 +8,45 @@ import React from 'react';
 
 import '../chat.scss';
 import renderAIAssistantMessageMarkdown from '../utils/renderAIAssistantMessageMarkdown';
+import FeedbackButtons from './FeedbackButtons';
 
-const AssistantMessageBalloon: React.FC<{error: boolean; message: string}> = ({
-	error,
-	message,
-}) => {
+const AssistantMessageBalloon: React.FC<{
+	agentERC?: string;
+	error: boolean;
+	message: string;
+	sessionId?: string;
+}> = ({agentERC, error, message, sessionId}) => {
 	return (
 		<div
-			className={`d-flex flex-row font-weight-semi-bold mb-2 rounded ${error ? 'ai-assistant-chat__ai-assistant-error-message-balloon' : 'ai-assistant-chat__ai-assistant-message-balloon'}`}
+			className={`d-flex flex-column font-weight-semi-bold mb-2 rounded ${error ? 'ai-assistant-chat__ai-assistant-error-message-balloon' : 'ai-assistant-chat__ai-assistant-message-balloon'}`}
 		>
-			<div className="align-items-start d-inline-block ml-2 mt-2">
-				<ClayIcon
-					color={error ? '#FF0000' : '#0B5FFF'}
-					height={12}
-					spritemap={Liferay.Icons.spritemap}
-					symbol={error ? 'exclamation-full' : 'stars'}
-					width={12}
-				/>
+			<div className="d-flex flex-row">
+				<div className="align-items-start d-inline-block ml-2 mt-2">
+					<ClayIcon
+						color={error ? '#FF0000' : '#0B5FFF'}
+						height={12}
+						spritemap={Liferay.Icons.spritemap}
+						symbol={error ? 'exclamation-full' : 'stars'}
+						width={12}
+					/>
+				</div>
+
+				{error ? (
+					<span className="m-2">
+						{Liferay.Language.get('generating-content-failed')}
+					</span>
+				) : (
+					<div
+						className="m-2"
+						dangerouslySetInnerHTML={{
+							__html: renderAIAssistantMessageMarkdown(message),
+						}}
+					/>
+				)}
 			</div>
 
-			{error ? (
-				<span className="m-2">
-					{Liferay.Language.get('generating-content-failed')}
-				</span>
-			) : (
-				<div
-					className="m-2"
-					dangerouslySetInnerHTML={{
-						__html: renderAIAssistantMessageMarkdown(message),
-					}}
-				/>
+			{!error && agentERC && (
+				<FeedbackButtons agentERC={agentERC} sessionId={sessionId} />
 			)}
 		</div>
 	);
