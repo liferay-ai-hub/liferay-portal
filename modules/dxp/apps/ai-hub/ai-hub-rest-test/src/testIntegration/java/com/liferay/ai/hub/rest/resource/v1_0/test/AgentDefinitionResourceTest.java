@@ -738,6 +738,7 @@ public class AgentDefinitionResourceTest
 								type = "string";
 							}
 						}
+
 					};
 					outputVariable = new Variable() {
 						{
