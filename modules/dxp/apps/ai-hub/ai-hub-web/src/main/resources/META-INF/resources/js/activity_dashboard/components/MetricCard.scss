@@ -42,6 +42,12 @@
 		margin: 0;
 	}
 
+	&-title-group {
+		align-items: center;
+		display: flex;
+		gap: 4px;
+	}
+
 	&-value {
 		color: $body-color;
 		font-size: 32px;

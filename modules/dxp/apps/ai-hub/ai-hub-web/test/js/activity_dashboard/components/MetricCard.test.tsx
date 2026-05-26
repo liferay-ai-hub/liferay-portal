@@ -11,6 +11,20 @@ import '@testing-library/jest-dom';
 import MetricCard from '../../../../src/main/resources/META-INF/resources/js/activity_dashboard/components/MetricCard';
 
 describe('MetricCard', () => {
+	it('renders a help tooltip when a help message is provided', () => {
+		render(
+			<MetricCard
+				title="Prepaid Balance"
+				titleHelpMessage="Tokens are used in order"
+				value="2,500 LRT"
+			/>
+		);
+
+		expect(
+			screen.getByLabelText('Tokens are used in order')
+		).toBeInTheDocument();
+	});
+
 	it('renders the children area when children are provided', () => {
 		render(
 			<MetricCard title="Prepaid Balance" value="2,500 LRT">
