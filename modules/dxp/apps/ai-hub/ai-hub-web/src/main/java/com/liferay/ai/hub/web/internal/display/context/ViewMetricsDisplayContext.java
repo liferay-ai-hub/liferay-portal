@@ -12,7 +12,6 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.dao.orm.DynamicQuery;
@@ -273,10 +272,14 @@ public class ViewMetricsDisplayContext {
 				return 0;
 			}
 
+			// TODO: Replace with search-index-based count (LPS-XXXXX).
+			// Object custom field values are not columns in the base ObjectEntry
+			// table, so DynamicQuery with count projection cannot filter them.
+			// Using a bounded fetch as a stop-gap to prevent OOM on large datasets.
+
 			List<ObjectEntry> objectEntries =
 				_objectEntryLocalService.getObjectEntries(
-					0, objectDefinition.getObjectDefinitionId(),
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+					0, objectDefinition.getObjectDefinitionId(), 0, 10_000);
 
 			long count = 0;
 
@@ -308,10 +311,14 @@ public class ViewMetricsDisplayContext {
 				return 0;
 			}
 
+			// TODO: Replace with search-index-based count (LPS-XXXXX).
+			// Object custom field values are not columns in the base ObjectEntry
+			// table, so DynamicQuery with count projection cannot filter them.
+			// Using a bounded fetch as a stop-gap to prevent OOM on large datasets.
+
 			List<ObjectEntry> objectEntries =
 				_objectEntryLocalService.getObjectEntries(
-					0, objectDefinition.getObjectDefinitionId(),
-					QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+					0, objectDefinition.getObjectDefinitionId(), 0, 10_000);
 
 			long count = 0;
 

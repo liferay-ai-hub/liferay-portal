@@ -82,7 +82,7 @@
 		padding: 0.5rem 1rem;
 
 		.feedback-buttons-label {
-			color: #6b6c7e;
+			color: $secondary;
 			font-size: 0.75rem;
 		}
 
@@ -96,7 +96,7 @@
 			background: none;
 			border: 1px solid transparent;
 			border-radius: 0.25rem;
-			color: #6b6c7e;
+			color: $secondary;
 			cursor: pointer;
 			display: flex;
 			padding: 0.25rem;
@@ -107,7 +107,7 @@
 			}
 
 			&--selected {
-				color: #0b5fff;
+				color: $primary;
 			}
 
 			&:disabled {

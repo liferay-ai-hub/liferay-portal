@@ -26,10 +26,11 @@ import com.liferay.portal.workflow.kaleo.model.KaleoLog;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService;
 import com.liferay.portal.workflow.kaleo.service.KaleoLogLocalService;
 
-import java.text.SimpleDateFormat;
+import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -73,8 +74,22 @@ public class MetricsActivityResourceImpl
 		List<KaleoLog> kaleoLogs = _kaleoLogLocalService.dynamicQuery(
 			dynamicQuery, start, end);
 
+		// Build agent name cache to avoid N+1 queries
+
+		Map<Long, String> agentNameCache = new java.util.HashMap<>();
+
+		for (KaleoLog kaleoLog : kaleoLogs) {
+			long versionId = kaleoLog.getKaleoDefinitionVersionId();
+
+			if (!agentNameCache.containsKey(versionId)) {
+				agentNameCache.put(versionId, _getAgentName(versionId));
+			}
+		}
+
 		return Page.of(
-			TransformUtil.transform(kaleoLogs, this::_toMetricsActivity),
+			TransformUtil.transform(
+				kaleoLogs,
+				kaleoLog -> _toMetricsActivity(kaleoLog, agentNameCache)),
 			pagination, totalCount);
 	}
 
@@ -149,10 +164,11 @@ public class MetricsActivityResourceImpl
 
 			String dateStr = rest.substring(start + 1, end);
 
-			SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-
-			Date date = sdf.parse(dateStr.length() > 10 ?
-				dateStr.substring(0, 10) : dateStr);
+			Date date = FastDateFormatFactoryUtil.getSimpleDateFormat(
+				"yyyy-MM-dd"
+			).parse(
+				dateStr.length() > 10 ? dateStr.substring(0, 10) : dateStr
+			);
 
 			if (operator.endsWith("ge")) {
 				return RestrictionsFactoryUtil.ge("createDate", date);
@@ -225,7 +241,9 @@ public class MetricsActivityResourceImpl
 		}
 	}
 
-	private MetricsActivity _toMetricsActivity(KaleoLog kaleoLog) {
+	private MetricsActivity _toMetricsActivity(
+		KaleoLog kaleoLog, Map<Long, String> agentNameCache) {
+
 		MetricsActivity metricsActivity = new MetricsActivity();
 
 		metricsActivity.setId(kaleoLog.getKaleoLogId());
@@ -233,7 +251,7 @@ public class MetricsActivityResourceImpl
 		metricsActivity.setNodeName(kaleoLog.getKaleoNodeName());
 		metricsActivity.setUserName(kaleoLog.getUserName());
 		metricsActivity.setAgentName(
-			_getAgentName(kaleoLog.getKaleoDefinitionVersionId()));
+			agentNameCache.get(kaleoLog.getKaleoDefinitionVersionId()));
 
 		String workflowContextJSON = kaleoLog.getWorkflowContext();
 
