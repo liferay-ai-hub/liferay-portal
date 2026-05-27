@@ -8,6 +8,8 @@ package com.liferay.ai.hub.internal.workflow.kaleo.runtime.node;
 import com.liferay.ai.hub.guardrail.ModelArmorHandler;
 import com.liferay.ai.hub.internal.assistant.handler.AssistantHandlerContext;
 import com.liferay.ai.hub.internal.assistant.handler.AssistantHandlerUtil;
+import com.liferay.ai.hub.internal.guardrail.listener.InputGuardrailExecutedListenerImpl;
+import com.liferay.ai.hub.internal.guardrail.listener.OutputGuardrailExecutedListenerImpl;
 import com.liferay.ai.hub.internal.mcp.tool.provider.MCPToolProviderUtil;
 import com.liferay.ai.hub.internal.model.VertexAiGeminiUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.GuardrailsUtil;
@@ -20,6 +22,7 @@ import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.VariablesUti
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.log.Log;
@@ -175,6 +178,12 @@ public class AIDecisionNodeExecutor extends BaseNodeExecutor {
 
 		AssistantHandlerUtil.handle(
 			AssistantHandlerContext.builder(
+			).aiServiceListeners(
+				List.of(
+					new InputGuardrailExecutedListenerImpl(
+						_auditRouter, executionContext),
+					new OutputGuardrailExecutedListenerImpl(
+						_auditRouter, executionContext))
 			).inputGuardrails(
 				inputGuardrails
 			).invocationParameters(
@@ -261,6 +270,9 @@ public class AIDecisionNodeExecutor extends BaseNodeExecutor {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AIDecisionNodeExecutor.class);
+
+	@Reference
+	private AuditRouter _auditRouter;
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
