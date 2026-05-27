@@ -13,6 +13,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.security.auth.CompanyInheritableThreadLocalCallable;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
@@ -32,7 +33,6 @@ import java.net.URL;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Callable;
 
 /**
@@ -141,7 +141,11 @@ public class LiferayWebSearchEngine implements WebSearchEngine {
 				WebSearchOrganicResult.from(
 					searchResult.getTitle(), URI.create(itemURL), null,
 					searchResult.getDescription(),
-					Map.of("score", String.valueOf(score))));
+					HashMapBuilder.put(
+						"className", searchResult.getEntryClassName()
+					).put(
+						"score", String.valueOf(score)
+					).build()));
 		}
 
 		return WebSearchResults.from(
