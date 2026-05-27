@@ -9,6 +9,7 @@ import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
+import com.liferay.ai.hub.audit.constants.AIHubEventTypes;
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.ai.hub.rest.dto.v1_0.ModelArmorTemplate;
 import com.liferay.ai.hub.rest.manager.v1_0.ModelArmorTemplateManager;
@@ -28,6 +29,8 @@ import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
+import com.liferay.portal.kernel.audit.AuditMessage;
+import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -48,6 +51,7 @@ import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.HTTPTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -62,6 +66,7 @@ import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -78,6 +83,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
+import com.liferay.portal.workflow.kaleo.runtime.node.NodeExecutor;
 import com.liferay.portal.workflow.kaleo.runtime.util.WorkflowContextUtil;
 import com.liferay.portal.workflow.manager.WorkflowDefinitionManager;
 import com.liferay.portal.workflow.manager.WorkflowLogManager;
@@ -91,6 +97,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -102,6 +110,7 @@ import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -275,8 +284,39 @@ public class AgentInstanceResourceTest
 		PrincipalThreadLocal.setName(_originalName);
 	}
 
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+
+		_auditRouter = (AuditRouter)ReflectionTestUtil.getAndSetFieldValue(
+			_llmNodeExecutor, "_auditRouter",
+			ProxyUtil.newProxyInstance(
+				AuditRouter.class.getClassLoader(),
+				new Class<?>[] {AuditRouter.class},
+				(proxy, method, arguments) -> {
+					if (Objects.equals(method.getName(), "route")) {
+						AuditMessage auditMessage = (AuditMessage)arguments[0];
+
+						_auditMessages.put(
+							GetterUtil.getLong(auditMessage.getClassPK()),
+							auditMessage);
+					}
+
+					return null;
+				}));
+	}
+
 	@After
+	@Override
 	public void tearDown() throws Exception {
+		super.tearDown();
+
+		ReflectionTestUtil.setFieldValue(
+			_llmNodeExecutor, "_auditRouter", _auditRouter);
+
+		_auditMessages.clear();
+
 		ServiceContextThreadLocal.popServiceContext();
 		SseUtil.closeAll();
 		ConfigurationTestUtil.deleteConfiguration(
@@ -382,6 +422,31 @@ public class AgentInstanceResourceTest
 				values
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
+	}
+
+	private void _assertAuditMessage(
+			JSONObject expectedAdditionalInfoJSONObject,
+			long workflowInstanceId)
+		throws Exception {
+
+		AuditMessage auditMessage = _auditMessages.get(workflowInstanceId);
+
+		Assert.assertNotNull(auditMessage);
+
+		JSONAssert.assertEquals(
+			expectedAdditionalInfoJSONObject.toString(),
+			String.valueOf(auditMessage.getAdditionalInfo()),
+			JSONCompareMode.LENIENT);
+		Assert.assertEquals(
+			_accountEntry.getAccountEntryId(),
+			auditMessage.getAccountEntryId());
+		Assert.assertEquals(
+			WorkflowInstance.class.getName(), auditMessage.getClassName());
+		Assert.assertEquals(
+			String.valueOf(workflowInstanceId), auditMessage.getClassPK());
+		Assert.assertEquals(
+			AIHubEventTypes.AI_HUB_GUARDRAIL_ALERT,
+			auditMessage.getEventType());
 	}
 
 	private void _assertContains(String line, String... texts) {
@@ -1172,11 +1237,11 @@ public class AgentInstanceResourceTest
 
 			List<String> lines = new ArrayList<>();
 
-			_postAgentInstance(
-				"L_MAKE_SHORTER", inputText, "text",
-				SseEventSourceTestUtil.open(
-					List.of(countDownLatch), lines,
-					"agent-instances/subscribe"));
+			String sseEventSinkKey = SseEventSourceTestUtil.open(
+				List.of(countDownLatch), lines, "agent-instances/subscribe");
+
+			JSONObject jsonObject = _postAgentInstance(
+				"L_MAKE_SHORTER", inputText, "text", sseEventSinkKey);
 
 			Assert.assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
 
@@ -1184,6 +1249,23 @@ public class AgentInstanceResourceTest
 
 			Assert.assertTrue(
 				line, line.contains("User prompt violates security policy"));
+
+			long workflowInstanceId = jsonObject.getLong(
+				"externalReferenceCode");
+
+			_assertAuditMessage(
+				JSONUtil.put(
+					"agentDefinitionExternalReferenceCode", "L_MAKE_SHORTER"
+				).put(
+					"content", "This is the text to be shortened: " + inputText
+				).put(
+					"guardrailType", "input"
+				).put(
+					"sseEventSinkKey", sseEventSinkKey
+				).put(
+					"workflowInstanceId", workflowInstanceId
+				),
+				workflowInstanceId);
 		}
 		finally {
 			SseUtil.closeAll();
@@ -1295,11 +1377,20 @@ public class AgentInstanceResourceTest
 	@Inject
 	private static WorkflowDefinitionManager _workflowDefinitionManager;
 
+	private final Map<Long, AuditMessage> _auditMessages =
+		new ConcurrentHashMap<>();
+	private AuditRouter _auditRouter;
+
 	@Inject
 	private DTOConverterRegistry _dtoConverterRegistry;
 
 	@Inject
 	private JSONFactory _jsonFactory;
+
+	@Inject(
+		filter = "component.name=com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.LLMNodeExecutor"
+	)
+	private NodeExecutor _llmNodeExecutor;
 
 	@Inject
 	private ModelArmorTemplateManager _modelArmorTemplateManager;
