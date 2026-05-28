@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.encryptor.EncryptorUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.messaging.MessageListener;
@@ -84,6 +85,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
+import com.liferay.portal.workflow.kaleo.runtime.node.NodeExecutor;
 import com.liferay.portal.workflow.kaleo.runtime.util.WorkflowContextUtil;
 import com.liferay.portal.workflow.manager.WorkflowDefinitionManager;
 import com.liferay.portal.workflow.manager.WorkflowLogManager;
@@ -97,6 +99,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -284,27 +287,23 @@ public class AgentInstanceResourceTest
 	}
 
 	@Before
+	@Override
 	public void setUp() throws Exception {
-		_auditRouter = (AuditRouter)ReflectionTestUtil.getAndSetFieldValue(
-			_messageListener, "_auditRouter",
-			ProxyUtil.newProxyInstance(
-				AuditRouter.class.getClassLoader(),
-				new Class<?>[] {AuditRouter.class},
-				(proxy, method, arguments) -> {
-					AuditMessage auditMessage = (AuditMessage)arguments[0];
+		super.setUp();
 
-					_auditMessages.put(
-						GetterUtil.getLong(auditMessage.getClassPK()),
-						auditMessage);
-
-					return null;
-				}));
+		_auditRouter1 = _getAndSetFieldValue(_messageListener);
+		_auditRouter2 = _getAndSetFieldValue(_nodeExecutor);
 	}
 
 	@After
+	@Override
 	public void tearDown() throws Exception {
+		super.tearDown();
+
 		ReflectionTestUtil.setFieldValue(
-			_messageListener, "_auditRouter", _auditRouter);
+			_messageListener, "_auditRouter", _auditRouter1);
+		ReflectionTestUtil.setFieldValue(
+			_nodeExecutor, "_auditRouter", _auditRouter2);
 
 		_auditMessages.clear();
 
@@ -416,16 +415,34 @@ public class AgentInstanceResourceTest
 	}
 
 	private void _assertAuditMessage(
+			JSONObject expectedAdditionalInfoJSONObject, long expectedClassPK,
+			String expectedEventType)
+		throws Exception {
+
+		AuditMessage auditMessage = _auditMessages.get(expectedEventType);
+
+		Assert.assertNotNull(auditMessage);
+
+		JSONAssert.assertEquals(
+			expectedAdditionalInfoJSONObject.toString(),
+			String.valueOf(auditMessage.getAdditionalInfo()),
+			JSONCompareMode.LENIENT);
+		Assert.assertEquals(
+			_accountEntry.getAccountEntryId(),
+			auditMessage.getAccountEntryId());
+		Assert.assertEquals(
+			WorkflowInstance.class.getName(), auditMessage.getClassName());
+		Assert.assertEquals(
+			expectedClassPK, GetterUtil.getLong(auditMessage.getClassPK()));
+		Assert.assertEquals(expectedEventType, auditMessage.getEventType());
+	}
+
+	private void _assertAuditMessage(
 			String expectedAgentDefinitionExternalReferenceCode,
 			String expectedInstructionDefinitionScope, String expectedOutput,
 			String expectedSSEEventSinkKey, String expectedUserMessageInput,
 			WorkflowInstance workflowInstance)
 		throws Exception {
-
-		AuditMessage auditMessage = _auditMessages.get(
-			workflowInstance.getWorkflowInstanceId());
-
-		Assert.assertNotNull(auditMessage);
 
 		List<WorkflowLog> workflowLogs =
 			_workflowLogManager.getWorkflowLogsByWorkflowInstance(
@@ -434,12 +451,14 @@ public class AgentInstanceResourceTest
 				List.of(WorkflowLog.NODE_USAGE_METADATA), QueryUtil.ALL_POS,
 				QueryUtil.ALL_POS, null);
 
+		Assert.assertEquals(workflowLogs.toString(), 1, workflowLogs.size());
+
 		WorkflowLog workflowLog = workflowLogs.get(0);
 
 		Map<String, Serializable> workflowContext = WorkflowContextUtil.convert(
 			workflowLog.getWorkflowContext());
 
-		JSONAssert.assertEquals(
+		_assertAuditMessage(
 			JSONUtil.put(
 				"agentDefinitionExternalReferenceCode",
 				expectedAgentDefinitionExternalReferenceCode
@@ -481,24 +500,35 @@ public class AgentInstanceResourceTest
 				workflowInstance.getWorkflowDefinitionVersion()
 			).put(
 				"workflowInstanceId", workflowInstance.getWorkflowInstanceId()
-			).toString(),
-			String.valueOf(auditMessage.getAdditionalInfo()),
-			JSONCompareMode.LENIENT);
-
-		Assert.assertEquals(
-			WorkflowInstance.class.getName(), auditMessage.getClassName());
-		Assert.assertEquals(
+			),
 			workflowInstance.getWorkflowInstanceId(),
-			GetterUtil.getLong(auditMessage.getClassPK()));
-		Assert.assertEquals(
-			AIHubEventTypes.AI_HUB_AGENT_EXECUTION,
-			auditMessage.getEventType());
+			AIHubEventTypes.AI_HUB_AGENT_EXECUTION);
 	}
 
 	private void _assertContains(String line, String... texts) {
 		for (String text : texts) {
 			Assert.assertTrue(line, line.contains(text));
 		}
+	}
+
+	private AuditRouter _getAndSetFieldValue(Object instance) {
+		return (AuditRouter)ReflectionTestUtil.getAndSetFieldValue(
+			instance, "_auditRouter",
+			ProxyUtil.newProxyInstance(
+				AuditRouter.class.getClassLoader(),
+				new Class<?>[] {AuditRouter.class},
+				(proxy, method, arguments) -> {
+					if (!Objects.equals(method.getName(), "route")) {
+						return null;
+					}
+
+					AuditMessage auditMessage = (AuditMessage)arguments[0];
+
+					_auditMessages.put(
+						auditMessage.getEventType(), auditMessage);
+
+					return null;
+				}));
 	}
 
 	private String _getExpectedPromptInput(
@@ -904,9 +934,28 @@ public class AgentInstanceResourceTest
 			List.of(countDownLatch1, countDownLatch2), lines,
 			"agent-instances/subscribe");
 
-		_postAgentInstance(
+		JSONObject jsonObject = _postAgentInstance(
 			"L_LLM_NODE_WITH_RAG_WORKFLOW_DEFINITION",
 			"What is Feliphe's favorite food?", "userMessage", sseEventSinkKey);
+
+		_assertAuditMessage(
+			JSONUtil.put(
+				"agentDefinitionExternalReferenceCode",
+				"L_LLM_NODE_WITH_RAG_WORKFLOW_DEFINITION"
+			).put(
+				"query", "What is Feliphe's favorite food?"
+			).put(
+				"results", JSONFactoryUtil.createJSONArray()
+			).put(
+				"sourceType", "liferaySearch"
+			).put(
+				"sseEventSinkKey", sseEventSinkKey
+			).put(
+				"workflowInstanceId",
+				jsonObject.getLong("externalReferenceCode")
+			),
+			jsonObject.getLong("externalReferenceCode"),
+			AIHubEventTypes.AI_HUB_REFERENCE_DATABASE_QUERY);
 
 		Assert.assertTrue(countDownLatch1.await(20, TimeUnit.SECONDS));
 
@@ -928,9 +977,30 @@ public class AgentInstanceResourceTest
 			).build(),
 			ServiceContextTestUtil.getServiceContext());
 
-		_postAgentInstance(
+		jsonObject = _postAgentInstance(
 			"L_LLM_NODE_WITH_RAG_WORKFLOW_DEFINITION",
 			"What is Feliphe's favorite food?", "userMessage", sseEventSinkKey);
+
+		_assertAuditMessage(
+			JSONUtil.put(
+				"agentDefinitionExternalReferenceCode",
+				"L_LLM_NODE_WITH_RAG_WORKFLOW_DEFINITION"
+			).put(
+				"query", "What is Feliphe's favorite food?"
+			).put(
+				"results",
+				JSONUtil.putAll(
+					JSONUtil.put("className", _objectDefinition.getClassName()))
+			).put(
+				"sourceType", "liferaySearch"
+			).put(
+				"sseEventSinkKey", sseEventSinkKey
+			).put(
+				"workflowInstanceId",
+				jsonObject.getLong("externalReferenceCode")
+			),
+			jsonObject.getLong("externalReferenceCode"),
+			AIHubEventTypes.AI_HUB_REFERENCE_DATABASE_QUERY);
 
 		Assert.assertTrue(countDownLatch2.await(20, TimeUnit.SECONDS));
 
@@ -1416,9 +1486,10 @@ public class AgentInstanceResourceTest
 	@Inject
 	private static WorkflowDefinitionManager _workflowDefinitionManager;
 
-	private final Map<Long, AuditMessage> _auditMessages =
+	private final Map<String, AuditMessage> _auditMessages =
 		new ConcurrentHashMap<>();
-	private AuditRouter _auditRouter;
+	private AuditRouter _auditRouter1;
+	private AuditRouter _auditRouter2;
 
 	@Inject
 	private DTOConverterRegistry _dtoConverterRegistry;
@@ -1432,10 +1503,12 @@ public class AgentInstanceResourceTest
 	private MessageListener _messageListener;
 
 	@Inject
-	private ObjectRelationshipLocalService _objectRelationshipLocalService;
-
-	@Inject
 	private ModelArmorTemplateManager _modelArmorTemplateManager;
+
+	@Inject(
+		filter = "component.name=com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.LLMNodeExecutor"
+	)
+	private NodeExecutor _nodeExecutor;
 
 	@Inject
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;
