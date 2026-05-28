@@ -1363,11 +1363,27 @@ public class AgentInstanceResourceTest
 
 			List<String> lines = new ArrayList<>();
 
-			_postAgentInstance(
-				"L_MAKE_SHORTER", inputText, "text",
-				SseEventSourceTestUtil.open(
-					List.of(countDownLatch), lines,
-					"agent-instances/subscribe"));
+			String sseEventSinkKey = SseEventSourceTestUtil.open(
+				List.of(countDownLatch), lines, "agent-instances/subscribe");
+
+			JSONObject jsonObject = _postAgentInstance(
+				"L_MAKE_SHORTER", inputText, "text", sseEventSinkKey);
+
+			_assertAuditMessage(
+				JSONUtil.put(
+					"agentDefinitionExternalReferenceCode", "L_MAKE_SHORTER"
+				).put(
+					"content", "This is the text to be shortened: " + inputText
+				).put(
+					"guardrailType", "input"
+				).put(
+					"sseEventSinkKey", sseEventSinkKey
+				).put(
+					"workflowInstanceId",
+					jsonObject.getLong("externalReferenceCode")
+				),
+				jsonObject.getLong("externalReferenceCode"),
+				AIHubEventTypes.AI_HUB_GUARDRAIL_ALERT);
 
 			Assert.assertTrue(countDownLatch.await(10, TimeUnit.SECONDS));
 
