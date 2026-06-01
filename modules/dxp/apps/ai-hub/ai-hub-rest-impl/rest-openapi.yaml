@@ -191,6 +191,8 @@ components:
                     type: string
                 liferayDXPURL:
                     type: string
+                recipientEmailAddress:
+                    type: string
                 userAccounts:
                     items:
                         $ref: "#/components/schemas/UserAccount"

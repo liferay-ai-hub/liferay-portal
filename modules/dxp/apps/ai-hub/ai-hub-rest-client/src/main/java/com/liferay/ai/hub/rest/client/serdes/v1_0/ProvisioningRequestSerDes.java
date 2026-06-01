@@ -104,6 +104,20 @@ public class ProvisioningRequestSerDes {
 			sb.append("\"");
 		}
 
+		if (provisioningRequest.getRecipientEmailAddress() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"recipientEmailAddress\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(provisioningRequest.getRecipientEmailAddress()));
+
+			sb.append("\"");
+		}
+
 		if (provisioningRequest.getUserAccounts() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -188,6 +202,15 @@ public class ProvisioningRequestSerDes {
 				String.valueOf(provisioningRequest.getLiferayDXPURL()));
 		}
 
+		if (provisioningRequest.getRecipientEmailAddress() == null) {
+			map.put("recipientEmailAddress", null);
+		}
+		else {
+			map.put(
+				"recipientEmailAddress",
+				String.valueOf(provisioningRequest.getRecipientEmailAddress()));
+		}
+
 		if (provisioningRequest.getUserAccounts() == null) {
 			map.put("userAccounts", null);
 		}
@@ -229,6 +252,11 @@ public class ProvisioningRequestSerDes {
 			else if (Objects.equals(jsonParserFieldName, "liferayDXPURL")) {
 				return false;
 			}
+			else if (Objects.equals(
+						jsonParserFieldName, "recipientEmailAddress")) {
+
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "userAccounts")) {
 				return false;
 			}
@@ -264,6 +292,14 @@ public class ProvisioningRequestSerDes {
 			else if (Objects.equals(jsonParserFieldName, "liferayDXPURL")) {
 				if (jsonParserFieldValue != null) {
 					provisioningRequest.setLiferayDXPURL(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "recipientEmailAddress")) {
+
+				if (jsonParserFieldValue != null) {
+					provisioningRequest.setRecipientEmailAddress(
 						(String)jsonParserFieldValue);
 				}
 			}
@@ -364,4 +400,4 @@ public class ProvisioningRequestSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:371244096
+// LIFERAY-REST-BUILDER-HASH:-1899538898

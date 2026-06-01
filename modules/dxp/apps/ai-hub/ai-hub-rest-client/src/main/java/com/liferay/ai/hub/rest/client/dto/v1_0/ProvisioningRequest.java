@@ -114,6 +114,27 @@ public class ProvisioningRequest implements Cloneable, Serializable {
 
 	protected String liferayDXPURL;
 
+	public String getRecipientEmailAddress() {
+		return recipientEmailAddress;
+	}
+
+	public void setRecipientEmailAddress(String recipientEmailAddress) {
+		this.recipientEmailAddress = recipientEmailAddress;
+	}
+
+	public void setRecipientEmailAddress(
+		UnsafeSupplier<String, Exception> recipientEmailAddressUnsafeSupplier) {
+
+		try {
+			recipientEmailAddress = recipientEmailAddressUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String recipientEmailAddress;
+
 	public UserAccount[] getUserAccounts() {
 		return userAccounts;
 	}
@@ -167,4 +188,4 @@ public class ProvisioningRequest implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:626501838
+// LIFERAY-REST-BUILDER-HASH:374864712

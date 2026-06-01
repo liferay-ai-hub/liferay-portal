@@ -226,6 +226,47 @@ public class ProvisioningRequest implements Serializable {
 	private Supplier<String> _liferayDXPURLSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public String getRecipientEmailAddress() {
+		if (_recipientEmailAddressSupplier != null) {
+			recipientEmailAddress = _recipientEmailAddressSupplier.get();
+
+			_recipientEmailAddressSupplier = null;
+		}
+
+		return recipientEmailAddress;
+	}
+
+	public void setRecipientEmailAddress(String recipientEmailAddress) {
+		this.recipientEmailAddress = recipientEmailAddress;
+
+		_recipientEmailAddressSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setRecipientEmailAddress(
+		UnsafeSupplier<String, Exception> recipientEmailAddressUnsafeSupplier) {
+
+		_recipientEmailAddressSupplier = () -> {
+			try {
+				return recipientEmailAddressUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String recipientEmailAddress;
+
+	@JsonIgnore
+	private Supplier<String> _recipientEmailAddressSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	@Valid
 	public UserAccount[] getUserAccounts() {
 		if (_userAccountsSupplier != null) {
@@ -356,6 +397,22 @@ public class ProvisioningRequest implements Serializable {
 			sb.append("\"");
 		}
 
+		String recipientEmailAddress = getRecipientEmailAddress();
+
+		if (recipientEmailAddress != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"recipientEmailAddress\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(recipientEmailAddress));
+
+			sb.append("\"");
+		}
+
 		UserAccount[] userAccounts = getUserAccounts();
 
 		if (userAccounts != null) {
@@ -479,4 +536,4 @@ public class ProvisioningRequest implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1760398742
+// LIFERAY-REST-BUILDER-HASH:1997314862

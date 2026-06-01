@@ -182,6 +182,8 @@ public class ObjectDefinitionUtil {
 		).put(
 			"AIHubChatbot", "/ai-hub/chatbots"
 		).put(
+			"AIHubConfiguration", "/ai-hub/configurations"
+		).put(
 			"AIHubContentRetriever", "/ai-hub/content-retrievers"
 		).put(
 			"AIHubCrawlerJob", "/ai-hub/crawler-jobs"
