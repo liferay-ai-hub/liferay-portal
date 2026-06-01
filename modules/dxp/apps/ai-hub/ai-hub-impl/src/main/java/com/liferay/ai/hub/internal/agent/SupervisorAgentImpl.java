@@ -72,16 +72,29 @@ public class SupervisorAgentImpl implements SupervisorAgent {
 					PermissionChecker originalPermissionChecker =
 						PermissionThreadLocal.getPermissionChecker();
 
-					try (VertexAiGeminiChatModel vertexAiGeminiChatModel =
-							VertexAiGeminiUtil.createVertexAiGeminiChatModel(
-								agentContext.getCompanyId())) {
-
+					try {
 						PermissionThreadLocal.setPermissionChecker(
 							permissionChecker);
 
-						_invoke(
-							agentContext, internalAgents,
-							vertexAiGeminiChatModel);
+						String message = MapUtil.getString(
+							agentContext.getInput(), "message");
+
+						long preDebitedTokens = _quotaManager.checkUsage(
+							agentContext.getCompanyId(), message,
+							agentContext.getUserId());
+
+						try (VertexAiGeminiChatModel vertexAiGeminiChatModel =
+								VertexAiGeminiUtil.
+									createVertexAiGeminiChatModel(
+										agentContext.getCompanyId(),
+										preDebitedTokens,
+										agentContext.getUserId(),
+										_quotaManager)) {
+
+							_invoke(
+								agentContext, internalAgents, message,
+								vertexAiGeminiChatModel);
+						}
 					}
 					catch (Exception exception) {
 						_handleException(agentContext, exception);
@@ -220,13 +233,8 @@ public class SupervisorAgentImpl implements SupervisorAgent {
 
 	private void _invoke(
 			AgentContext agentContext, InternalAgent[] internalAgents,
-			VertexAiGeminiChatModel vertexAiGeminiChatModel)
+			String message, VertexAiGeminiChatModel vertexAiGeminiChatModel)
 		throws PortalException {
-
-		String message = MapUtil.getString(agentContext.getInput(), "message");
-
-		_quotaManager.checkUsage(
-			agentContext.getCompanyId(), message, agentContext.getUserId());
 
 		dev.langchain4j.agentic.supervisor.SupervisorAgent supervisorAgent =
 			AgenticServices.supervisorBuilder(

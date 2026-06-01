@@ -1021,6 +1021,10 @@ public class AgentInstanceResourceTest
 			).put(
 				"limit", 100
 			).put(
+				"lrtLimit", 64L
+			).put(
+				"lrtUsage", 0L
+			).put(
 				"r_accountToAIHubQuotas_accountEntryId",
 				_accountEntry.getAccountEntryId()
 			).put(

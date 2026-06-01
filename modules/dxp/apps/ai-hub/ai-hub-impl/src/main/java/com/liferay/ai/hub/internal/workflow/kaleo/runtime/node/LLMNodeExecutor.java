@@ -129,7 +129,10 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 
 		VertexAiGeminiStreamingChatModel vertexAiGeminiStreamingChatModel =
 			VertexAiGeminiUtil.createVertexAiGeminiStreamingChatModel(
-				serviceContext.getCompanyId());
+				serviceContext.getCompanyId(),
+				GetterUtil.getLong(
+					workflowContext.get("quotaPreDebitedTokens")),
+				serviceContext.getUserId(), _quotaManager);
 
 		AtomicReference<ChatResponse> chatResponseAtomicReference =
 			new AtomicReference<>();
@@ -277,9 +280,6 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 		KaleoLogUtil.addNodeUsageKaleoLog(
 			chatResponse, kaleoInstanceToken, aiMessage.text(), prompt,
 			executionContext.getServiceContext(), userMessage);
-
-		QuotaUtil.updateUsage(
-			chatResponse, _quotaManager, executionContext.getServiceContext());
 
 		List<KaleoTransition> kaleoTransitions =
 			kaleoNode.getKaleoTransitions();

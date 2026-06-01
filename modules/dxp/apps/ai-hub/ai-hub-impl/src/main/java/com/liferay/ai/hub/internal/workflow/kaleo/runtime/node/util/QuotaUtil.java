@@ -10,12 +10,8 @@ import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBusUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.workflow.kaleo.runtime.constants.WorkflowInstanceDestinationNames;
-
-import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.output.TokenUsage;
 
 import java.io.Serializable;
 
@@ -33,7 +29,10 @@ public class QuotaUtil {
 		throws PortalException {
 
 		try {
-			quotaManager.checkUsage(companyId, text, userId);
+			long preDebitedTokens = quotaManager.checkUsage(
+				companyId, text, userId);
+
+			workflowContext.put("quotaPreDebitedTokens", preDebitedTokens);
 
 			return false;
 		}
@@ -54,22 +53,6 @@ public class QuotaUtil {
 		}
 
 		return true;
-	}
-
-	public static void updateUsage(
-		ChatResponse chatResponse, QuotaManager quotaManager,
-		ServiceContext serviceContext) {
-
-		try {
-			TokenUsage tokenUsage = chatResponse.tokenUsage();
-
-			quotaManager.updateUsage(
-				serviceContext.getCompanyId(), tokenUsage.outputTokenCount(),
-				serviceContext.getUserId());
-		}
-		catch (PortalException portalException) {
-			throw new RuntimeException(portalException);
-		}
 	}
 
 }

@@ -22,11 +22,14 @@ public class DummyQuotaManagerImpl implements QuotaManager {
 	}
 
 	@Override
-	public void checkUsage(long companyId, String text, long userId) {
+	public long checkUsage(long companyId, String text, long userId) {
+		return 0L;
 	}
 
 	@Override
-	public void updateUsage(long companyId, long tokensCount, long userId) {
+	public void updateUsage(
+		long companyId, long inputTokensCount, long outputTokensCount,
+		long preDebitedTokens, long userId) {
 	}
 
 }

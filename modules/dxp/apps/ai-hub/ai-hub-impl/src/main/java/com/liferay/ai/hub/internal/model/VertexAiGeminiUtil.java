@@ -6,6 +6,7 @@
 package com.liferay.ai.hub.internal.model;
 
 import com.liferay.ai.hub.configuration.VertexAIConfiguration;
+import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 
@@ -14,6 +15,7 @@ import dev.langchain4j.model.vertexai.gemini.SafetyThreshold;
 import dev.langchain4j.model.vertexai.gemini.VertexAiGeminiChatModel;
 import dev.langchain4j.model.vertexai.gemini.VertexAiGeminiStreamingChatModel;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -23,7 +25,8 @@ import java.util.Objects;
 public class VertexAiGeminiUtil {
 
 	public static VertexAiGeminiChatModel createVertexAiGeminiChatModel(
-			long companyId)
+			long companyId, long preDebitedTokens, long userId,
+			QuotaManager quotaManager)
 		throws ConfigurationException {
 
 		VertexAIConfiguration vertexAIConfiguration =
@@ -37,7 +40,11 @@ public class VertexAiGeminiUtil {
 			builder.apiEndpoint("aiplatform.googleapis.com");
 		}
 
-		return builder.location(
+		return builder.listeners(
+			List.of(
+				new AIHubQuotaChatModelListener(
+					companyId, preDebitedTokens, userId, quotaManager))
+		).location(
 			vertexAIConfiguration.location()
 		).modelName(
 			vertexAIConfiguration.modelName()
@@ -49,7 +56,9 @@ public class VertexAiGeminiUtil {
 	}
 
 	public static VertexAiGeminiStreamingChatModel
-			createVertexAiGeminiStreamingChatModel(long companyId)
+			createVertexAiGeminiStreamingChatModel(
+				long companyId, long preDebitedTokens, long userId,
+				QuotaManager quotaManager)
 		throws ConfigurationException {
 
 		VertexAIConfiguration vertexAIConfiguration =
@@ -63,7 +72,11 @@ public class VertexAiGeminiUtil {
 			builder.apiEndpoint("aiplatform.googleapis.com");
 		}
 
-		return builder.location(
+		return builder.listeners(
+			List.of(
+				new AIHubQuotaChatModelListener(
+					companyId, preDebitedTokens, userId, quotaManager))
+		).location(
 			vertexAIConfiguration.location()
 		).modelName(
 			vertexAIConfiguration.modelName()
