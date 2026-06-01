@@ -6,6 +6,7 @@
 package com.liferay.ai.hub.internal.quota;
 
 import com.liferay.ai.hub.quota.QuotaManager;
+import com.liferay.ai.hub.quota.Source;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -26,7 +27,8 @@ public class DummyQuotaManagerImpl implements QuotaManager {
 	}
 
 	@Override
-	public void updateUsage(long companyId, long tokensCount, long userId) {
+	public void updateUsage(
+		long companyId, Source source, long tokensCount, long userId) {
 	}
 
 }
