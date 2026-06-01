@@ -18,7 +18,8 @@ public interface QuotaManager {
 	public void checkUsage(long companyId, String text, long userId)
 		throws PortalException;
 
-	public void updateUsage(long companyId, long tokensCount, long userId)
+	public void updateUsage(
+			long companyId, Source source, long tokensCount, long userId)
 		throws PortalException;
 
 }
