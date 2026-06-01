@@ -22,4 +22,9 @@ public interface QuotaManager {
 			long companyId, Source source, long tokensCount, long userId)
 		throws PortalException;
 
+	public default void updateUsage(
+			long companyId, Source source, String text, long userId)
+		throws PortalException {
+	}
+
 }
