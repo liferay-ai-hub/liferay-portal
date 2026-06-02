@@ -12,10 +12,13 @@ import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.account.service.AccountRoleLocalService;
 import com.liferay.ai.hub.rest.client.dto.v1_0.ProvisioningRequest;
 import com.liferay.ai.hub.rest.client.dto.v1_0.UserAccount;
+import com.liferay.ai.hub.secure.CredentialSecureSharingClient;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.portal.kernel.model.Group;
@@ -35,6 +38,7 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -51,6 +55,11 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.ServiceRegistration;
 
 /**
  * @author Carolina Barbosa
@@ -143,6 +152,56 @@ public class ProvisioningRequestResourceTest
 			aiHubAccountEntry, customerAccountEntry,
 			provisioningRequest.getUserAccounts(),
 			postProvisioningRequest.getUserAccounts());
+	}
+
+	@Test
+	public void testPostProvisioningSharesCredentials() throws Exception {
+		Bundle bundle = FrameworkUtil.getBundle(
+			ProvisioningRequestResourceTest.class);
+
+		BundleContext bundleContext = bundle.getBundleContext();
+
+		ServiceRegistration<CredentialSecureSharingClient> serviceRegistration =
+			bundleContext.registerService(
+				CredentialSecureSharingClient.class,
+				(companyId, fields, recipientEmailAddress) -> _SHARE_URL,
+				MapUtil.singletonDictionary(
+					"service.ranking", Integer.MAX_VALUE));
+
+		try {
+			ProvisioningRequest provisioningRequest = randomProvisioningRequest(
+				new UserAccount[] {
+					new UserAccount() {
+						{
+							emailAddress = "test@liferay.com";
+						}
+					}
+				});
+
+			ProvisioningRequest postProvisioningRequest =
+				provisioningRequestResource.postProvisioning(
+					provisioningRequest);
+
+			ObjectDefinition objectDefinition =
+				_objectDefinitionLocalService.fetchObjectDefinition(
+					TestPropsValues.getCompanyId(), "AIHubConfiguration");
+
+			ObjectEntry objectEntry = _objectEntryLocalService.fetchObjectEntry(
+				postProvisioningRequest.getAccountEntryId() +
+					"-ai-hub-configuration",
+				GroupConstants.DEFAULT_LIVE_GROUP_ID,
+				objectDefinition.getObjectDefinitionId());
+
+			Assert.assertEquals(
+				_SHARE_URL,
+				objectEntry.getValues(
+				).get(
+					"credentialsShareURL"
+				));
+		}
+		finally {
+			serviceRegistration.unregister();
+		}
 	}
 
 	@Override
@@ -301,6 +360,9 @@ public class ProvisioningRequestResourceTest
 			customerAccountEntry.getAccountEntryId() +
 				"-guest-service-account");
 	}
+
+	private static final String _SHARE_URL =
+		"https://share.1password.com/s/test";
 
 	private static Group _group;
 	private static String _originalName;
