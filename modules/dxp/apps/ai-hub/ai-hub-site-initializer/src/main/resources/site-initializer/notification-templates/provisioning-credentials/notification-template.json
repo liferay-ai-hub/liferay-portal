@@ -1,0 +1,29 @@
+{
+	"editorType": "richText",
+	"externalReferenceCode": "L_AI_HUB_PROVISIONING_CREDENTIALS_EMAIL_NOTIFICATION_TEMPLATE",
+	"name": "AI Hub Provisioning Credentials",
+	"name_i18n": {
+		"en_US": "AI Hub Provisioning Credentials"
+	},
+	"recipientType": "email",
+	"recipients": [
+		{
+			"bcc": "",
+			"cc": "",
+			"from": "admin@liferay.com",
+			"fromName": {
+				"en_US": "AI Hub"
+			},
+			"singleRecipient": true,
+			"to": {
+				"en_US": "[%AIHUBCONFIGURATION_RECIPIENTEMAILADDRESS%]"
+			}
+		}
+	],
+	"subject": {
+		"en_US": "Your AI Hub client credentials for [%ACCOUNTTOAIHUBCONFIGURATIONS_ACCOUNTENTRY_NAME%]"
+	},
+	"system": false,
+	"type": "email",
+	"typeLabel": "Email"
+}
