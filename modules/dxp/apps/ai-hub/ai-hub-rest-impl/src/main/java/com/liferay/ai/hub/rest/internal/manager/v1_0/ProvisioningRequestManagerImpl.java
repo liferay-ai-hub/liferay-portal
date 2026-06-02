@@ -15,6 +15,7 @@ import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.ai.hub.rest.dto.v1_0.ProvisioningRequest;
 import com.liferay.ai.hub.rest.dto.v1_0.UserAccount;
 import com.liferay.ai.hub.rest.manager.v1_0.ProvisioningRequestManager;
+import com.liferay.ai.hub.secure.CredentialSecureSharingClient;
 import com.liferay.headless.common.spi.service.context.ServiceContextBuilder;
 import com.liferay.oauth2.provider.constants.ClientProfile;
 import com.liferay.oauth2.provider.constants.GrantType;
@@ -23,10 +24,13 @@ import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.oauth2.provider.util.OAuth2SecureRandomGenerator;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
+import com.liferay.object.rest.manager.v1_0.DefaultObjectEntryManager;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
@@ -37,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
@@ -46,7 +51,6 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -77,10 +81,6 @@ public class ProvisioningRequestManagerImpl
 			provisioningRequest.getAccountEntryExternalReferenceCode(),
 			provisioningRequest.getAccountEntryName(), serviceContext);
 
-		_addAIHubConfiguration(
-			company.getCompanyId(), customerAccountEntry, dtoConverterContext,
-			provisioningRequest);
-
 		_quotaManager.addQuotas(
 			customerAccountEntry.getAccountEntryId(), company.getCompanyId(),
 			dtoConverterContext.getUserId());
@@ -94,10 +94,14 @@ public class ProvisioningRequestManagerImpl
 			dtoConverterContext.getLocale(), serviceContext,
 			provisioningRequest.getUserAccounts());
 
-		_addServiceAccountUsers(
+		OAuth2Application oAuth2Application = _addServiceAccountUsers(
 			aiHubAccountEntry, company, customerAccountEntry,
 			dtoConverterContext.getLocale(), provisioningRequest,
 			serviceContext);
+
+		_addAIHubConfiguration(
+			company.getCompanyId(), customerAccountEntry, dtoConverterContext,
+			oAuth2Application, provisioningRequest);
 
 		return new ProvisioningRequest() {
 			{
@@ -117,6 +121,7 @@ public class ProvisioningRequestManagerImpl
 	private void _addAIHubConfiguration(
 			long companyId, AccountEntry customerAccountEntry,
 			DTOConverterContext dtoConverterContext,
+			OAuth2Application oAuth2Application,
 			ProvisioningRequest provisioningRequest)
 		throws Exception {
 
@@ -128,23 +133,43 @@ public class ProvisioningRequestManagerImpl
 			return;
 		}
 
+		String externalReferenceCode =
+			customerAccountEntry.getAccountEntryId() + "-ai-hub-configuration";
+
+		String recipientEmailAddress = GetterUtil.getString(
+			provisioningRequest.getRecipientEmailAddress());
+
+		String credentialsShareURL = _getCredentialsShareURL(
+			companyId, oAuth2Application, recipientEmailAddress);
+
 		_objectEntryManager.updateObjectEntry(
-			companyId, dtoConverterContext,
-			customerAccountEntry.getAccountEntryId() + "-ai-hub-configuration",
+			companyId, dtoConverterContext, externalReferenceCode,
 			objectDefinition,
 			new ObjectEntry() {
 				{
 					setProperties(
-						() -> Map.of(
+						() -> HashMapBuilder.<String, Object>put(
+							"credentialsShareURL", credentialsShareURL
+						).put(
 							"r_accountToAIHubConfigurations_accountEntryId",
-							customerAccountEntry.getAccountEntryId(),
-							"recipientEmailAddress",
-							GetterUtil.getString(
-								provisioningRequest.
-									getRecipientEmailAddress())));
+							customerAccountEntry.getAccountEntryId()
+						).put(
+							"recipientEmailAddress", recipientEmailAddress
+						).build());
 				}
 			},
 			null);
+
+		if (Validator.isNull(credentialsShareURL)) {
+			return;
+		}
+
+		DefaultObjectEntryManager defaultObjectEntryManager =
+			(DefaultObjectEntryManager)_objectEntryManager;
+
+		defaultObjectEntryManager.executeObjectAction(
+			companyId, dtoConverterContext, externalReferenceCode,
+			"sendProvisioningCredentials", objectDefinition, null);
 	}
 
 	private AccountEntry _addCustomerAccountEntry(
@@ -167,7 +192,7 @@ public class ProvisioningRequestManagerImpl
 			WorkflowConstants.STATUS_APPROVED, serviceContext);
 	}
 
-	private void _addOAuth2Application(
+	private OAuth2Application _addOAuth2Application(
 			AccountEntry customerAccountEntry,
 			ProvisioningRequest provisioningRequest, User user,
 			ServiceContext serviceContext)
@@ -183,10 +208,10 @@ public class ProvisioningRequestManagerImpl
 					externalReferenceCode, serviceContext.getCompanyId());
 
 		if (oAuth2Application != null) {
-			return;
+			return oAuth2Application;
 		}
 
-		_oAuth2ApplicationLocalService.addOrUpdateOAuth2Application(
+		return _oAuth2ApplicationLocalService.addOrUpdateOAuth2Application(
 			externalReferenceCode, user.getUserId(), user.getFullName(),
 			List.of(GrantType.CLIENT_CREDENTIALS), "client_secret_post",
 			user.getUserId(), OAuth2SecureRandomGenerator.generateClientId(),
@@ -249,7 +274,7 @@ public class ProvisioningRequestManagerImpl
 		return users;
 	}
 
-	private void _addServiceAccountUsers(
+	private OAuth2Application _addServiceAccountUsers(
 			AccountEntry aiHubAccountEntry, Company company,
 			AccountEntry customerAccountEntry, Locale locale,
 			ProvisioningRequest provisioningRequest,
@@ -278,7 +303,7 @@ public class ProvisioningRequestManagerImpl
 			},
 			new long[0], serviceAccountUser.getUserId());
 
-		_addOAuth2Application(
+		return _addOAuth2Application(
 			customerAccountEntry, provisioningRequest, serviceAccountUser,
 			serviceContext);
 	}
@@ -359,6 +384,36 @@ public class ProvisioningRequestManagerImpl
 		}
 	}
 
+	private String _getCredentialsShareURL(
+		long companyId, OAuth2Application oAuth2Application,
+		String recipientEmailAddress) {
+
+		if ((oAuth2Application == null) ||
+			Validator.isBlank(recipientEmailAddress)) {
+
+			return StringPool.BLANK;
+		}
+
+		try {
+			return _credentialSecureSharingClient.share(
+				companyId,
+				HashMapBuilder.put(
+					"clientId", oAuth2Application.getClientId()
+				).put(
+					"clientSecret", oAuth2Application.getClientSecret()
+				).build(),
+				recipientEmailAddress);
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to share the AI Hub client credentials", exception);
+			}
+
+			return StringPool.BLANK;
+		}
+	}
+
 	private UserAccount _toUserAccount(User user) {
 		return new UserAccount() {
 			{
@@ -370,6 +425,9 @@ public class ProvisioningRequestManagerImpl
 		};
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		ProvisioningRequestManagerImpl.class);
+
 	@Reference
 	private AccountEntryService _accountEntryService;
 
@@ -378,6 +436,9 @@ public class ProvisioningRequestManagerImpl
 
 	@Reference
 	private AccountRoleLocalService _accountRoleLocalService;
+
+	@Reference(policyOption = ReferencePolicyOption.GREEDY)
+	private CredentialSecureSharingClient _credentialSecureSharingClient;
 
 	@Reference
 	private GroupLocalService _groupLocalService;
