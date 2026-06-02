@@ -22,6 +22,7 @@ import com.liferay.notification.service.NotificationTemplateLocalService;
 import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectRelationship;
+import com.liferay.object.service.ObjectActionLocalService;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
@@ -155,6 +156,10 @@ public class AIHubSiteInitializerTest {
 			"lowAndAbove", "mediumAndAbove", "none");
 		_assertNotificationTemplateExists(
 			"L_AI_HUB_ACCOUNT_INVITE_USER_EMAIL_NOTIFICATION_TEMPLATE");
+		_assertNotificationTemplateExists(
+			"L_AI_HUB_PROVISIONING_CREDENTIALS_EMAIL_NOTIFICATION_TEMPLATE");
+		_assertObjectActionExists(
+			"L_AI_HUB_CONFIGURATION", "sendProvisioningCredentials");
 		_assertObjectDefinitionExists("L_AI_HUB_AGENT_DEFINITION");
 		_assertObjectDefinitionExists("L_AI_HUB_CHATBOT");
 		_assertObjectDefinitionExists("L_AI_HUB_CONTENT_RETRIEVER");
@@ -171,6 +176,10 @@ public class AIHubSiteInitializerTest {
 			"L_AI_HUB_CHATBOT", "active", "avatar", "description",
 			"introMessage", "notificationMessage", "placeholderMessage",
 			"r_accountToAIHubChatbots_accountEntryId", "title");
+		_assertObjectFieldsExist(
+			"L_AI_HUB_CONFIGURATION", "credentialsShareURL", "environmentUrls",
+			"r_accountToAIHubConfigurations_accountEntryId",
+			"recipientEmailAddress");
 		_assertObjectFieldsExist(
 			"L_AI_HUB_CONTENT_RETRIEVER", "crawlDate", "description",
 			"indexName", "r_accountToAIHubContentRetrievers_accountEntryId",
@@ -367,6 +376,21 @@ public class AIHubSiteInitializerTest {
 		Assert.assertNotNull(notificationTemplate);
 	}
 
+	private void _assertObjectActionExists(
+			String objectDefinitionExternalReferenceCode, String name)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					objectDefinitionExternalReferenceCode,
+					TestPropsValues.getCompanyId());
+
+		Assert.assertNotNull(
+			_objectActionLocalService.fetchObjectAction(
+				objectDefinition.getObjectDefinitionId(), name));
+	}
+
 	private void _assertObjectDefinitionExists(String externalReferenceCode)
 		throws Exception {
 
@@ -458,6 +482,9 @@ public class AIHubSiteInitializerTest {
 
 	@Inject
 	private NotificationTemplateLocalService _notificationTemplateLocalService;
+
+	@Inject
+	private ObjectActionLocalService _objectActionLocalService;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
