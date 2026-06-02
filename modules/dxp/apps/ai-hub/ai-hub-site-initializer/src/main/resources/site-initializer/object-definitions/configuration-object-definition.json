@@ -42,6 +42,22 @@
 			"type": "Long"
 		},
 		{
+			"DBType": "String",
+			"businessType": "Text",
+			"externalReferenceCode": "CREDENTIALS_SHARE_URL",
+			"indexed": true,
+			"indexedLanguageId": "en_US",
+			"label": {
+				"en_US": "Credentials Share URL"
+			},
+			"name": "credentialsShareURL",
+			"readOnly": false,
+			"readOnlyConditionExpression": "",
+			"required": false,
+			"system": true,
+			"type": "String"
+		},
+		{
 			"DBType": "Clob",
 			"businessType": "LongText",
 			"externalReferenceCode": "ENVIRONMENT_URLS",
