@@ -32,7 +32,7 @@ function BalloonGroup({
 		try {
 			await handleItemClick(child.type);
 		}
-		finally {
+		catch {
 			setIsLoading({type: ''});
 		}
 	};
