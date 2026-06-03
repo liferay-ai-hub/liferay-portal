@@ -7,6 +7,7 @@ import {Command, Editor, Plugin} from '@ckeditor/ckeditor5-core/dist/index.js';
 import {Model} from '@ckeditor/ckeditor5-engine/dist/index.js';
 import {ContextualBalloon, View} from '@ckeditor/ckeditor5-ui/dist/index.js';
 import {ModelText, ModelTextProxy, ModelWriter} from 'ckeditor5';
+import {openToast} from 'frontend-js-components-web';
 import {cancelDebounce, debounce} from 'frontend-js-web';
 import React from 'react';
 import {Root, createRoot} from 'react-dom/client';
@@ -46,23 +47,34 @@ export default class WritingAssistant extends Plugin {
 	}
 
 	_addEventListeners() {
-		createEventSource().then((eventSource) => {
-			if (!eventSource) {
-				return;
-			}
+		createEventSource()
+			.then((eventSource) => {
+				if (!eventSource) {
+					return;
+				}
 
-			eventSource.addEventListener('Subscribe', (event) => {
-				this.eventSourceReference = event.data;
-			});
+				eventSource.addEventListener('Subscribe', (event) => {
+					this.eventSourceReference = event.data;
+				});
 
-			Object.values(EActionType).forEach((type) => {
-				eventSource.addEventListener(type, (event) => {
-					const dataJSON = JSON.parse(event.data);
+				Object.values(EActionType).forEach((type) => {
+					eventSource.addEventListener(type, (event) => {
+						const dataJSON = JSON.parse(event.data);
 
-					this._changeContent(dataJSON['data']);
+						this._changeContent(dataJSON['data']);
+					});
+				});
+			})
+			.catch((error: Error) => {
+				openToast({
+					message:
+						error.message ||
+						Liferay.Language.get(
+							'an-error-occurred-while-processing-the-requested-resource'
+						),
+					type: 'danger',
 				});
 			});
-		});
 	}
 
 	_addSelectionListener(
@@ -250,11 +262,23 @@ export default class WritingAssistant extends Plugin {
 				<WritingAssistantActions
 					containerRef={reactView.element}
 					handleActionClick={async (type: EActionType) => {
-						await postAgentInstance(
-							this.contentSelection,
-							this.eventSourceReference,
-							type
-						);
+						try {
+							await postAgentInstance(
+								this.contentSelection,
+								this.eventSourceReference,
+								type
+							);
+						}
+						catch (error) {
+							openToast({
+								message:
+									(error as Error).message ||
+									Liferay.Language.get(
+										'an-error-occurred-while-processing-the-requested-resource'
+									),
+								type: 'danger',
+							});
+						}
 					}}
 					hideBalloon={() => this._hideBalloon(balloon)}
 				/>

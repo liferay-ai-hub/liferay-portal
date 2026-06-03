@@ -26,8 +26,15 @@ function BalloonGroup({
 		if (child.disabled) {
 			return;
 		}
+
 		setIsLoading({type: child.type});
-		await handleItemClick(child.type);
+
+		try {
+			await handleItemClick(child.type);
+		}
+		finally {
+			setIsLoading({type: ''});
+		}
 	};
 
 	return (

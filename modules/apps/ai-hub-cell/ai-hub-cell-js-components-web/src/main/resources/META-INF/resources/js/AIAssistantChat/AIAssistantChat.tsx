@@ -24,6 +24,7 @@ import UserMessageBalloon from './components/UserMessageBalloon';
 import './chat.scss';
 
 interface message {
+	error?: string;
 	sender: string;
 	text: string;
 }
@@ -41,6 +42,9 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	const [isGenerating, setIsGenerating] = useState<boolean>(false);
 	const [messages, setMessages] = useState<message[]>([]);
 	const [message, setMessage] = useState<string>('');
+	const [connectionError, setConnectionError] = useState<boolean>(false);
+	const [connectionErrorMessage, setConnectionErrorMessage] =
+		useState<string>('');
 	const eventSourceRef = useRef<EventSource | null>(null);
 	const eventSourceReference = useRef<string | null>(null);
 	const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -70,7 +74,25 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 				eventSourceReference: eventSourceReference.current,
 				instructionDefinitionScope,
 				message,
-			}).catch(() => setIsGenerating(false));
+			}).catch((error: Error) => {
+				setIsGenerating(false);
+				setMessages((previousMessages) => [
+					...previousMessages,
+					{error: error.message, sender: 'error', text: ''},
+				]);
+			});
+		}
+		else {
+			setMessages((previousMessages) => [
+				...previousMessages,
+				{
+					error: Liferay.Language.get(
+						'ai-hub-is-not-available-please-check-your-settings'
+					),
+					sender: 'error',
+					text: '',
+				},
+			]);
 		}
 	}
 
@@ -131,44 +153,52 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	}
 
 	function openAIAssistantChatConnection() {
-		createEventSource().then((eventSource) => {
-			if (!eventSource) {
-				return;
-			}
-
-			eventSourceRef.current = eventSource;
-
-			eventSourceRef.current.addEventListener(
-				'Chat Message Sent',
-				(event) => {
-					setMessages((previousMessages) => {
-						setTimeout(() => {
-							messagesEndRef.current?.scrollIntoView({
-								behavior: 'smooth',
-							});
-						}, 0);
-
-						const dataJSON = JSON.parse(event.data);
-
-						return [
-							...previousMessages,
-							{
-								sender: 'assistant',
-								text: dataJSON['data'],
-							},
-						];
-					});
-
-					setMessage('');
-
-					setIsGenerating(false);
+		createEventSource()
+			.then((eventSource) => {
+				if (!eventSource) {
+					return;
 				}
-			);
 
-			eventSourceRef.current.addEventListener('Subscribe', (event) => {
-				eventSourceReference.current = event.data;
+				eventSourceRef.current = eventSource;
+
+				eventSourceRef.current.addEventListener(
+					'Chat Message Sent',
+					(event) => {
+						setMessages((previousMessages) => {
+							setTimeout(() => {
+								messagesEndRef.current?.scrollIntoView({
+									behavior: 'smooth',
+								});
+							}, 0);
+
+							const dataJSON = JSON.parse(event.data);
+
+							return [
+								...previousMessages,
+								{
+									sender: 'assistant',
+									text: dataJSON['data'],
+								},
+							];
+						});
+
+						setMessage('');
+
+						setIsGenerating(false);
+					}
+				);
+
+				eventSourceRef.current.addEventListener(
+					'Subscribe',
+					(event) => {
+						eventSourceReference.current = event.data;
+					}
+				);
+			})
+			.catch((error: Error) => {
+				setConnectionError(true);
+				setConnectionErrorMessage(error.message);
 			});
-		});
 	}
 
 	function closeAIAssistantChatConnection() {
@@ -246,17 +276,37 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 				</div>
 
 				<div className="ai-assistant-chat__messages-container flex-grow-1 overflow-auto px-3">
-					<AIAssistantMessageBalloon
-						error={false}
-						message="Hi! I can help you generate content, titles, tags, or
-						translate your work. What would you like to do?"
-					/>
+					{connectionError ? (
+						<AIAssistantMessageBalloon
+							error={true}
+							errorMessage={connectionErrorMessage}
+							message=""
+							onRetry={() => {
+								setConnectionError(false);
+								setConnectionErrorMessage('');
+								openAIAssistantChatConnection();
+							}}
+						/>
+					) : (
+						<AIAssistantMessageBalloon
+							error={false}
+							message="Hi! I can help you generate content, titles, tags, or
+							translate your work. What would you like to do?"
+						/>
+					)}
 
 					{messages.map((item, index) =>
 						item.sender === 'user' ? (
 							<UserMessageBalloon
 								key={index}
 								message={item.text}
+							/>
+						) : item.sender === 'error' ? (
+							<AIAssistantMessageBalloon
+								error={true}
+								errorMessage={item.error}
+								key={index}
+								message=""
 							/>
 						) : (
 							<AIAssistantMessageBalloon
@@ -289,7 +339,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 					<div className="align-items-end d-flex flex-row">
 						<textarea
 							className="ai-assistant-chat__input form-control mr-2"
-							disabled={isGenerating}
+							disabled={isGenerating || connectionError}
 							id="assistant-user-input"
 							onChange={(event) => {
 								setMessage(event.target.value);
@@ -307,7 +357,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 						/>
 
 						<ClayButton
-							disabled={!message.trim()}
+							disabled={!message.trim() || connectionError}
 							displayType="primary"
 							type="submit"
 						>

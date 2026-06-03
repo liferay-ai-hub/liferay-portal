@@ -6,6 +6,7 @@
 package com.liferay.ai.hub.cell.rest.internal.resource.v1_0;
 
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
+import com.liferay.ai.hub.cell.exception.AIHubCellConfigurationException;
 import com.liferay.ai.hub.cell.rest.dto.v1_0.AuthorizationToken;
 import com.liferay.ai.hub.cell.rest.internal.security.JWTTokenUtil;
 import com.liferay.ai.hub.cell.rest.internal.web.cache.AIHubCellAccessTokenWebCacheItem;
@@ -13,6 +14,7 @@ import com.liferay.ai.hub.cell.rest.resource.v1_0.AuthorizationTokenResource;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.util.Validator;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -33,15 +35,32 @@ public class AuthorizationTokenResourceImpl
 		if (!FeatureFlagManagerUtil.isEnabled(
 				contextCompany.getCompanyId(), "LPD-62272")) {
 
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException(
+				"AI Hub feature is not enabled");
 		}
 
 		AIHubCellConfiguration aiHubCellConfiguration =
 			_configurationProvider.getCompanyConfiguration(
 				AIHubCellConfiguration.class, contextCompany.getCompanyId());
 
+		if (Validator.isBlank(aiHubCellConfiguration.serviceURL()) ||
+			Validator.isBlank(aiHubCellConfiguration.clientId()) ||
+			Validator.isBlank(aiHubCellConfiguration.clientSecret())) {
+
+			throw new AIHubCellConfigurationException(
+				"AI Hub Cell is not configured. Please check service URL, " +
+					"client ID, and client secret in System Settings.");
+		}
+
 		JSONObject jsonObject = AIHubCellAccessTokenWebCacheItem.get(
 			aiHubCellConfiguration, contextCompany.getCompanyId());
+
+		if (jsonObject == null) {
+			throw new AIHubCellConfigurationException(
+				"Unable to obtain access token from AI Hub service. Please " +
+					"verify the service URL and credentials in System " +
+						"Settings.");
+		}
 
 		return new AuthorizationToken() {
 			{

@@ -19,10 +19,6 @@ export async function createEventSource() {
 
 	const authorizationToken = await postAuthorizationToken();
 
-	if (!authorizationToken) {
-		return;
-	}
-
 	return new EventSource(
 		`${authorizationToken.serviceURL}${AI_HUB_ENDPOINT}/agent-instances/subscribe`,
 		{
@@ -40,39 +36,47 @@ export async function createEventSource() {
 }
 
 async function postAuthorizationToken() {
-	try {
-		const response = await fetch(
-			'/o/ai-hub-cell/v1.0/authorization-tokens',
-			{
-				method: 'POST',
+	const response = await fetch('/o/ai-hub-cell/v1.0/authorization-tokens', {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		let errorMessage = `Unable to generate authorization token: ${response.statusText}`;
+
+		try {
+			const errorData = await response.json();
+
+			if (errorData?.message) {
+				errorMessage = errorData.message;
 			}
-		);
+			else if (errorData?.title) {
+				errorMessage = errorData.title;
+			}
+		}
+		catch {
 
-		if (!response.ok) {
-			throw new Error(
-				`Unable to generate authorization token: ${response.statusText}`
-			);
+			// ignore JSON parse errors, use default message
+
 		}
 
-		const data = await response.json();
-
-		if (!data?.accessToken) {
-			throw new Error('Unable to generate authorization token.');
-		}
-
-		if (!data?.userToken) {
-			throw new Error('Unable to generate user token.');
-		}
-
-		if (!data?.serviceURL) {
-			throw new Error('Unable to find service URL.');
-		}
-
-		return data;
+		throw new Error(errorMessage);
 	}
-	catch (error) {
-		console.warn((error as Error).message);
+
+	const data = await response.json();
+
+	if (!data?.accessToken) {
+		throw new Error('Unable to generate authorization token.');
 	}
+
+	if (!data?.userToken) {
+		throw new Error('Unable to generate user token.');
+	}
+
+	if (!data?.serviceURL) {
+		throw new Error('Unable to find service URL.');
+	}
+
+	return data;
 }
 
 export async function postAgentInstance(
@@ -83,10 +87,10 @@ export async function postAgentInstance(
 	const authorizationToken = await postAuthorizationToken();
 
 	if (!authorizationToken) {
-		return;
+		throw new Error('Unable to generate authorization token.');
 	}
 
-	await fetch(
+	const response = await fetch(
 		`${authorizationToken.serviceURL}${AI_HUB_ENDPOINT}/agent-instances`,
 		{
 			body: JSON.stringify({
@@ -106,4 +110,8 @@ export async function postAgentInstance(
 			method: 'POST',
 		}
 	);
+
+	if (!response.ok) {
+		throw new Error(`AI request failed: ${response.statusText}`);
+	}
 }

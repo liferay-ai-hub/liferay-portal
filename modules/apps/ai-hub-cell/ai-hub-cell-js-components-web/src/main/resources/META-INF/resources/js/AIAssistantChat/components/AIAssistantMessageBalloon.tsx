@@ -3,16 +3,19 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
 import React from 'react';
 
 import '../chat.scss';
 import renderAIAssistantMessageMarkdown from '../utils/renderAIAssistantMessageMarkdown';
 
-const AssistantMessageBalloon: React.FC<{error: boolean; message: string}> = ({
-	error,
-	message,
-}) => {
+const AssistantMessageBalloon: React.FC<{
+	error: boolean;
+	errorMessage?: string;
+	message: string;
+	onRetry?: () => void;
+}> = ({error, errorMessage, message, onRetry}) => {
 	return (
 		<div
 			className={`d-flex flex-row font-weight-semi-bold mb-2 rounded ${error ? 'ai-assistant-chat__ai-assistant-error-message-balloon' : 'ai-assistant-chat__ai-assistant-message-balloon'}`}
@@ -28,9 +31,23 @@ const AssistantMessageBalloon: React.FC<{error: boolean; message: string}> = ({
 			</div>
 
 			{error ? (
-				<span className="m-2">
-					{Liferay.Language.get('generating-content-failed')}
-				</span>
+				<div className="d-flex flex-column m-2">
+					<span>
+						{errorMessage ||
+							Liferay.Language.get('generating-content-failed')}
+					</span>
+
+					{onRetry && (
+						<ClayButton
+							className="mt-2"
+							displayType="secondary"
+							onClick={onRetry}
+							small
+						>
+							{Liferay.Language.get('retry')}
+						</ClayButton>
+					)}
+				</div>
 			) : (
 				<div
 					className="m-2"
