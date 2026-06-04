@@ -21,11 +21,9 @@ import java.util.List;
 /**
  * @author João Victor Alves
  */
-public class ViewModelArmorTemplatesDisplayContext {
+public class ViewGuardrailsDisplayContext {
 
-	public ViewModelArmorTemplatesDisplayContext(
-		HttpServletRequest httpServletRequest) {
-
+	public ViewGuardrailsDisplayContext(HttpServletRequest httpServletRequest) {
 		_httpServletRequest = httpServletRequest;
 
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
@@ -33,7 +31,7 @@ public class ViewModelArmorTemplatesDisplayContext {
 	}
 
 	public String getAPIURL() {
-		return "/o/ai-hub/model-armor-templates";
+		return "/o/ai-hub/guardrails";
 	}
 
 	public CreationMenu getCreationMenu() throws Exception {
@@ -41,7 +39,7 @@ public class ViewModelArmorTemplatesDisplayContext {
 			dropdownItem -> {
 				dropdownItem.setHref(
 					DisplayContextUtil.getAIHubURL(_themeDisplay) +
-						"/model-armor-template");
+						"/guardrails");
 				dropdownItem.setLabel(
 					LanguageUtil.get(_httpServletRequest, "new-guardrail"));
 			}
@@ -55,13 +53,13 @@ public class ViewModelArmorTemplatesDisplayContext {
 			new FDSActionDropdownItem(
 				StringBundler.concat(
 					DisplayContextUtil.getAIHubURL(_themeDisplay),
-					"/model-armor-template",
+					"/guardrails",
 					"?externalReferenceCode={externalReferenceCode}"),
 				"view", "view", LanguageUtil.get(_httpServletRequest, "view"),
 				"get", null, null),
 			new FDSActionDropdownItem(
-				"/o/ai-hub/v1.0/model-armor-templates" +
-					"/by-external-reference-code/{externalReferenceCode}",
+				"/o/ai-hub/v1.0/guardrails/by-external-reference-code" +
+					"/{externalReferenceCode}",
 				"trash", "delete",
 				LanguageUtil.get(_httpServletRequest, "delete"), "delete",
 				"delete", "async"));
