@@ -153,16 +153,16 @@ public class AIHubSiteInitializerTest {
 			"L_AI_HUB_CRAWLER_JOB_STATUSES", "abandoned", "dispatched",
 			"failed", "queued", "running", "succeeded");
 		_assertListTypeDefinitionExists(
+			"L_AI_HUB_GUARDRAIL_CONFIDENCE_LEVELS", "high", "lowAndAbove",
+			"mediumAndAbove");
+		_assertListTypeDefinitionExists(
+			"L_AI_HUB_GUARDRAIL_TYPES", "input", "output");
+		_assertListTypeDefinitionExists(
+			"L_AI_HUB_GUARDRAIL_RESPONSIBLE_AI_LEVELS", "high", "lowAndAbove",
+			"mediumAndAbove", "none");
+		_assertListTypeDefinitionExists(
 			"L_AI_HUB_INSTRUCTION_DEFINITION_SCOPES", "clickToChat", "cms",
 			"everywhere");
-		_assertListTypeDefinitionExists(
-			"L_AI_HUB_MODEL_ARMOR_TEMPLATE_CONFIDENCE_LEVELS", "high",
-			"lowAndAbove", "mediumAndAbove");
-		_assertListTypeDefinitionExists(
-			"L_AI_HUB_MODEL_ARMOR_TEMPLATE_GUARDRAIL_TYPES", "input", "output");
-		_assertListTypeDefinitionExists(
-			"L_AI_HUB_MODEL_ARMOR_TEMPLATE_RESPONSIBLE_AI_LEVELS", "high",
-			"lowAndAbove", "mediumAndAbove", "none");
 		_assertNotificationTemplateExists(
 			"L_AI_HUB_ACCOUNT_INVITE_USER_EMAIL_NOTIFICATION_TEMPLATE");
 		_assertObjectDefinitionExists("L_AI_HUB_AGENT_DEFINITION");
@@ -170,9 +170,9 @@ public class AIHubSiteInitializerTest {
 		_assertObjectDefinitionExists("L_AI_HUB_CONFIGURATION");
 		_assertObjectDefinitionExists("L_AI_HUB_CONTENT_RETRIEVER");
 		_assertObjectDefinitionExists("L_AI_HUB_CRAWLER_JOB");
+		_assertObjectDefinitionExists("L_AI_HUB_GUARDRAIL");
 		_assertObjectDefinitionExists("L_AI_HUB_INSTRUCTION_DEFINITION");
 		_assertObjectDefinitionExists("L_AI_HUB_MCP_SERVER");
-		_assertObjectDefinitionExists("L_AI_HUB_MODEL_ARMOR_TEMPLATE");
 		_assertObjectEntryExists(
 			"L_AI_HUB_INSTRUCTION_DEFINITION", "L_AI_HUB_ACTION_BOUNDARY");
 		_assertObjectEntryExists(
@@ -187,7 +187,7 @@ public class AIHubSiteInitializerTest {
 		_assertObjectEntryExists(
 			"L_AI_HUB_INSTRUCTION_DEFINITION", "L_AI_HUB_PROHIBITED_PRACTICES");
 		_assertObjectFieldDefaultValue(
-			"L_AI_HUB_MODEL_ARMOR_TEMPLATE", "location", "europe-west1");
+			"L_AI_HUB_GUARDRAIL", "location", "europe-west1");
 		_assertObjectFieldsExist(
 			"L_AI_HUB_AGENT_DEFINITION", "active", "description",
 			"inputVariables", "outputVariable",
@@ -211,6 +211,14 @@ public class AIHubSiteInitializerTest {
 			"r_contentRetrieverToCrawlerJobs_aiHubContentRetrieverId",
 			"startDate");
 		_assertObjectFieldsExist(
+			"L_AI_HUB_GUARDRAIL", "active", "description", "guardrailType",
+			"location", "maliciousUriFilterEnabled",
+			"multilanguageDetectionEnabled", "piAndJailbreakConfidenceLevel",
+			"piAndJailbreakFilterEnabled",
+			"r_accountToAIHubGuardrails_accountEntryId", "raiDangerousLevel",
+			"raiHarassmentLevel", "raiHateSpeechLevel",
+			"raiSexuallyExplicitLevel", "sdpFilterEnabled", "title");
+		_assertObjectFieldsExist(
 			"L_AI_HUB_INSTRUCTION_DEFINITION", "active", "description",
 			"instruction", "occasion",
 			"r_accountToAIHubInstructionDefinitions_accountEntryId", "scope",
@@ -218,14 +226,6 @@ public class AIHubSiteInitializerTest {
 		_assertObjectFieldsExist(
 			"L_AI_HUB_MCP_SERVER", "r_accountToAIHubMCPServers_accountEntryId",
 			"title", "url");
-		_assertObjectFieldsExist(
-			"L_AI_HUB_MODEL_ARMOR_TEMPLATE", "active", "description",
-			"guardrailType", "location", "maliciousUriFilterEnabled",
-			"multilanguageDetectionEnabled", "piAndJailbreakConfidenceLevel",
-			"piAndJailbreakFilterEnabled",
-			"r_accountToAIHubModelArmorTemplates_accountEntryId",
-			"raiDangerousLevel", "raiHarassmentLevel", "raiHateSpeechLevel",
-			"raiSexuallyExplicitLevel", "sdpFilterEnabled", "title");
 		_assertObjectRelationshipExists(
 			ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
 			"L_ACCOUNT_TO_L_AI_HUB_AGENT_DEFINITIONS", "L_ACCOUNT",
@@ -244,11 +244,11 @@ public class AIHubSiteInitializerTest {
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY);
 		_assertObjectRelationshipExists(
 			ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
-			"L_ACCOUNT_TO_L_AI_HUB_MCP_SERVERS", "L_ACCOUNT",
+			"L_ACCOUNT_TO_L_AI_HUB_GUARDRAILS", "L_ACCOUNT",
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY);
 		_assertObjectRelationshipExists(
 			ObjectRelationshipConstants.DELETION_TYPE_CASCADE,
-			"L_ACCOUNT_TO_L_AI_HUB_MODEL_ARMOR_TEMPLATES", "L_ACCOUNT",
+			"L_ACCOUNT_TO_L_AI_HUB_MCP_SERVERS", "L_ACCOUNT",
 			ObjectRelationshipConstants.TYPE_ONE_TO_MANY);
 		_assertObjectRelationshipExists(
 			ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE,
@@ -257,7 +257,7 @@ public class AIHubSiteInitializerTest {
 			ObjectRelationshipConstants.TYPE_MANY_TO_MANY);
 		_assertObjectRelationshipExists(
 			ObjectRelationshipConstants.DELETION_TYPE_DISASSOCIATE,
-			"L_AI_HUB_AGENT_DEFINITIONS_TO_L_AI_HUB_MODEL_ARMOR_TEMPLATES",
+			"L_AI_HUB_AGENT_DEFINITIONS_TO_L_AI_HUB_GUARDRAILS",
 			"L_AI_HUB_AGENT_DEFINITION",
 			ObjectRelationshipConstants.TYPE_MANY_TO_MANY);
 		_assertObjectRelationshipExists(
