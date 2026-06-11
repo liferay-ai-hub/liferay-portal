@@ -6,14 +6,19 @@
 package com.liferay.ai.hub.internal.assistant.handler;
 
 import com.liferay.ai.hub.internal.memory.ChatMemoryProviderUtil;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.invocation.InvocationParameters;
 import dev.langchain4j.service.AiServices;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.memory.ChatMemoryAccess;
+
+import java.util.List;
 
 /**
  * @author Feliphe Marinho
@@ -56,18 +61,36 @@ public class AssistantHandlerUtil {
 			assistantHandlerContext.getTools()
 		).build();
 
+		List<ImageContent> userMessageImageContents =
+			assistantHandlerContext.getUserMessageImageContents();
+
 		if (assistant instanceof
 				ChatMemoryAccessAssistant chatMemoryAccessAssistant) {
 
-			tokenStream = chatMemoryAccessAssistant.invoke(
+			if (ListUtil.isEmpty(userMessageImageContents)) {
+				tokenStream = chatMemoryAccessAssistant.invoke(
+					assistantHandlerContext.getInvocationParameters(),
+					assistantHandlerContext.getMemoryId(),
+					assistantHandlerContext.getUserMessage());
+			}
+			else {
+				tokenStream = chatMemoryAccessAssistant.invoke(
+					assistantHandlerContext.getInvocationParameters(),
+					assistantHandlerContext.getMemoryId(),
+					_getUserMessage(assistantHandlerContext),
+					userMessageImageContents);
+			}
+		}
+		else if (ListUtil.isEmpty(userMessageImageContents)) {
+			tokenStream = assistant.invoke(
 				assistantHandlerContext.getInvocationParameters(),
-				assistantHandlerContext.getMemoryId(),
 				assistantHandlerContext.getUserMessage());
 		}
 		else {
 			tokenStream = assistant.invoke(
 				assistantHandlerContext.getInvocationParameters(),
-				assistantHandlerContext.getUserMessage());
+				_getUserMessage(assistantHandlerContext),
+				userMessageImageContents);
 		}
 
 		tokenStream.onCompleteResponse(
@@ -83,6 +106,11 @@ public class AssistantHandlerUtil {
 			InvocationParameters invocationParameters,
 			@UserMessage String userMessage);
 
+		public TokenStream invoke(
+			InvocationParameters invocationParameters,
+			@UserMessage String userMessage,
+			@UserMessage List<ImageContent> imageContents);
+
 	}
 
 	public interface ChatMemoryAccessAssistant
@@ -92,6 +120,23 @@ public class AssistantHandlerUtil {
 			InvocationParameters invocationParameters,
 			@MemoryId String memoryId, @UserMessage String userMessage);
 
+		public TokenStream invoke(
+			InvocationParameters invocationParameters,
+			@MemoryId String memoryId, @UserMessage String userMessage,
+			@UserMessage List<ImageContent> imageContents);
+
+	}
+
+	private static String _getUserMessage(
+		AssistantHandlerContext assistantHandlerContext) {
+
+		String userMessage = assistantHandlerContext.getUserMessage();
+
+		if (Validator.isNull(userMessage)) {
+			return StringPool.PERIOD;
+		}
+
+		return userMessage;
 	}
 
 }

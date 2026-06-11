@@ -1,0 +1,123 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.4.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
+>
+	<name>Image Descriptor</name>
+	<version>1</version>
+	<llm>
+		<name>imageDescriptor</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						276,
+						242
+					]
+				}
+			]]>
+		</metadata>
+		<labels>
+			<label language-id="en_US">
+				Image Descriptor
+			</label>
+		</labels>
+		<input-variables>
+			<![CDATA[
+[
+	{
+		"name": "image",
+		"type": "image"
+	},
+	{
+		"name": "context",
+		"type": "string"
+	}
+]
+]]>
+		</input-variables>
+		<output-variables>
+			<![CDATA[
+[
+	{
+		"name": "altText",
+		"type": "string"
+	}
+]
+]]>
+		</output-variables>
+		<prompt>
+			<![CDATA[You are a web accessibility specialist applying WCAG 2.2 Success Criterion 1.1.1 (Non-text Content). Your sole task is to propose the alternative text for the image provided by the user. Describe the function and the relevant information the image conveys in its context, not its visual appearance. Use the surrounding page context when provided. Be concise: at most 125 characters. Never start with phrases like "image of", "picture of", or "photo of". Only output the alternative text. Do not include any explanation, introduction, quotation marks, or conversation. If the image is purely decorative — it conveys no information relevant to the content, such as spacers, ornaments, background textures, or stock imagery used only for visual styling — output nothing at all: return a completely empty response with zero characters, so the consumer can render alt="".]]>
+		</prompt>
+		<tools>
+			<![CDATA[[]]]>
+		</tools>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						End
+					</label>
+				</labels>
+				<name>end</name>
+				<target>end</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+		<user-message>
+			<![CDATA[Propose the alternative text for the attached image. Surrounding page context (may be empty): {{context}}]]>
+		</user-message>
+	</llm>
+	<state>
+		<name>start</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						273,
+						25
+					]
+				}
+			]]>
+		</metadata>
+		<initial>true</initial>
+		<labels>
+			<label language-id="en_US">
+				Start
+			</label>
+		</labels>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						Image Descriptor
+					</label>
+				</labels>
+				<name>imageDescriptor</name>
+				<target>imageDescriptor</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>end</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						277,
+						459
+					]
+				}
+			]]>
+		</metadata>
+		<labels>
+			<label language-id="en_US">
+				End
+			</label>
+		</labels>
+	</state>
+</workflow-definition>

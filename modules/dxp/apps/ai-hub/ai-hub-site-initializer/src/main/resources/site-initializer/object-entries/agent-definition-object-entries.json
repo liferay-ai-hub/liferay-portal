@@ -28,6 +28,19 @@
 		},
 		{
 			"active": true,
+			"description": "This accessibility agent looks at an image and proposes an alternative text aligned with WCAG 2.2 Success Criterion 1.1.1. When the image is decorative, it resolves that there is no relevant information and returns an empty value, so the consumer can render alt=\"\".",
+			"externalReferenceCode": "L_IMAGE_DESCRIPTOR",
+			"inputVariables": "image,context",
+			"outputVariable": "altText",
+			"r_accountToAIHubAgentDefinitions_accountEntryERC": "L_AI_HUB",
+			"system": true,
+			"title_i18n": {
+				"en_US": "Image Descriptor"
+			},
+			"workflowDefinitionName": "Image Descriptor"
+		},
+		{
+			"active": true,
 			"description": "This writing agent improves text eliminating wordiness and passive voice to deliver a clear, direct message.",
 			"externalReferenceCode": "L_IMPROVE_WRITING",
 			"inputVariables": "text",

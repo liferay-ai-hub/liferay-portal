@@ -5,6 +5,7 @@
 
 package com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util;
 
+import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -13,13 +14,19 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
+
+import dev.langchain4j.data.message.ImageContent;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author João Victor Alves
@@ -41,6 +48,47 @@ public class VariablesUtil {
 		}
 
 		return value;
+	}
+
+	public static List<ImageContent> getImageContents(
+		ExecutionContext executionContext,
+		Map<String, String> kaleoNodeSettingValues) {
+
+		JSONArray jsonArray = getVariablesJSONArray(
+			"inputVariables", kaleoNodeSettingValues);
+
+		if (jsonArray == null) {
+			return List.of();
+		}
+
+		List<ImageContent> imageContents = new ArrayList<>();
+
+		Map<String, Serializable> workflowContext =
+			executionContext.getWorkflowContext();
+
+		Iterator<JSONObject> iterator = jsonArray.iterator();
+
+		iterator.forEachRemaining(
+			jsonObject -> {
+				if (!Objects.equals(jsonObject.getString("type"), "image")) {
+					return;
+				}
+
+				String value = GetterUtil.getString(
+					workflowContext.get(jsonObject.getString("name")));
+
+				if (Validator.isNull(value)) {
+					return;
+				}
+
+				ImageContent imageContent = _createImageContent(value.trim());
+
+				if (imageContent != null) {
+					imageContents.add(imageContent);
+				}
+			});
+
+		return imageContents;
 	}
 
 	public static JSONArray getVariablesJSONArray(
@@ -65,6 +113,46 @@ public class VariablesUtil {
 		}
 	}
 
+	private static ImageContent _createImageContent(String value) {
+		if (!StringUtil.startsWith(value, "data:")) {
+			if (value.matches("\\S+")) {
+				return ImageContent.from(value);
+			}
+
+			_log.error(
+				"Unable to create an image content from a URL that contains " +
+					"whitespace");
+
+			return null;
+		}
+
+		int index = value.indexOf(";base64,");
+
+		if (index == -1) {
+			return ImageContent.from(value);
+		}
+
+		String mimeType = value.substring(5, index);
+
+		int semicolonIndex = mimeType.indexOf(CharPool.SEMICOLON);
+
+		if (semicolonIndex != -1) {
+			mimeType = mimeType.substring(0, semicolonIndex);
+		}
+
+		if (Validator.isNull(mimeType)) {
+			_log.error(
+				"Unable to create an image content from a data URI that has " +
+					"no MIME type");
+
+			return null;
+		}
+
+		String base64Data = value.substring(index + 8);
+
+		return ImageContent.from(base64Data.replaceAll("\\s", ""), mimeType);
+	}
+
 	private static Map<String, String> _getInputVariables(
 		Map<String, String> kaleoNodeSettingValues,
 		Map<String, Serializable> workflowContext) {
@@ -82,6 +170,10 @@ public class VariablesUtil {
 
 		iterator.forEachRemaining(
 			jsonObject -> {
+				if (Objects.equals(jsonObject.getString("type"), "image")) {
+					return;
+				}
+
 				String name = jsonObject.getString("name");
 
 				inputVariables.put(

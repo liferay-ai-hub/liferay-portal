@@ -5,6 +5,7 @@
 
 package com.liferay.ai.hub.internal.assistant.handler;
 
+import dev.langchain4j.data.message.ImageContent;
 import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.OutputGuardrail;
 import dev.langchain4j.invocation.InvocationParameters;
@@ -40,6 +41,7 @@ public class AssistantHandlerContext {
 		_tools = builder._tools;
 		_toolProvider = builder._toolProvider;
 		_userMessage = builder._userMessage;
+		_userMessageImageContents = builder._userMessageImageContents;
 		_vertexAiGeminiStreamingChatModel =
 			builder._vertexAiGeminiStreamingChatModel;
 	}
@@ -90,6 +92,10 @@ public class AssistantHandlerContext {
 
 	public String getUserMessage() {
 		return _userMessage;
+	}
+
+	public List<ImageContent> getUserMessageImageContents() {
+		return _userMessageImageContents;
 	}
 
 	public VertexAiGeminiStreamingChatModel
@@ -190,6 +196,14 @@ public class AssistantHandlerContext {
 			return this;
 		}
 
+		public Builder userMessageImageContents(
+			List<ImageContent> userMessageImageContents) {
+
+			_userMessageImageContents = userMessageImageContents;
+
+			return this;
+		}
+
 		public Builder vertexAiGeminiStreamingChatModel(
 			VertexAiGeminiStreamingChatModel vertexAiGeminiStreamingChatModel) {
 
@@ -211,6 +225,7 @@ public class AssistantHandlerContext {
 		private ToolProvider _toolProvider;
 		private Object[] _tools = new Object[0];
 		private String _userMessage;
+		private List<ImageContent> _userMessageImageContents = List.of();
 		private VertexAiGeminiStreamingChatModel
 			_vertexAiGeminiStreamingChatModel;
 
@@ -228,6 +243,7 @@ public class AssistantHandlerContext {
 	private final ToolProvider _toolProvider;
 	private final Object[] _tools;
 	private final String _userMessage;
+	private final List<ImageContent> _userMessageImageContents;
 	private final VertexAiGeminiStreamingChatModel
 		_vertexAiGeminiStreamingChatModel;
 

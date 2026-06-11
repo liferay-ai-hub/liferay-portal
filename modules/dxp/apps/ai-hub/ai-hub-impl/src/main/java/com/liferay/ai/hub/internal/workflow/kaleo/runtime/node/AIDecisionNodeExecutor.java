@@ -251,6 +251,9 @@ public class AIDecisionNodeExecutor extends BaseNodeExecutor {
 					serviceContext.getUserId(), workflowContext)
 			).userMessage(
 				userMessage
+			).userMessageImageContents(
+				VariablesUtil.getImageContents(
+					executionContext, kaleoNodeSettingValues)
 			).vertexAiGeminiStreamingChatModel(
 				vertexAiGeminiStreamingChatModel
 			).build());
