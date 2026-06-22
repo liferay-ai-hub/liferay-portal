@@ -5,7 +5,10 @@
 
 package com.liferay.ai.hub.internal.langchain4j.rag.content.retriever;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.engine.adapter.SearchEngineAdapter;
@@ -65,6 +68,14 @@ public class ElasticsearchContentRetriever extends BaseContentRetriever {
 					"text_embedding"
 				).build()
 			).build());
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				StringBundler.concat(
+					"Searching index names ", StringUtil.merge(_indexNames),
+					" with query text: ", query.text()));
+		}
+
 		searchSearchRequest.setIndexNames(_indexNames);
 		searchSearchRequest.setQuery(
 			QueriesUtil.wrapper(
@@ -83,24 +94,66 @@ public class ElasticsearchContentRetriever extends BaseContentRetriever {
 
 		SearchHits searchHits = searchSearchResponse.getSearchHits();
 
-		for (SearchHit searchHit : searchHits.getSearchHits()) {
+		List<SearchHit> searchHitList = searchHits.getSearchHits();
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				StringBundler.concat(
+					"Search returned ", searchHitList.size(),
+					" hits out of ", searchHits.getTotalHits(),
+					" total matches"));
+		}
+
+		for (SearchHit searchHit : searchHitList) {
 			Map<String, HighlightField> highlightFields =
 				searchHit.getHighlightFieldsMap();
 
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					StringBundler.concat(
+						"Hit ", searchHit.getId(), " (score ",
+						searchHit.getScore(), ") has highlight fields ",
+						highlightFields.keySet()));
+			}
+
 			HighlightField highlightField = highlightFields.get(
 				"text_embedding");
+
+			if (highlightField == null) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						StringBundler.concat(
+							"No \"text_embedding\" highlight field for hit ",
+							searchHit.getId(),
+							"; skipping. Available highlight fields: ",
+							highlightFields.keySet()));
+				}
+
+				continue;
+			}
 
 			Metadata metadata = Metadata.from(
 				"url", MapUtil.getString(searchHit.getSourcesMap(), "url"));
 
 			for (String fragment : highlightField.getFragments()) {
+				if (_log.isDebugEnabled()) {
+					_log.debug("Highlight field fragment: " + fragment);
+				}
+
 				contents.add(
 					Content.from(TextSegment.from(fragment, metadata)));
 			}
 		}
 
+		if (_log.isDebugEnabled()) {
+			_log.debug("Contents size: " + contents.size());
+		}
+
 		return contents;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		ElasticsearchContentRetriever.class);
 
 	private final FieldConfigBuilderFactory _fieldConfigBuilderFactory;
 	private final HighlightBuilderFactory _highlightBuilderFactory;
