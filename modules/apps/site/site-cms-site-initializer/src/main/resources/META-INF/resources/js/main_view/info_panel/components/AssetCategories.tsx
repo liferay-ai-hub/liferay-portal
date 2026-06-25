@@ -46,6 +46,10 @@ const AssetCategories = ({
 			systemProperties: {objectDefinitionBrief: {classNameId = -1} = {}},
 		} = objectEntry;
 
+		if (typeof scopeId !== 'number') {
+			return '';
+		}
+
 		const assetTypes = ["'0'"];
 
 		if (classNameId >= 0) {
@@ -181,54 +185,58 @@ const AssetCategories = ({
 						errorMessage ? 'form-group has-error' : undefined
 					}
 				>
-					<ItemSelector<any>
-						apiURL={apiURL}
-						aria-describedby={errorMessage ? feedbackId : undefined}
-						disabled={!hasUpdatePermission}
-						estimateSize={49}
-						items={selectedCategories}
-						locator={{
-							id: 'id',
-							label: 'name',
-							value: 'id',
-						}}
-						onChange={setValue}
-						onItemsChange={(newItems: any) => {
-							if (newItems[0]) {
-								addCategory(newItems[0]);
-
-								// The reason for this timeout is because of react's
-								// batch rendering. Clay internals set the value of
-								// the input, but we need to wait for the next 'tick' to set the value.
-
-								setTimeout(() => setValue(''));
+					{apiURL ? (
+						<ItemSelector<any>
+							apiURL={apiURL}
+							aria-describedby={
+								errorMessage ? feedbackId : undefined
 							}
-						}}
-						placeholder={Liferay.Language.get('add-category')}
-						refetchOnActive
-						sizing={inputSize}
-						value={value}
-					>
-						{(item) => (
-							<ItemSelector.Item
-								key={item.id}
-								textValue={item.name}
-							>
-								<div>
-									<span className="font-weight-bold text-truncate">
-										{item?.name}
-									</span>
+							disabled={!hasUpdatePermission}
+							estimateSize={49}
+							items={selectedCategories}
+							locator={{
+								id: 'id',
+								label: 'name',
+								value: 'id',
+							}}
+							onChange={setValue}
+							onItemsChange={(newItems: any) => {
+								if (newItems[0]) {
+									addCategory(newItems[0]);
 
-									<span
-										className="text-1 text-secondary text-truncate text-uppercase"
-										title={item?.path}
-									>
-										{item?.path}
-									</span>
-								</div>
-							</ItemSelector.Item>
-						)}
-					</ItemSelector>
+									// The reason for this timeout is because of react's
+									// batch rendering. Clay internals set the value of
+									// the input, but we need to wait for the next 'tick' to set the value.
+
+									setTimeout(() => setValue(''));
+								}
+							}}
+							placeholder={Liferay.Language.get('add-category')}
+							refetchOnActive
+							sizing={inputSize}
+							value={value}
+						>
+							{(item) => (
+								<ItemSelector.Item
+									key={item.id}
+									textValue={item.name}
+								>
+									<div>
+										<span className="font-weight-bold text-truncate">
+											{item?.name}
+										</span>
+
+										<span
+											className="text-1 text-secondary text-truncate text-uppercase"
+											title={item?.path}
+										>
+											{item?.path}
+										</span>
+									</div>
+								</ItemSelector.Item>
+							)}
+						</ItemSelector>
+					) : null}
 
 					{errorMessage && (
 						<ClayForm.FeedbackGroup id={feedbackId} role="alert">
