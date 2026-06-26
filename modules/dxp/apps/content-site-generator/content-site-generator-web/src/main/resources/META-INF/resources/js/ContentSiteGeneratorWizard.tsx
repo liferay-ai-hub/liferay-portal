@@ -4,6 +4,10 @@
  */
 
 import ClayLoadingIndicator from '@clayui/loading-indicator';
+import {
+	AIAssistantChat,
+	ChatContext,
+} from '@liferay/ai-hub-cell-js-components-web';
 import {openToast} from 'frontend-js-components-web';
 import React, {useCallback, useEffect, useState} from 'react';
 
@@ -23,6 +27,12 @@ import type {GenerationItem} from './types/GenerationItem';
 
 const POLL_INTERVAL = 3000;
 
+const QUICK_ACTIONS = [
+	Liferay.Language.get('assist-me-on-creating-pages'),
+	Liferay.Language.get('generate-content'),
+	Liferay.Language.get('translate-content'),
+];
+
 const STEP_IDEATE = 0;
 const STEP_REFINE = 1;
 const STEP_REVIEW = 2;
@@ -39,11 +49,23 @@ export default function ContentSiteGeneratorWizard({
 	generationsURL,
 }: IProps) {
 	const [activeStep, setActiveStep] = useState(STEP_IDEATE);
+	const [autoSendMessage, setAutoSendMessage] = useState<string>();
 	const [error, setError] = useState<string>();
 	const [generation, setGeneration] = useState<Generation>();
 	const [items, setItems] = useState<GenerationItem[]>([]);
 	const [loading, setLoading] = useState(!!generationId);
 	const [publishing, setPublishing] = useState(false);
+
+	const getChatContext = useCallback((): ChatContext => {
+		if (!generation) {
+			return {};
+		}
+
+		return {
+			generationExternalReferenceCode: generation.externalReferenceCode,
+			generationId: generation.id,
+		};
+	}, [generation]);
 
 	const handleCancel = useCallback(() => {
 		Liferay.Util.navigate(generationsURL);
@@ -115,6 +137,7 @@ export default function ContentSiteGeneratorWizard({
 
 			setGeneration(newGeneration);
 			setItems([]);
+			setAutoSendMessage(prompt);
 			setActiveStep(STEP_REFINE);
 		}
 		catch (newError) {
@@ -170,7 +193,18 @@ export default function ContentSiteGeneratorWizard({
 			)}
 
 			{activeStep === STEP_REFINE && generation && (
-				<StepLayout activeStep={STEP_REFINE}>
+				<StepLayout
+					activeStep={STEP_REFINE}
+					sidebar={
+						<AIAssistantChat
+							embedded
+							getContext={getChatContext}
+							initialMessage={autoSendMessage}
+							instructionDefinitionScope=""
+							quickActions={QUICK_ACTIONS}
+						/>
+					}
+				>
 					<RefineStep
 						generation={generation}
 						items={items}
