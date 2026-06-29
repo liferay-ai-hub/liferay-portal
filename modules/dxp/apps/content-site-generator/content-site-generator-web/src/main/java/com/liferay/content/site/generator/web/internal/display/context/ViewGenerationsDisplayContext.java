@@ -94,6 +94,33 @@ public class ViewGenerationsDisplayContext {
 			"generationId");
 	}
 
+	public Map<String, Object> getWizardProps() {
+		return HashMapBuilder.<String, Object>put(
+			"apiURL", getAPIURL()
+		).put(
+			"generationId",
+			() -> {
+				long generationId = getGenerationId();
+
+				if (generationId > 0) {
+					return generationId;
+				}
+
+				return null;
+			}
+		).put(
+			"generationsURL", _getViewGenerationsRenderURL()
+		).build();
+	}
+
+	private String _getViewGenerationsRenderURL() {
+		return PortletURLBuilder.createRenderURL(
+			_liferayPortletResponse
+		).setMVCPath(
+			"/view.jsp"
+		).buildString();
+	}
+
 	private String _getViewIdeateStepRenderURL() {
 		return PortletURLBuilder.createRenderURL(
 			_liferayPortletResponse
