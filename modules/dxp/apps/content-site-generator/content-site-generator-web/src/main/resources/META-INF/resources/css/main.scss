@@ -1,6 +1,27 @@
 @import 'atlas-variables';
 
 .portlet-content-site-generator {
+	.content-site-generator__shell {
+		align-items: stretch;
+		display: flex;
+		min-height: 600px;
+	}
+
+	.content-site-generator__shell-sidebar {
+		border-right: 1px solid $secondary-l2;
+		display: flex;
+		flex: 0 0 320px;
+
+		> * {
+			flex: 1;
+			min-height: 0;
+		}
+
+		.ai-assistant-chat__ai-assistant-message-balloon {
+			background-color: transparent;
+		}
+	}
+
 	.content-site-generator__shell-main {
 		flex: 1 1 auto;
 		min-width: 0;
@@ -312,5 +333,17 @@
 		flex-shrink: 0;
 		height: 1rem;
 		width: 1rem;
+	}
+
+	@media (max-width: 991.98px) {
+		.content-site-generator__shell {
+			flex-direction: column;
+		}
+
+		.content-site-generator__shell-sidebar {
+			border-bottom: 1px solid $secondary-l2;
+			border-right: 0;
+			flex-basis: auto;
+		}
 	}
 }

@@ -10,9 +10,28 @@ import MultiStepProgress from './MultiStepProgress';
 interface IProps {
 	activeStep: number;
 	children: React.ReactNode;
+	sidebar?: React.ReactNode;
 }
 
-export default function StepLayout({activeStep, children}: IProps) {
+export default function StepLayout({activeStep, children, sidebar}: IProps) {
+	if (sidebar) {
+		return (
+			<div className="content-site-generator__shell">
+				<div className="content-site-generator__shell-sidebar">
+					{sidebar}
+				</div>
+
+				<div className="content-site-generator__shell-main">
+					<div className="content-site-generator__progress">
+						<MultiStepProgress activeStep={activeStep} />
+					</div>
+
+					{children}
+				</div>
+			</div>
+		);
+	}
+
 	return (
 		<div className="content-site-generator__shell-main content-site-generator__shell-main--centered">
 			<div className="content-site-generator__progress">
