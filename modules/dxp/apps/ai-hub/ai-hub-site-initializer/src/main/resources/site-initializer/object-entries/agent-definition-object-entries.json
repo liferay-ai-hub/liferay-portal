@@ -41,6 +41,19 @@
 		},
 		{
 			"active": true,
+			"description": "This agent generates a new image from a natural-language prompt and returns an image the user can preview and save. It requires two inputs: text (the detailed description of the image) and style (the artistic style of the image). When the user asks to generate an image but has not specified an artistic style, ask them to choose one of the following styles before generating the image: Photorealistic, Illustration, Digital Art, or Watercolor. If the user has already specified a style, use it and do not ask.",
+			"externalReferenceCode": "L_GENERATE_IMAGES",
+			"inputVariables": "text,style",
+			"outputVariable": "image",
+			"r_accountToAIHubAgentDefinitions_accountEntryERC": "L_AI_HUB",
+			"system": true,
+			"title_i18n": {
+				"en_US": "Generate Images"
+			},
+			"workflowDefinitionName": "Generate Images"
+		},
+		{
+			"active": true,
 			"description": "This agent analyzes content and proposes tags, prioritizing reuse of existing tags and proposing new tags only when needed.",
 			"externalReferenceCode": "L_GENERATE_TAGS",
 			"inputVariables": "content,count,existingTags",
