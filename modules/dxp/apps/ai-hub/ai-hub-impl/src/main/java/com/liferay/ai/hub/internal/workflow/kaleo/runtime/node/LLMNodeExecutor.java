@@ -5,6 +5,9 @@
 
 package com.liferay.ai.hub.internal.workflow.kaleo.runtime.node;
 
+import com.google.genai.types.Content;
+import com.google.genai.types.Part;
+
 import com.liferay.ai.hub.guardrail.ModelArmorHandler;
 import com.liferay.ai.hub.internal.assistant.handler.AssistantHandlerContext;
 import com.liferay.ai.hub.internal.assistant.handler.AssistantHandlerUtil;
@@ -28,8 +31,13 @@ import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.petra.concurrent.NoticeableExecutorService;
 import com.liferay.petra.executor.PortalExecutorManager;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyInheritableThreadLocalCallable;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -48,13 +56,18 @@ import com.liferay.portal.workflow.kaleo.runtime.graph.PathElement;
 import com.liferay.portal.workflow.kaleo.runtime.node.BaseNodeExecutor;
 import com.liferay.portal.workflow.kaleo.runtime.node.NodeExecutor;
 
+import dev.langchain4j.data.image.Image;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.OutputGuardrail;
 import dev.langchain4j.invocation.InvocationParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.google.genai.GoogleGenAiImageModel;
+import dev.langchain4j.model.output.Response;
 
 import java.io.Serializable;
+
+import java.lang.reflect.Method;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,18 +133,25 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			return;
 		}
 
-		AtomicReference<ChatResponse> chatResponseAtomicReference =
-			new AtomicReference<>();
-
 		Map<String, String> kaleoNodeSettingValues =
 			KaleoNodeSettingUtil.getKaleoNodeSettingValuesMap(
 				currentKaleoNode.getKaleoNodeId());
+
+		if (_isImageNode(currentKaleoNode)) {
+			_generateImage(
+				currentKaleoNode, executionContext, kaleoNodeSettingValues);
+
+			return;
+		}
 
 		String prompt = PromptUtil.composePrompt(
 			kaleoInstanceToken.getCompanyId(), _dtoConverterRegistry,
 			executionContext, kaleoNodeSettingValues, _objectEntryManager);
 		String userMessage = VariablesUtil.applyInputVariables(
 			executionContext, "userMessage", kaleoNodeSettingValues);
+
+		AtomicReference<ChatResponse> chatResponseAtomicReference =
+			new AtomicReference<>();
 
 		Callable<Void> completeResponseCallable =
 			new CompanyInheritableThreadLocalCallable<>(
@@ -285,6 +305,133 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			throw new RuntimeException(portalException);
 		}
 	}
+
+	private void _generateImage(
+			KaleoNode kaleoNode, ExecutionContext executionContext,
+			Map<String, String> kaleoNodeSettingValues)
+		throws PortalException {
+
+		Map<String, Serializable> workflowContext =
+			executionContext.getWorkflowContext();
+
+		String userMessage = VariablesUtil.applyInputVariables(
+			executionContext, "userMessage", kaleoNodeSettingValues);
+
+		try {
+			String imageData = _generateImageData(
+				executionContext.getServiceContext(), userMessage);
+
+			String output = null;
+
+			if (Validator.isNull(imageData)) {
+				output =
+					"I was unable to generate an image. Please try " +
+						"rephrasing your request.";
+			}
+			else {
+				SseUtil.send(
+					new String[] {
+						GetterUtil.getString(
+							workflowContext.get(
+								"agentDefinitionExternalReferenceCode"))
+					},
+					imageData, "Chat Message Sent", null,
+					GetterUtil.getString(
+						workflowContext.get("sseEventSinkKey")));
+
+				output = "Generated image.";
+			}
+
+			VariablesUtil.applyOutputVariable(
+				kaleoNodeSettingValues, output, workflowContext);
+
+			workflowContext.put("output", output);
+
+			KaleoInstanceToken kaleoInstanceToken =
+				executionContext.getKaleoInstanceToken();
+
+			List<KaleoTransition> kaleoTransitions =
+				kaleoNode.getKaleoTransitions();
+
+			KaleoTransition kaleoTransition = kaleoTransitions.get(0);
+
+			_workflowNodeManager.completeWorkflowNode(
+				kaleoInstanceToken.getCompanyId(),
+				kaleoInstanceToken.getUserId(),
+				kaleoInstanceToken.getKaleoInstanceTokenId(),
+				kaleoTransition.getName(), workflowContext, false);
+		}
+		catch (Exception exception) {
+			throw new PortalException(exception);
+		}
+	}
+
+	private String _generateImageData(
+			ServiceContext serviceContext, String userMessage)
+		throws Exception {
+
+		GoogleGenAiImageModel googleGenAiImageModel =
+			GoogleGenAiUtil.createGoogleGenAiImageModel(
+				serviceContext, userMessage);
+
+		Content content = Content.builder(
+		).parts(
+			List.of(Part.fromText(userMessage))
+		).role(
+			"user"
+		).build();
+
+		Method method = GoogleGenAiImageModel.class.getDeclaredMethod(
+			"generateImageResponse", List.class);
+
+		method.setAccessible(true);
+
+		Response<Image> response = (Response<Image>)method.invoke(
+			googleGenAiImageModel, List.of(content));
+
+		Image image = response.content();
+
+		if (image == null) {
+			return null;
+		}
+
+		String base64Data = image.base64Data();
+
+		if (base64Data == null) {
+			return null;
+		}
+
+		String mimeType = image.mimeType();
+
+		if (mimeType == null) {
+			mimeType = "image/png";
+		}
+
+		return StringBundler.concat("data:", mimeType, ";base64,", base64Data);
+	}
+
+	private boolean _isImageNode(KaleoNode kaleoNode) {
+		String metadata = kaleoNode.getMetadata();
+
+		if (Validator.isNull(metadata)) {
+			return false;
+		}
+
+		try {
+			JSONObject metadataJSONObject = _jsonFactory.createJSONObject(
+				metadata);
+
+			return metadataJSONObject.getBoolean("image");
+		}
+		catch (JSONException jsonException) {
+			_log.error(jsonException);
+
+			return false;
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LLMNodeExecutor.class);
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
