@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 
 import dev.langchain4j.model.chat.request.ResponseFormat;
 import dev.langchain4j.model.google.genai.GoogleGenAiChatModel;
+import dev.langchain4j.model.google.genai.GoogleGenAiImageModel;
 import dev.langchain4j.model.google.genai.GoogleGenAiStreamingChatModel;
 
 import java.util.Collections;
@@ -50,6 +51,26 @@ public class GoogleGenAiUtil {
 			vertexAIConfiguration.projectId()
 		).responseFormat(
 			ResponseFormat.JSON
+		).safetySettings(
+			_safetySettings
+		).build();
+	}
+
+	public static GoogleGenAiImageModel createGoogleGenAiImageModel(
+			long companyId, String modelLocation, String modelName)
+		throws ConfigurationException {
+
+		VertexAIConfiguration vertexAIConfiguration =
+			ConfigurationProviderUtil.getCompanyConfiguration(
+				VertexAIConfiguration.class, companyId);
+
+		return GoogleGenAiImageModel.builder(
+		).location(
+			modelLocation
+		).modelName(
+			modelName
+		).projectId(
+			vertexAIConfiguration.projectId()
 		).safetySettings(
 			_safetySettings
 		).build();

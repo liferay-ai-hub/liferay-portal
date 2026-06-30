@@ -66,6 +66,15 @@ public class SseUtil {
 		String[] agentDefinitionExternalReferenceCodes, String data,
 		String name, String nodeName, String sseEventSinkKey) {
 
+		send(
+			agentDefinitionExternalReferenceCodes, data, null, name, nodeName,
+			sseEventSinkKey);
+	}
+
+	public static void send(
+		String[] agentDefinitionExternalReferenceCodes, String data,
+		String[] images, String name, String nodeName, String sseEventSinkKey) {
+
 		if (Validator.isBlank(sseEventSinkKey)) {
 			return;
 		}
@@ -89,6 +98,15 @@ public class SseUtil {
 					}
 				).put(
 					"data", data
+				).put(
+					"images",
+					() -> {
+						if (images == null) {
+							return null;
+						}
+
+						return JSONUtil.putAll(images);
+					}
 				).put(
 					"nodeName", nodeName
 				).toString()
