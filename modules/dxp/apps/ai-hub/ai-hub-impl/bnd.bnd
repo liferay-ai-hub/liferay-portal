@@ -76,6 +76,8 @@ Import-Package:\
 	\
 	android.*;resolution:=optional,\
 	\
+	org.java_websocket.*;resolution:=optional,\
+	\
 	*
 -dsannotations-options: inherit
 -fixupmessages:\

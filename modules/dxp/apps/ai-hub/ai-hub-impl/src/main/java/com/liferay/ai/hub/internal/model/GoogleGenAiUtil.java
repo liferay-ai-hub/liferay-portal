@@ -17,6 +17,7 @@ import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.service.ServiceContext;
 
 import dev.langchain4j.model.google.genai.GoogleGenAiChatModel;
+import dev.langchain4j.model.google.genai.GoogleGenAiImageModel;
 import dev.langchain4j.model.google.genai.GoogleGenAiStreamingChatModel;
 
 import java.util.Collections;
@@ -28,6 +29,10 @@ import java.util.concurrent.ExecutorService;
  * @author Iliyan Peychev
  */
 public class GoogleGenAiUtil {
+
+	public static final String IMAGE_MODEL_LOCATION = "global";
+
+	public static final String IMAGE_MODEL_NAME = "gemini-3.1-flash-image";
 
 	public static GoogleGenAiChatModel createGoogleGenAiChatModel(
 			QuotaManager quotaManager, ServiceContext serviceContext)
@@ -45,6 +50,26 @@ public class GoogleGenAiUtil {
 			vertexAIConfiguration.location()
 		).modelName(
 			vertexAIConfiguration.modelName()
+		).projectId(
+			vertexAIConfiguration.projectId()
+		).safetySettings(
+			_safetySettings
+		).build();
+	}
+
+	public static GoogleGenAiImageModel createGoogleGenAiImageModel(
+			ServiceContext serviceContext, String prompt)
+		throws ConfigurationException {
+
+		VertexAIConfiguration vertexAIConfiguration =
+			ConfigurationProviderUtil.getCompanyConfiguration(
+				VertexAIConfiguration.class, serviceContext.getCompanyId());
+
+		return GoogleGenAiImageModel.builder(
+		).location(
+			IMAGE_MODEL_LOCATION
+		).modelName(
+			IMAGE_MODEL_NAME
 		).projectId(
 			vertexAIConfiguration.projectId()
 		).safetySettings(
