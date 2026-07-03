@@ -22,11 +22,14 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 )
 public interface VertexAIConfiguration {
 
+	@Meta.AD(name = "chat-model-name")
+	public String chatModelName();
+
+	@Meta.AD(name = "image-model-name")
+	public String imageModelName();
+
 	@Meta.AD(name = "location")
 	public String location();
-
-	@Meta.AD(name = "model-name")
-	public String modelName();
 
 	@Meta.AD(name = "project-id")
 	public String projectId();
