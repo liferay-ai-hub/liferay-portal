@@ -60,7 +60,7 @@ public class GoogleGenAiUtilTest {
 		);
 
 		Mockito.when(
-			_vertexAIConfiguration.modelName()
+			_vertexAIConfiguration.chatModelName()
 		).thenReturn(
 			_MODEL_NAME
 		);

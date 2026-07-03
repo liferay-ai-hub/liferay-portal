@@ -447,8 +447,8 @@ public class AgentDefinitionManagerImpl implements AgentDefinitionManager {
 				setLabel(
 					() -> _language.get(
 						dtoConverterContext.getLocale(),
-						vertexAIConfiguration.modelName()));
-				setName(vertexAIConfiguration::modelName);
+						vertexAIConfiguration.chatModelName()));
+				setName(vertexAIConfiguration::chatModelName);
 				setProviderLabel(
 					() -> _language.get(
 						dtoConverterContext.getLocale(), "google"));

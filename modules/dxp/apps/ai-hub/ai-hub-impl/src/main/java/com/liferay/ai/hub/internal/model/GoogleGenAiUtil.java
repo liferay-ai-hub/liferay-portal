@@ -30,10 +30,6 @@ import java.util.concurrent.ExecutorService;
  */
 public class GoogleGenAiUtil {
 
-	public static final String IMAGE_MODEL_LOCATION = "global";
-
-	public static final String IMAGE_MODEL_NAME = "gemini-3.1-flash-image";
-
 	public static GoogleGenAiChatModel createGoogleGenAiChatModel(
 			QuotaManager quotaManager, ServiceContext serviceContext)
 		throws ConfigurationException {
@@ -49,7 +45,7 @@ public class GoogleGenAiUtil {
 		).location(
 			vertexAIConfiguration.location()
 		).modelName(
-			vertexAIConfiguration.modelName()
+			vertexAIConfiguration.chatModelName()
 		).projectId(
 			vertexAIConfiguration.projectId()
 		).safetySettings(
@@ -67,9 +63,9 @@ public class GoogleGenAiUtil {
 
 		return GoogleGenAiImageModel.builder(
 		).location(
-			IMAGE_MODEL_LOCATION
+			"global"
 		).modelName(
-			IMAGE_MODEL_NAME
+			vertexAIConfiguration.imageModelName()
 		).projectId(
 			vertexAIConfiguration.projectId()
 		).safetySettings(
@@ -96,7 +92,7 @@ public class GoogleGenAiUtil {
 		).location(
 			vertexAIConfiguration.location()
 		).modelName(
-			vertexAIConfiguration.modelName()
+			vertexAIConfiguration.chatModelName()
 		).projectId(
 			vertexAIConfiguration.projectId()
 		).safetySettings(
