@@ -294,6 +294,11 @@ public class AIHubSiteInitializerTest {
 			WorkflowDefinitionConstants.NAME_FIX_SPELLING_AND_GRAMMAR);
 		_assertWorkflowDefinitionExists(
 			_ACCOUNT_EXTERNAL_REFERENCE_CODE_AI_HUB,
+			WorkflowDefinitionConstants.
+				EXTERNAL_REFERENCE_CODE_FIX_GENERATE_IMAGES,
+			WorkflowDefinitionConstants.NAME_GENERATE_IMAGES);
+		_assertWorkflowDefinitionExists(
+			_ACCOUNT_EXTERNAL_REFERENCE_CODE_AI_HUB,
 			WorkflowDefinitionConstants.EXTERNAL_REFERENCE_CODE_IMPROVE_WRITING,
 			WorkflowDefinitionConstants.NAME_IMPROVE_WRITING);
 		_assertWorkflowDefinitionExists(

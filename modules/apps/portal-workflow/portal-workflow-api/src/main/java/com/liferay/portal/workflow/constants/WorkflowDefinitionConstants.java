@@ -13,6 +13,9 @@ public class WorkflowDefinitionConstants {
 	public static final String EXTERNAL_REFERENCE_CODE_CHANGE_TONE =
 		"L_CHANGE_TONE";
 
+	public static final String EXTERNAL_REFERENCE_CODE_FIX_GENERATE_IMAGES =
+		"L_GENERATE_IMAGES";
+
 	public static final String
 		EXTERNAL_REFERENCE_CODE_FIX_SPELLING_AND_GRAMMAR =
 			"L_FIX_SPELLING_AND_GRAMMAR";
@@ -45,6 +48,8 @@ public class WorkflowDefinitionConstants {
 	public static final String NAME_FIX_SPELLING_AND_GRAMMAR =
 		"Fix Spelling and Grammar";
 
+	public static final String NAME_GENERATE_IMAGES = "Generate Images";
+
 	public static final String NAME_IMPROVE_WRITING = "Improve Writing";
 
 	public static final String NAME_LIFERAY_SEARCH = "Liferay Search";
@@ -68,9 +73,9 @@ public class WorkflowDefinitionConstants {
 	public static final String SCOPE_ALL = "all";
 
 	public static final String[] SYSTEM_WORKFLOW_DEFINITION_NAMES = {
-		NAME_CHANGE_TONE, NAME_FIX_SPELLING_AND_GRAMMAR, NAME_IMPROVE_WRITING,
-		NAME_LIFERAY_SEARCH, NAME_MAKE_LONGER, NAME_MAKE_SHORTER,
-		NAME_PAGE_BUILDER, NAME_SEO_STUDIO_TITLE_GENERATOR
+		NAME_CHANGE_TONE, NAME_FIX_SPELLING_AND_GRAMMAR, NAME_GENERATE_IMAGES,
+		NAME_IMPROVE_WRITING, NAME_LIFERAY_SEARCH, NAME_MAKE_LONGER,
+		NAME_MAKE_SHORTER, NAME_PAGE_BUILDER, NAME_SEO_STUDIO_TITLE_GENERATOR
 	};
 
 }
