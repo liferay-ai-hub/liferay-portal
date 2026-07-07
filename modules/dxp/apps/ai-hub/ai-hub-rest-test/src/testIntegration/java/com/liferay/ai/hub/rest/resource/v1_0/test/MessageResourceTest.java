@@ -138,9 +138,10 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 						TestPropsValues.getCompanyId(),
 						VertexAIConfiguration.class.getName(),
 						HashMapDictionaryBuilder.<String, Object>put(
-							"location", TestPropsValues.VERTEX_AI_LOCATION
+							"chatModelName",
+							TestPropsValues.VERTEX_AI_CHAT_MODEL_NAME
 						).put(
-							"modelName", TestPropsValues.VERTEX_AI_MODEL_NAME
+							"location", TestPropsValues.VERTEX_AI_LOCATION
 						).put(
 							"projectId", TestPropsValues.VERTEX_AI_PROJECT_ID
 						).build())) {
@@ -253,9 +254,10 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 						TestPropsValues.getCompanyId(),
 						VertexAIConfiguration.class.getName(),
 						HashMapDictionaryBuilder.<String, Object>put(
-							"location", TestPropsValues.VERTEX_AI_LOCATION
+							"chatModelName",
+							TestPropsValues.VERTEX_AI_CHAT_MODEL_NAME
 						).put(
-							"modelName", TestPropsValues.VERTEX_AI_MODEL_NAME
+							"location", TestPropsValues.VERTEX_AI_LOCATION
 						).put(
 							"projectId", TestPropsValues.VERTEX_AI_PROJECT_ID
 						).build())) {

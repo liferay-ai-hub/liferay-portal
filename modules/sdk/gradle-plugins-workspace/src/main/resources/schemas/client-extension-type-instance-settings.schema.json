@@ -205,12 +205,16 @@
 		},
 		{
 			"properties": {
-				"location": {
-					"title": "Location",
+				"chatModelName": {
+					"title": "Chat Model Name",
 					"type": "string"
 				},
-				"modelName": {
-					"title": "Model Name",
+				"imageModelName": {
+					"title": "Image Model Name",
+					"type": "string"
+				},
+				"location": {
+					"title": "Location",
 					"type": "string"
 				},
 				"pid": {
@@ -224,8 +228,9 @@
 			},
 			"required": [
 				"pid",
+				"chatModelName",
+				"imageModelName",
 				"location",
-				"modelName",
 				"projectId"
 			],
 			"title": "Vertex AI Configuration"
