@@ -17,6 +17,7 @@ import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.petra.concurrent.NoticeableExecutorService;
 import com.liferay.petra.executor.PortalExecutorManager;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
@@ -227,8 +228,25 @@ public class SupervisorAgentImpl implements SupervisorAgent {
 			VertexAiGeminiChatModel vertexAiGeminiChatModel)
 		throws PortalException {
 
+		// LPD-97532 diagnostic logging (temporary): confirm the agent path is
+		// exercised, which principal is charged, and that the quota check
+		// passes. Remove once the UAT root cause is confirmed.
+
+		if (_log.isInfoEnabled()) {
+			_log.info(
+				StringBundler.concat(
+					"[LPD-97532] supervisor _invoke companyId=",
+					agentContext.getCompanyId(), " userId=",
+					agentContext.getUserId(), " internalAgents=",
+					internalAgents.length));
+		}
+
 		_quotaManager.checkTokensUsage(
 			agentContext.getCompanyId(), agentContext.getUserId());
+
+		if (_log.isInfoEnabled()) {
+			_log.info("[LPD-97532] supervisor checkTokensUsage passed");
+		}
 
 		String[] agentDefinitionExternalReferenceCodes = null;
 
@@ -252,6 +270,10 @@ public class SupervisorAgentImpl implements SupervisorAgent {
 		ResultWithAgenticScope<String> resultWithAgenticScope =
 			supervisorAgent.invokeWithAgenticScope(
 				MapUtil.getString(agentContext.getInput(), "message"));
+
+		if (_log.isInfoEnabled()) {
+			_log.info("[LPD-97532] supervisor invocation completed");
+		}
 
 		AgenticScope agenticScope = resultWithAgenticScope.agenticScope();
 

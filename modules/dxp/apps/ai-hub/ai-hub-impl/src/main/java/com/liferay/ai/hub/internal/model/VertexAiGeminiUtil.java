@@ -48,7 +48,8 @@ public class VertexAiGeminiUtil {
 
 		return builder.listeners(
 			Collections.singletonList(
-				new AIHubChatModelListenerImpl(quotaManager, serviceContext))
+				new AIHubChatModelListenerImpl(
+					"agent-supervisor", quotaManager, serviceContext))
 		).location(
 			vertexAIConfiguration.location()
 		).modelName(
@@ -93,7 +94,8 @@ public class VertexAiGeminiUtil {
 
 		return builder.listeners(
 			Collections.singletonList(
-				new AIHubChatModelListenerImpl(quotaManager, serviceContext))
+				new AIHubChatModelListenerImpl(
+					"streaming", quotaManager, serviceContext))
 		).location(
 			location
 		).modelName(

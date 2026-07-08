@@ -8,6 +8,7 @@ package com.liferay.ai.hub.internal.langchain4j.model.chat.listener;
 import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.ai.hub.quota.Source;
 import com.liferay.ai.hub.quota.Usage;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -25,8 +26,10 @@ import dev.langchain4j.model.output.TokenUsage;
 public class AIHubChatModelListenerImpl implements ChatModelListener {
 
 	public AIHubChatModelListenerImpl(
-		QuotaManager quotaManager, ServiceContext serviceContext) {
+		String source, QuotaManager quotaManager,
+		ServiceContext serviceContext) {
 
+		_source = source;
 		_quotaManager = quotaManager;
 
 		_companyId = serviceContext.getCompanyId();
@@ -37,6 +40,20 @@ public class AIHubChatModelListenerImpl implements ChatModelListener {
 	public void onResponse(ChatModelResponseContext chatModelResponseContext) {
 		ChatResponse chatResponse = chatModelResponseContext.chatResponse();
 
+		// LPD-97532 diagnostic logging (temporary): trace whether the metering
+		// listener fires per source, whether usage is present, and which
+		// QuotaManager is bound. Remove once the UAT root cause is confirmed.
+
+		if (_log.isInfoEnabled()) {
+			_log.info(
+				StringBundler.concat(
+					"[LPD-97532] onResponse source=", _source, " companyId=",
+					_companyId, " userId=", _userId, " quotaManager=",
+					_quotaManager.getClass(
+					).getName(),
+					" chatResponseNull=", chatResponse == null));
+		}
+
 		if (chatResponse == null) {
 			return;
 		}
@@ -44,7 +61,22 @@ public class AIHubChatModelListenerImpl implements ChatModelListener {
 		TokenUsage tokenUsage = chatResponse.tokenUsage();
 
 		if (tokenUsage == null) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"[LPD-97532] source=", _source,
+						" skipping quota update: tokenUsage is null"));
+			}
+
 			return;
+		}
+
+		if (_log.isInfoEnabled()) {
+			_log.info(
+				StringBundler.concat(
+					"[LPD-97532] source=", _source,
+					" updating quota inputTokens=", tokenUsage.inputTokenCount(),
+					" outputTokens=", tokenUsage.outputTokenCount()));
 		}
 
 		try {
@@ -68,7 +100,12 @@ public class AIHubChatModelListenerImpl implements ChatModelListener {
 				_userId);
 		}
 		catch (PortalException portalException) {
-			_log.error(portalException);
+			_log.error(
+				StringBundler.concat(
+					"[LPD-97532] source=", _source,
+					" updateUsage failed for companyId=", _companyId, " userId=",
+					_userId),
+				portalException);
 		}
 	}
 
@@ -77,6 +114,7 @@ public class AIHubChatModelListenerImpl implements ChatModelListener {
 
 	private final long _companyId;
 	private final QuotaManager _quotaManager;
+	private final String _source;
 	private final long _userId;
 
 }
