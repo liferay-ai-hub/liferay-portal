@@ -219,6 +219,8 @@ export default function ContentEditorToolbar({
 					<Toolbar.Item>
 						<AIAssistantChat
 							context={{groupId}}
+							enableFreeFormCategorization
+							getContext={() => ({})}
 							hideTriggerLabel
 							instructionDefinitionScope="cms"
 							triggerRound

@@ -16,7 +16,9 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
 	CATEGORIZE_EVENT,
 	CategorizeEventPayload,
+	REQUEST_CATEGORIZE_EVENT,
 } from '../Categorization/events';
+import {classifyCategorizationIntent} from '../Categorization/services/classifyCategorizationIntent';
 import {ECategorizationAgent} from '../Categorization/types';
 import ReportFeedbackModal from '../ReportFeedback/ReportFeedbackModal';
 import submitPositiveReportFeedback from '../ReportFeedback/submitPositiveReportFeedback';
@@ -51,6 +53,7 @@ interface AIAssistantChatProps {
 	aiState?: AIState;
 	context?: ChatContext;
 	embedded?: boolean;
+	enableFreeFormCategorization?: boolean;
 	getContext?: () => ChatContext;
 	hideTriggerLabel?: boolean;
 	initialMessage?: string;
@@ -65,6 +68,7 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 	aiState,
 	context,
 	embedded = false,
+	enableFreeFormCategorization = false,
 	getContext,
 	hideTriggerLabel = false,
 	initialMessage,
@@ -101,6 +105,9 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 			surface: 'aiAssistant',
 		});
 	};
+	const enableFreeFormCategorizationRef = useRef<boolean>(
+		enableFreeFormCategorization
+	);
 	const eventSourceRef = useRef<EventSource | null>(null);
 	const eventSourceReference = useRef<string | null>(null);
 	const contextRef = useRef<ChatContext | undefined>(context);
@@ -118,9 +125,15 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 
 	useEffect(() => {
 		contextRef.current = context;
+		enableFreeFormCategorizationRef.current = enableFreeFormCategorization;
 		getContextRef.current = getContext;
 		instructionDefinitionScopeRef.current = instructionDefinitionScope;
-	}, [context, getContext, instructionDefinitionScope]);
+	}, [
+		context,
+		enableFreeFormCategorization,
+		getContext,
+		instructionDefinitionScope,
+	]);
 
 	useEffect(() => {
 		const fieldElement = triggerRef.current?.closest(
@@ -157,21 +170,47 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 
 		setMessage('');
 
-		if (eventSourceReference.current) {
-			setIsGenerating(true);
+		if (!eventSourceReference.current) {
+			return;
+		}
 
+		setIsGenerating(true);
+
+		const postToChat = () => {
 			postChatByExternalReferenceCodeMessage({
 				chatContext: {
 					...contextRef.current,
 					...getContextRef.current?.(),
 					...runtimeContextRef.current,
 				},
-				eventSourceReference: eventSourceReference.current,
+				eventSourceReference: eventSourceReference.current as string,
 				instructionDefinitionScope:
 					instructionDefinitionScopeRef.current,
 				message: text,
 			}).catch(() => setIsGenerating(false));
+		};
+
+		if (!enableFreeFormCategorizationRef.current) {
+			postToChat();
+
+			return;
 		}
+
+		classifyCategorizationIntent(text)
+			.then((verdict) => {
+				if (verdict.passthrough || !verdict.actions.length) {
+					postToChat();
+
+					return;
+				}
+
+				setIsGenerating(false);
+
+				Liferay.fire(REQUEST_CATEGORIZE_EVENT, {
+					actions: verdict.actions,
+				});
+			})
+			.catch(() => postToChat());
 	}, []);
 
 	function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -390,17 +429,30 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 		const handleCategorize = (payload: CategorizeEventPayload) => {
 			setActive(true);
 
-			setMessages((previousMessages) => [
-				...previousMessages,
-				{
-					sender: 'user',
-					text:
-						payload.agent === ECategorizationAgent.AUTO_CATEGORIZE
-							? Liferay.Language.get('add-categories')
-							: Liferay.Language.get('generate-tags'),
-				},
-				{categorization: payload, sender: 'assistant', text: ''},
-			]);
+			setMessages((previousMessages) => {
+				const categorizationMessage = {
+					categorization: payload,
+					sender: 'assistant',
+					text: '',
+				};
+
+				if (payload.suppressUserMessage) {
+					return [...previousMessages, categorizationMessage];
+				}
+
+				return [
+					...previousMessages,
+					{
+						sender: 'user',
+						text:
+							payload.agent ===
+							ECategorizationAgent.AUTO_CATEGORIZE
+								? Liferay.Language.get('add-categories')
+								: Liferay.Language.get('generate-tags'),
+					},
+					categorizationMessage,
+				];
+			});
 		};
 
 		Liferay.on(CATEGORIZE_EVENT, handleCategorize);

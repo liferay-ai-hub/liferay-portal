@@ -13,6 +13,7 @@ import {
 	createEventSource,
 	postChatByExternalReferenceCodeMessage,
 } from '../../../src/main/resources/META-INF/resources/js/AIAssistantChat/api';
+import {classifyCategorizationIntent} from '../../../src/main/resources/META-INF/resources/js/Categorization/services/classifyCategorizationIntent';
 import {postAIIssueReport} from '../../../src/main/resources/META-INF/resources/js/ReportFeedback/api';
 
 jest.mock(
@@ -26,9 +27,24 @@ jest.mock(
 );
 
 jest.mock(
+	'../../../src/main/resources/META-INF/resources/js/AIAssistantChat/components/CategorizationMessageBalloon',
+	() => ({
+		__esModule: true,
+		default: () => 'categorization-balloon',
+	})
+);
+
+jest.mock(
+	'../../../src/main/resources/META-INF/resources/js/Categorization/services/classifyCategorizationIntent'
+);
+
+jest.mock(
 	'../../../src/main/resources/META-INF/resources/js/ReportFeedback/api'
 );
 
+const mockClassify = classifyCategorizationIntent as jest.MockedFunction<
+	typeof classifyCategorizationIntent
+>;
 const mockCreateEventSource = createEventSource as jest.MockedFunction<
 	typeof createEventSource
 >;
@@ -295,5 +311,126 @@ describe('AIAssistantChat', () => {
 			'src',
 			'data:image/png;base64,CCC'
 		);
+	});
+
+	describe('free-form categorization', () => {
+		beforeEach(() => {
+			mockClassify.mockReset();
+			mockPostChat.mockClear();
+			(Liferay.fire as jest.Mock).mockClear();
+		});
+
+		it('fires a single request event for a categorization message', async () => {
+			const fakeEventSource = createFakeEventSource();
+
+			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+			mockClassify.mockResolvedValue({
+				actions: [{agent: 'tag', count: 3, targets: []}],
+				passthrough: false,
+			});
+
+			await act(async () => {
+				render(
+					<AIAssistantChat
+						{...defaultProps}
+						enableFreeFormCategorization
+						initialMessage="tag this article"
+					/>
+				);
+			});
+
+			await act(async () => {
+				fakeEventSource.emit('Subscribe', 'ref-1');
+			});
+
+			expect(mockClassify).toHaveBeenCalledWith('tag this article');
+			expect(Liferay.fire).toHaveBeenCalledWith(
+				'cms:aiAssistant:requestCategorize',
+				{actions: [{agent: 'tag', count: 3, targets: []}]}
+			);
+			expect(mockPostChat).not.toHaveBeenCalled();
+		});
+
+		it('posts a passthrough message to the chat', async () => {
+			const fakeEventSource = createFakeEventSource();
+
+			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+			mockClassify.mockResolvedValue({actions: [], passthrough: true});
+
+			await act(async () => {
+				render(
+					<AIAssistantChat
+						{...defaultProps}
+						enableFreeFormCategorization
+						initialMessage="what can you do?"
+					/>
+				);
+			});
+
+			await act(async () => {
+				fakeEventSource.emit('Subscribe', 'ref-1');
+			});
+
+			expect(mockClassify).toHaveBeenCalledWith('what can you do?');
+			expect(mockPostChat).toHaveBeenCalled();
+			expect(Liferay.fire).not.toHaveBeenCalledWith(
+				'cms:aiAssistant:requestCategorize',
+				expect.anything()
+			);
+		});
+
+		it('does not classify when the feature is disabled', async () => {
+			const fakeEventSource = createFakeEventSource();
+
+			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
+			await act(async () => {
+				render(
+					<AIAssistantChat
+						{...defaultProps}
+						initialMessage="tag this article"
+					/>
+				);
+			});
+
+			await act(async () => {
+				fakeEventSource.emit('Subscribe', 'ref-1');
+			});
+
+			expect(mockClassify).not.toHaveBeenCalled();
+			expect(mockPostChat).toHaveBeenCalled();
+		});
+
+		it('renders only the balloon when the categorization event suppresses the user message', async () => {
+			const handlers: Record<string, (payload: unknown) => void> = {};
+
+			(Liferay.on as jest.Mock).mockImplementation(
+				(name: string, callback: (payload: unknown) => void) => {
+					handlers[name] = callback;
+				}
+			);
+
+			await act(async () => {
+				render(<AIAssistantChat {...defaultProps} />);
+			});
+
+			await act(async () => {
+				handlers['cms:aiAssistant:categorize']({
+					agent: 'L_GENERATE_TAGS',
+					cmsGroupId: 1,
+					content: 'x',
+					scopeId: 1,
+					suppressUserMessage: true,
+					targets: ['kayaking'],
+				});
+			});
+
+			expect(
+				screen.getByText('categorization-balloon')
+			).toBeInTheDocument();
+			expect(screen.queryByText('generate-tags')).not.toBeInTheDocument();
+
+			(Liferay.on as jest.Mock).mockReset();
+		});
 	});
 });
