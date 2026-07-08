@@ -8,6 +8,7 @@ package com.liferay.ai.hub.internal.quota;
 import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.ai.hub.quota.Usage;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.PortalRunMode;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -32,6 +33,12 @@ public class DummyQuotaManager implements QuotaManager {
 
 	@Override
 	public void checkTokensUsage(long companyId, long userId) {
+		if (PortalRunMode.isTestMode()) {
+			return;
+		}
+
+		throw new UnsupportedOperationException(
+			"You have exceeded your token quota");
 	}
 
 	@Override
