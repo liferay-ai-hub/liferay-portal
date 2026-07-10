@@ -24,6 +24,8 @@ import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.RetrievalAug
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.ToolsUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.VariablesUtil;
 import com.liferay.ai.hub.quota.QuotaManager;
+import com.liferay.ai.hub.quota.Source;
+import com.liferay.ai.hub.quota.Usage;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
@@ -62,6 +64,7 @@ import dev.langchain4j.guardrail.OutputGuardrail;
 import dev.langchain4j.invocation.InvocationParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.Response;
+import dev.langchain4j.model.output.TokenUsage;
 
 import java.io.Serializable;
 
@@ -91,10 +94,14 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 
 	public class Tools {
 
-		public Tools(long companyId, String modelLocation, String modelName) {
+		public Tools(
+			long companyId, String modelLocation, String modelName,
+			long userId) {
+
 			_companyId = companyId;
 			_modelLocation = modelLocation;
 			_modelName = modelName;
+			_userId = userId;
 		}
 
 		@Tool(
@@ -106,12 +113,16 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 				description) {
 
 			try {
-				String imageData = _generateImageData(description);
+				GoogleGenAiImageModel googleGenAiImageModel =
+					new GoogleGenAiImageModel(
+						_companyId, _modelLocation, _modelName);
 
-				if (Validator.isNull(imageData)) {
-					return "The image could not be generated. Ask the user " +
-						"to rephrase the request.";
-				}
+				Response<Image> response = googleGenAiImageModel.generate(
+					description);
+
+				_updateUsage(response.tokenUsage());
+
+				Image image = response.content();
 
 				ExecutionContext executionContext = invocationParameters.get(
 					"executionContext");
@@ -125,7 +136,12 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 							workflowContext.get(
 								"agentDefinitionExternalReferenceCode"))
 					},
-					StringPool.BLANK, new String[] {imageData},
+					StringPool.BLANK,
+					new String[] {
+						StringBundler.concat(
+							"data:", image.mimeType(), ";base64,",
+							image.base64Data())
+					},
 					"Chat Message Sent", null,
 					GetterUtil.getString(
 						workflowContext.get("sseEventSinkKey")));
@@ -136,43 +152,44 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 				_log.error("Unable to generate an image", exception);
 
 				return "The image could not be generated. Ask the user to " +
-					"try again later.";
+					"rephrase the request or try again later.";
 			}
 		}
 
-		private String _generateImageData(String description) throws Exception {
-			GoogleGenAiImageModel googleGenAiImageModel =
-				new GoogleGenAiImageModel(
-					_companyId, _modelLocation, _modelName);
-
-			Response<Image> response = googleGenAiImageModel.generate(
-				description);
-
-			Image image = response.content();
-
-			if (image == null) {
-				return null;
+		private void _updateUsage(TokenUsage tokenUsage) {
+			if (tokenUsage == null) {
+				return;
 			}
 
-			String base64Data = image.base64Data();
-
-			if (base64Data == null) {
-				return null;
+			try {
+				_quotaManager.updateUsage(
+					_companyId,
+					Usage.builder(
+					).source(
+						Source.VERTEX_INPUT
+					).tokenCount(
+						GetterUtil.getLong(tokenUsage.inputTokenCount())
+					).build(),
+					_userId);
+				_quotaManager.updateUsage(
+					_companyId,
+					Usage.builder(
+					).source(
+						Source.VERTEX_OUTPUT
+					).tokenCount(
+						GetterUtil.getLong(tokenUsage.outputTokenCount())
+					).build(),
+					_userId);
 			}
-
-			String mimeType = image.mimeType();
-
-			if (mimeType == null) {
-				mimeType = "image/png";
+			catch (Exception exception) {
+				_log.error(exception);
 			}
-
-			return StringBundler.concat(
-				"data:", mimeType, ";base64,", base64Data);
 		}
 
 		private final long _companyId;
 		private final String _modelLocation;
 		private final String _modelName;
+		private final long _userId;
 
 	}
 
@@ -231,7 +248,8 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			tools = new Object[] {
 				new Tools(
 					serviceContext.getCompanyId(),
-					kaleoNodeSettingValues.get("modelLocation"), modelName)
+					kaleoNodeSettingValues.get("modelLocation"), modelName,
+					serviceContext.getUserId())
 			};
 		}
 
