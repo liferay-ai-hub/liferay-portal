@@ -24,8 +24,6 @@ import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.RetrievalAug
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.ToolsUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.VariablesUtil;
 import com.liferay.ai.hub.quota.QuotaManager;
-import com.liferay.ai.hub.quota.Source;
-import com.liferay.ai.hub.quota.Usage;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
@@ -64,7 +62,6 @@ import dev.langchain4j.guardrail.OutputGuardrail;
 import dev.langchain4j.invocation.InvocationParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
 import dev.langchain4j.model.output.Response;
-import dev.langchain4j.model.output.TokenUsage;
 
 import java.io.Serializable;
 
@@ -94,14 +91,9 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 
 	public class Tools {
 
-		public Tools(
-			long companyId, String modelLocation, String modelName,
-			long userId) {
-
-			_companyId = companyId;
+		public Tools(String modelLocation, String modelName) {
 			_modelLocation = modelLocation;
 			_modelName = modelName;
-			_userId = userId;
 		}
 
 		@Tool(
@@ -113,19 +105,18 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 				description) {
 
 			try {
+				ExecutionContext executionContext = invocationParameters.get(
+					"executionContext");
+
 				GoogleGenAiImageModel googleGenAiImageModel =
-					new GoogleGenAiImageModel(
-						_companyId, _modelLocation, _modelName);
+					GoogleGenAiUtil.createGoogleGenAiImageModel(
+						_modelLocation, _modelName, _quotaManager,
+						executionContext.getServiceContext());
 
 				Response<Image> response = googleGenAiImageModel.generate(
 					description);
 
-				_updateUsage(response.tokenUsage());
-
 				Image image = response.content();
-
-				ExecutionContext executionContext = invocationParameters.get(
-					"executionContext");
 
 				Map<String, Serializable> workflowContext =
 					executionContext.getWorkflowContext();
@@ -156,40 +147,8 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			}
 		}
 
-		private void _updateUsage(TokenUsage tokenUsage) {
-			if (tokenUsage == null) {
-				return;
-			}
-
-			try {
-				_quotaManager.updateUsage(
-					_companyId,
-					Usage.builder(
-					).source(
-						Source.VERTEX_INPUT
-					).tokenCount(
-						GetterUtil.getLong(tokenUsage.inputTokenCount())
-					).build(),
-					_userId);
-				_quotaManager.updateUsage(
-					_companyId,
-					Usage.builder(
-					).source(
-						Source.VERTEX_OUTPUT
-					).tokenCount(
-						GetterUtil.getLong(tokenUsage.outputTokenCount())
-					).build(),
-					_userId);
-			}
-			catch (Exception exception) {
-				_log.error(exception);
-			}
-		}
-
-		private final long _companyId;
 		private final String _modelLocation;
 		private final String _modelName;
-		private final long _userId;
 
 	}
 
@@ -247,9 +206,7 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 		if ((modelName != null) && _availableImageModels.contains(modelName)) {
 			tools = new Object[] {
 				new Tools(
-					serviceContext.getCompanyId(),
-					kaleoNodeSettingValues.get("modelLocation"), modelName,
-					serviceContext.getUserId())
+					kaleoNodeSettingValues.get("modelLocation"), modelName)
 			};
 		}
 

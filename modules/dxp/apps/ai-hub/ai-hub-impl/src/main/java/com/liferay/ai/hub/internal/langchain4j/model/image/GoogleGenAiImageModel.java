@@ -12,12 +12,19 @@ import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.GenerateContentResponseUsageMetadata;
 import com.google.genai.types.Part;
+import com.google.genai.types.SafetySetting;
 
 import com.liferay.ai.hub.configuration.VertexAIConfiguration;
-import com.liferay.ai.hub.internal.model.GoogleGenAiUtil;
+import com.liferay.ai.hub.quota.QuotaManager;
+import com.liferay.ai.hub.quota.Source;
+import com.liferay.ai.hub.quota.Usage;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.GetterUtil;
 
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
@@ -33,17 +40,22 @@ import java.util.List;
 public class GoogleGenAiImageModel implements ImageModel {
 
 	public GoogleGenAiImageModel(
-			long companyId, String modelLocation, String modelName)
+			String modelLocation, String modelName, QuotaManager quotaManager,
+			List<SafetySetting> safetySettings, ServiceContext serviceContext)
 		throws ConfigurationException {
 
 		VertexAIConfiguration vertexAIConfiguration =
 			ConfigurationProviderUtil.getCompanyConfiguration(
-				VertexAIConfiguration.class, companyId);
+				VertexAIConfiguration.class, serviceContext.getCompanyId());
 
 		_modelLocation = modelLocation;
 		_modelName = modelName;
+		_quotaManager = quotaManager;
+		_safetySettings = safetySettings;
 
+		_companyId = serviceContext.getCompanyId();
 		_projectId = vertexAIConfiguration.projectId();
+		_userId = serviceContext.getUserId();
 	}
 
 	@Override
@@ -71,12 +83,14 @@ public class GoogleGenAiImageModel implements ImageModel {
 					).responseModalities(
 						List.of("IMAGE")
 					).safetySettings(
-						GoogleGenAiUtil.getSafetySettings()
+						_safetySettings
 					).build());
 
-			return Response.from(
-				_toImage(generateContentResponse),
-				_toTokenUsage(generateContentResponse));
+			TokenUsage tokenUsage = _toTokenUsage(generateContentResponse);
+
+			_updateUsage(tokenUsage);
+
+			return Response.from(_toImage(generateContentResponse), tokenUsage);
 		}
 		catch (Exception exception) {
 			return ReflectionUtil.throwException(exception);
@@ -147,8 +161,45 @@ public class GoogleGenAiImageModel implements ImageModel {
 			));
 	}
 
+	private void _updateUsage(TokenUsage tokenUsage) {
+		if (tokenUsage == null) {
+			return;
+		}
+
+		try {
+			_quotaManager.updateUsage(
+				_companyId,
+				Usage.builder(
+				).source(
+					Source.VERTEX_INPUT
+				).tokenCount(
+					GetterUtil.getLong(tokenUsage.inputTokenCount())
+				).build(),
+				_userId);
+			_quotaManager.updateUsage(
+				_companyId,
+				Usage.builder(
+				).source(
+					Source.VERTEX_OUTPUT
+				).tokenCount(
+					GetterUtil.getLong(tokenUsage.outputTokenCount())
+				).build(),
+				_userId);
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+		}
+	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		GoogleGenAiImageModel.class);
+
+	private final long _companyId;
 	private final String _modelLocation;
 	private final String _modelName;
 	private final String _projectId;
+	private final QuotaManager _quotaManager;
+	private final List<SafetySetting> _safetySettings;
+	private final long _userId;
 
 }

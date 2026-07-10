@@ -11,6 +11,7 @@ import com.google.genai.types.SafetySetting;
 
 import com.liferay.ai.hub.configuration.VertexAIConfiguration;
 import com.liferay.ai.hub.internal.langchain4j.model.chat.listener.AIHubChatModelListenerImpl;
+import com.liferay.ai.hub.internal.langchain4j.model.image.GoogleGenAiImageModel;
 import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
@@ -55,6 +56,16 @@ public class GoogleGenAiUtil {
 		).build();
 	}
 
+	public static GoogleGenAiImageModel createGoogleGenAiImageModel(
+			String modelLocation, String modelName, QuotaManager quotaManager,
+			ServiceContext serviceContext)
+		throws ConfigurationException {
+
+		return new GoogleGenAiImageModel(
+			modelLocation, modelName, quotaManager, _safetySettings,
+			serviceContext);
+	}
+
 	public static GoogleGenAiStreamingChatModel
 			createGoogleGenAiStreamingChatModel(
 				ExecutorService executorService, QuotaManager quotaManager,
@@ -80,10 +91,6 @@ public class GoogleGenAiUtil {
 		).safetySettings(
 			_safetySettings
 		).build();
-	}
-
-	public static List<SafetySetting> getSafetySettings() {
-		return _safetySettings;
 	}
 
 	private static SafetySetting _createSafetySetting(
