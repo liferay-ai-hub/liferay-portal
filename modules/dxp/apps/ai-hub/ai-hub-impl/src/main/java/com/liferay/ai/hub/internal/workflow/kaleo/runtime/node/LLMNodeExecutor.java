@@ -33,6 +33,8 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyInheritableThreadLocalCallable;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -51,6 +53,8 @@ import com.liferay.portal.workflow.kaleo.runtime.graph.PathElement;
 import com.liferay.portal.workflow.kaleo.runtime.node.BaseNodeExecutor;
 import com.liferay.portal.workflow.kaleo.runtime.node.NodeExecutor;
 
+import dev.langchain4j.agent.tool.P;
+import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.guardrail.InputGuardrail;
@@ -83,6 +87,93 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 	@Override
 	public NodeType getNodeType() {
 		return NodeType.LLM;
+	}
+
+	public class Tools {
+
+		public Tools(long companyId, String modelLocation, String modelName) {
+			_companyId = companyId;
+			_modelLocation = modelLocation;
+			_modelName = modelName;
+		}
+
+		@Tool(
+			"Generate an image from a natural language description and deliver it to the user"
+		)
+		public String generateImage(
+			InvocationParameters invocationParameters,
+			@P("A detailed description of the image to generate") String
+				description) {
+
+			try {
+				String imageData = _generateImageData(description);
+
+				if (Validator.isNull(imageData)) {
+					return "The image could not be generated. Ask the user " +
+						"to rephrase the request.";
+				}
+
+				ExecutionContext executionContext = invocationParameters.get(
+					"executionContext");
+
+				Map<String, Serializable> workflowContext =
+					executionContext.getWorkflowContext();
+
+				SseUtil.send(
+					new String[] {
+						GetterUtil.getString(
+							workflowContext.get(
+								"agentDefinitionExternalReferenceCode"))
+					},
+					StringPool.BLANK, new String[] {imageData},
+					"Chat Message Sent", null,
+					GetterUtil.getString(
+						workflowContext.get("sseEventSinkKey")));
+
+				return "The image was generated and delivered to the user.";
+			}
+			catch (Exception exception) {
+				_log.error("Unable to generate an image", exception);
+
+				return "The image could not be generated. Ask the user to " +
+					"try again later.";
+			}
+		}
+
+		private String _generateImageData(String description) throws Exception {
+			GoogleGenAiImageModel googleGenAiImageModel =
+				new GoogleGenAiImageModel(
+					_companyId, _modelLocation, _modelName);
+
+			Response<Image> response = googleGenAiImageModel.generate(
+				description);
+
+			Image image = response.content();
+
+			if (image == null) {
+				return null;
+			}
+
+			String base64Data = image.base64Data();
+
+			if (base64Data == null) {
+				return null;
+			}
+
+			String mimeType = image.mimeType();
+
+			if (mimeType == null) {
+				mimeType = "image/png";
+			}
+
+			return StringBundler.concat(
+				"data:", mimeType, ";base64,", base64Data);
+		}
+
+		private final long _companyId;
+		private final String _modelLocation;
+		private final String _modelName;
+
 	}
 
 	@Activate
@@ -132,14 +223,16 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 		String userMessage = VariablesUtil.applyInputVariables(
 			executionContext, "userMessage", kaleoNodeSettingValues);
 
+		Object[] tools = new Object[0];
+
 		String modelName = kaleoNodeSettingValues.get("modelName");
 
 		if ((modelName != null) && _availableImageModels.contains(modelName)) {
-			_completeImageResponse(
-				executionContext, currentKaleoNode, kaleoNodeSettingValues,
-				userMessage);
-
-			return;
+			tools = new Object[] {
+				new Tools(
+					serviceContext.getCompanyId(),
+					kaleoNodeSettingValues.get("modelLocation"), modelName)
+			};
 		}
 
 		String prompt = PromptUtil.composePrompt(
@@ -219,6 +312,8 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 					kaleoInstanceToken.getKaleoInstanceId())
 			).systemMessageProviderFunction(
 				memoryId -> prompt
+			).tools(
+				tools
 			).toolProvider(
 				MCPToolProviderUtil.create(
 					kaleoInstanceToken.getCompanyId(), _dtoConverterRegistry,
@@ -255,75 +350,6 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 					executionContext.getKaleoInstanceToken(),
 					executionContext.getWorkflowContext(),
 					executionContext.getServiceContext())));
-	}
-
-	private void _completeImageResponse(
-			ExecutionContext executionContext, KaleoNode kaleoNode,
-			Map<String, String> kaleoNodeSettingValues, String userMessage)
-		throws PortalException {
-
-		Map<String, Serializable> workflowContext =
-			executionContext.getWorkflowContext();
-
-		try {
-			String imageData = _generateImageData(
-				kaleoNodeSettingValues, executionContext.getServiceContext(),
-				userMessage);
-
-			String output = null;
-
-			if (Validator.isNull(imageData)) {
-				output =
-					"I was unable to generate an image. Please try " +
-						"rephrasing your request.";
-
-				SseUtil.send(
-					new String[] {
-						GetterUtil.getString(
-							workflowContext.get(
-								"agentDefinitionExternalReferenceCode"))
-					},
-					output, "Chat Message Sent", null,
-					GetterUtil.getString(
-						workflowContext.get("sseEventSinkKey")));
-			}
-			else {
-				SseUtil.send(
-					new String[] {
-						GetterUtil.getString(
-							workflowContext.get(
-								"agentDefinitionExternalReferenceCode"))
-					},
-					StringPool.BLANK, new String[] {imageData},
-					"Chat Message Sent", null,
-					GetterUtil.getString(
-						workflowContext.get("sseEventSinkKey")));
-
-				output = "Generated image.";
-			}
-
-			VariablesUtil.applyOutputVariable(
-				kaleoNodeSettingValues, output, workflowContext);
-
-			workflowContext.put("output", output);
-
-			KaleoInstanceToken kaleoInstanceToken =
-				executionContext.getKaleoInstanceToken();
-
-			List<KaleoTransition> kaleoTransitions =
-				kaleoNode.getKaleoTransitions();
-
-			KaleoTransition kaleoTransition = kaleoTransitions.get(0);
-
-			_workflowNodeManager.completeWorkflowNode(
-				kaleoInstanceToken.getCompanyId(),
-				kaleoInstanceToken.getUserId(),
-				kaleoInstanceToken.getKaleoInstanceTokenId(),
-				kaleoTransition.getName(), workflowContext, false);
-		}
-		catch (Exception exception) {
-			throw new PortalException(exception);
-		}
 	}
 
 	private void _completeResponse(
@@ -371,38 +397,8 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 		}
 	}
 
-	private String _generateImageData(
-			Map<String, String> kaleoNodeSettingValues,
-			ServiceContext serviceContext, String userMessage)
-		throws Exception {
-
-		GoogleGenAiImageModel googleGenAiImageModel = new GoogleGenAiImageModel(
-			serviceContext.getCompanyId(),
-			kaleoNodeSettingValues.get("modelLocation"),
-			kaleoNodeSettingValues.get("modelName"));
-
-		Response<Image> response = googleGenAiImageModel.generate(userMessage);
-
-		Image image = response.content();
-
-		if (image == null) {
-			return null;
-		}
-
-		String base64Data = image.base64Data();
-
-		if (base64Data == null) {
-			return null;
-		}
-
-		String mimeType = image.mimeType();
-
-		if (mimeType == null) {
-			mimeType = "image/png";
-		}
-
-		return StringBundler.concat("data:", mimeType, ";base64,", base64Data);
-	}
+	private static final Log _log = LogFactoryUtil.getLog(
+		LLMNodeExecutor.class);
 
 	private static final List<String> _availableImageModels = List.of(
 		"gemini-2.5-flash-image", "gemini-3.1-flash-image",
