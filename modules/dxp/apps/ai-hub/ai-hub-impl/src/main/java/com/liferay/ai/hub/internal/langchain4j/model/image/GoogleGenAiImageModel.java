@@ -36,6 +36,7 @@ import java.util.List;
 
 /**
  * @author Feliphe Marinho
+ * @author Mario Gomes
  */
 public class GoogleGenAiImageModel implements ImageModel {
 
