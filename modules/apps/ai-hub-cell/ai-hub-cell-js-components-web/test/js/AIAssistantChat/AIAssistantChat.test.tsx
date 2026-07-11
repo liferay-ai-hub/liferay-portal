@@ -109,20 +109,90 @@ describe('AIAssistantChat', () => {
 		};
 	});
 
-	it('shows the chat input immediately on open', async () => {
+	it('accumulates several image events into a single balloon', async () => {
+		const fakeEventSource = createFakeEventSource();
+
+		mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
 		await renderAndOpen();
 
+		await act(async () => {
+			fakeEventSource.emit(
+				'Chat Message Sent',
+				JSON.stringify({
+					data: 'AAA',
+					mimeType: 'image/png',
+					type: 'image',
+				})
+			);
+		});
+
+		await act(async () => {
+			fakeEventSource.emit(
+				'Chat Message Sent',
+				JSON.stringify({
+					data: 'BBB',
+					mimeType: 'image/png',
+					type: 'image',
+				})
+			);
+		});
+
+		const images = screen.getAllByAltText('generated-image');
+
+		expect(images).toHaveLength(2);
+		expect(images[0]).toHaveAttribute('src', 'data:image/png;base64,AAA');
+		expect(images[1]).toHaveAttribute('src', 'data:image/png;base64,BBB');
+
 		expect(
-			screen.getByPlaceholderText('Ask me anything...')
-		).toBeInTheDocument();
+			screen.getAllByRole('checkbox', {name: 'generated-image'})
+		).toHaveLength(2);
 	});
 
-	it('shows the footer disclaimer', async () => {
+	it('closes the chat when the categorization panel is opened', async () => {
+		const handlers: Record<string, (payload: unknown) => void> = {};
+
+		(Liferay.on as jest.Mock).mockImplementation(
+			(name: string, callback: (payload: unknown) => void) => {
+				handlers[name] = callback;
+			}
+		);
+
 		await renderAndOpen();
 
 		expect(
-			screen.getByText('ai-generated-responses-may-be-inaccurate')
-		).toBeInTheDocument();
+			screen.getByRole('button', {name: 'ai-assistant'})
+		).toHaveAttribute('aria-expanded', 'true');
+
+		await act(async () => {
+			handlers['cms:aiAssistant:openCategorizationPanel']({});
+		});
+
+		expect(
+			screen.getByRole('button', {name: 'ai-assistant'})
+		).toHaveAttribute('aria-expanded', 'false');
+
+		(Liferay.on as jest.Mock).mockReset();
+	});
+
+	it('defaults the mime type to image/png when the image event omits it', async () => {
+		const fakeEventSource = createFakeEventSource();
+
+		mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
+		await renderAndOpen();
+
+		await act(async () => {
+			fakeEventSource.emit(
+				'Chat Message Sent',
+				JSON.stringify({data: 'CCC', type: 'image'})
+			);
+		});
+
+		expect(screen.getByAltText('generated-image')).toHaveAttribute(
+			'src',
+			'data:image/png;base64,CCC'
+		);
 	});
 
 	it('exposes the feedback row on a successful message and wires the codes', async () => {
@@ -253,90 +323,20 @@ describe('AIAssistantChat', () => {
 		);
 	});
 
-	it('accumulates several image events into a single balloon', async () => {
-		const fakeEventSource = createFakeEventSource();
-
-		mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
-
+	it('shows the chat input immediately on open', async () => {
 		await renderAndOpen();
 
-		await act(async () => {
-			fakeEventSource.emit(
-				'Chat Message Sent',
-				JSON.stringify({
-					data: 'AAA',
-					mimeType: 'image/png',
-					type: 'image',
-				})
-			);
-		});
-
-		await act(async () => {
-			fakeEventSource.emit(
-				'Chat Message Sent',
-				JSON.stringify({
-					data: 'BBB',
-					mimeType: 'image/png',
-					type: 'image',
-				})
-			);
-		});
-
-		const images = screen.getAllByAltText('generated-image');
-
-		expect(images).toHaveLength(2);
-		expect(images[0]).toHaveAttribute('src', 'data:image/png;base64,AAA');
-		expect(images[1]).toHaveAttribute('src', 'data:image/png;base64,BBB');
-
 		expect(
-			screen.getAllByRole('checkbox', {name: 'generated-image'})
-		).toHaveLength(2);
+			screen.getByPlaceholderText('Ask me anything...')
+		).toBeInTheDocument();
 	});
 
-	it('defaults the mime type to image/png when the image event omits it', async () => {
-		const fakeEventSource = createFakeEventSource();
-
-		mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
-
-		await renderAndOpen();
-
-		await act(async () => {
-			fakeEventSource.emit(
-				'Chat Message Sent',
-				JSON.stringify({data: 'CCC', type: 'image'})
-			);
-		});
-
-		expect(screen.getByAltText('generated-image')).toHaveAttribute(
-			'src',
-			'data:image/png;base64,CCC'
-		);
-	});
-
-	it('closes the chat when the categorization panel is opened', async () => {
-		const handlers: Record<string, (payload: unknown) => void> = {};
-
-		(Liferay.on as jest.Mock).mockImplementation(
-			(name: string, callback: (payload: unknown) => void) => {
-				handlers[name] = callback;
-			}
-		);
-
+	it('shows the footer disclaimer', async () => {
 		await renderAndOpen();
 
 		expect(
-			screen.getByRole('button', {name: 'ai-assistant'})
-		).toHaveAttribute('aria-expanded', 'true');
-
-		await act(async () => {
-			handlers['cms:aiAssistant:openCategorizationPanel']({});
-		});
-
-		expect(
-			screen.getByRole('button', {name: 'ai-assistant'})
-		).toHaveAttribute('aria-expanded', 'false');
-
-		(Liferay.on as jest.Mock).mockReset();
+			screen.getByText('ai-generated-responses-may-be-inaccurate')
+		).toBeInTheDocument();
 	});
 
 	describe('free-form categorization', () => {
@@ -344,6 +344,28 @@ describe('AIAssistantChat', () => {
 			mockClassify.mockReset();
 			mockPostChat.mockClear();
 			(Liferay.fire as jest.Mock).mockClear();
+		});
+
+		it('does not classify when the feature is disabled', async () => {
+			const fakeEventSource = createFakeEventSource();
+
+			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
+			await act(async () => {
+				render(
+					<AIAssistantChat
+						{...defaultProps}
+						initialMessage="tag this article"
+					/>
+				);
+			});
+
+			await act(async () => {
+				fakeEventSource.emit('Subscribe', 'ref-1');
+			});
+
+			expect(mockClassify).not.toHaveBeenCalled();
+			expect(mockPostChat).toHaveBeenCalled();
 		});
 
 		it('fires a single request event for a categorization message', async () => {
@@ -403,28 +425,6 @@ describe('AIAssistantChat', () => {
 				'cms:aiAssistant:requestCategorize',
 				expect.anything()
 			);
-		});
-
-		it('does not classify when the feature is disabled', async () => {
-			const fakeEventSource = createFakeEventSource();
-
-			mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
-
-			await act(async () => {
-				render(
-					<AIAssistantChat
-						{...defaultProps}
-						initialMessage="tag this article"
-					/>
-				);
-			});
-
-			await act(async () => {
-				fakeEventSource.emit('Subscribe', 'ref-1');
-			});
-
-			expect(mockClassify).not.toHaveBeenCalled();
-			expect(mockPostChat).toHaveBeenCalled();
 		});
 
 		it('renders only the balloon when the categorization event suppresses the user message', async () => {
