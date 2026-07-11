@@ -180,6 +180,7 @@ export default function CategorizationMessageBalloon({
 
 						<div className="m-2">
 							{confirmationMessage}{' '}
+
 							<ClayButton
 								className="align-baseline border-0 p-0 text-decoration-underline"
 								displayType="link"
