@@ -5,6 +5,8 @@
 
 package com.liferay.ai.hub.rest.resource.v1_0.util;
 
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.PortalRunMode;
 import com.liferay.portal.kernel.util.Validator;
@@ -64,20 +66,35 @@ public class SseUtil {
 
 	public static void send(
 		String[] agentDefinitionExternalReferenceCodes, String data,
-		String name, String nodeName, String sseEventSinkKey) {
-
-		send(
-			agentDefinitionExternalReferenceCodes, data, null, name, nodeName,
-			sseEventSinkKey);
-	}
-
-	public static void send(
-		String[] agentDefinitionExternalReferenceCodes, String data,
-		String[] images, String name, String nodeName, String sseEventSinkKey) {
+		String name, String nodeName, JSONObject propertiesJSONObject,
+		String sseEventSinkKey, String type) {
 
 		if (Validator.isBlank(sseEventSinkKey)) {
 			return;
 		}
+
+		JSONObject jsonObject = propertiesJSONObject;
+
+		if (jsonObject == null) {
+			jsonObject = JSONFactoryUtil.createJSONObject();
+		}
+
+		jsonObject.put(
+			"agentDefinitionExternalReferenceCodes",
+			() -> {
+				if (agentDefinitionExternalReferenceCodes == null) {
+					return null;
+				}
+
+				return JSONUtil.putAll(agentDefinitionExternalReferenceCodes);
+			}
+		).put(
+			"data", data
+		).put(
+			"nodeName", nodeName
+		).put(
+			"type", type
+		);
 
 		Sse sse = _sses.get(sseEventSinkKey);
 		SseEventSink sseEventSink = _sseEventSinks.get(sseEventSinkKey);
@@ -85,34 +102,19 @@ public class SseUtil {
 		sseEventSink.send(
 			sse.newEventBuilder(
 			).data(
-				String.class,
-				JSONUtil.put(
-					"agentDefinitionExternalReferenceCodes",
-					() -> {
-						if (agentDefinitionExternalReferenceCodes == null) {
-							return null;
-						}
-
-						return JSONUtil.putAll(
-							agentDefinitionExternalReferenceCodes);
-					}
-				).put(
-					"data", data
-				).put(
-					"images",
-					() -> {
-						if (images == null) {
-							return null;
-						}
-
-						return JSONUtil.putAll(images);
-					}
-				).put(
-					"nodeName", nodeName
-				).toString()
+				String.class, jsonObject.toString()
 			).name(
 				Validator.isBlank(name) ? nodeName : name
 			).build());
+	}
+
+	public static void send(
+		String[] agentDefinitionExternalReferenceCodes, String data,
+		String name, String nodeName, String sseEventSinkKey) {
+
+		send(
+			agentDefinitionExternalReferenceCodes, data, name, nodeName, null,
+			sseEventSinkKey, "text");
 	}
 
 	private static Map<String, SseEventSink> _sseEventSinks =

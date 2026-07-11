@@ -9,8 +9,7 @@ import com.liferay.ai.hub.internal.langchain4j.model.image.GoogleGenAiImageModel
 import com.liferay.ai.hub.internal.model.GoogleGenAiUtil;
 import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -28,6 +27,7 @@ import java.util.Map;
 
 /**
  * @author Feliphe Marinho
+ * @author Mario Gomes
  */
 public class ImageGenerationTools {
 
@@ -42,7 +42,7 @@ public class ImageGenerationTools {
 	@Tool("Generate an image from a natural language description")
 	public String generateImage(
 		InvocationParameters invocationParameters,
-		@P("A description of the image to generate") String description) {
+		@P("Description of the image to be generate") String description) {
 
 		try {
 			ExecutionContext executionContext = invocationParameters.get(
@@ -67,19 +67,16 @@ public class ImageGenerationTools {
 						workflowContext.get(
 							"agentDefinitionExternalReferenceCode"))
 				},
-				StringPool.BLANK,
-				new String[] {
-					StringBundler.concat(
-						"data:", image.mimeType(), ";base64,",
-						image.base64Data())
-				},
-				"Chat Message Sent", null,
-				GetterUtil.getString(workflowContext.get("sseEventSinkKey")));
+				image.base64Data(),
+				GetterUtil.getString(workflowContext.get("outBoundEventName")),
+				null, JSONUtil.put("mimeType", image.mimeType()),
+				GetterUtil.getString(workflowContext.get("sseEventSinkKey")),
+				"image");
 
 			return "The image was generated and delivered to the user.";
 		}
 		catch (Exception exception) {
-			_log.error("Unable to generate an image", exception);
+			_log.error(exception);
 
 			return "The image could not be generated. Ask the user to " +
 				"rephrase the request or try again later.";
