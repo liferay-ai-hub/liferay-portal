@@ -8,12 +8,12 @@ package com.liferay.ai.hub.internal.workflow.kaleo.runtime.node;
 import com.liferay.ai.hub.guardrail.ModelArmorHandler;
 import com.liferay.ai.hub.internal.assistant.handler.AssistantHandlerContext;
 import com.liferay.ai.hub.internal.assistant.handler.AssistantHandlerUtil;
-import com.liferay.ai.hub.internal.langchain4j.model.image.GoogleGenAiImageModel;
 import com.liferay.ai.hub.internal.langchain4j.observability.api.listener.AiServiceErrorListenerImpl;
 import com.liferay.ai.hub.internal.langchain4j.observability.api.listener.InputGuardrailExecutedListenerImpl;
 import com.liferay.ai.hub.internal.langchain4j.observability.api.listener.OutputGuardrailExecutedListenerImpl;
 import com.liferay.ai.hub.internal.mcp.tool.provider.MCPToolProviderUtil;
 import com.liferay.ai.hub.internal.model.GoogleGenAiUtil;
+import com.liferay.ai.hub.internal.tools.ImageGenerationTools;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.GuardrailsUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.KaleoNodeSettingUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.MessageUtil;
@@ -29,12 +29,8 @@ import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.rest.manager.v1_0.ObjectEntryManager;
 import com.liferay.petra.concurrent.NoticeableExecutorService;
 import com.liferay.petra.executor.PortalExecutorManager;
-import com.liferay.petra.string.StringBundler;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyInheritableThreadLocalCallable;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -53,15 +49,11 @@ import com.liferay.portal.workflow.kaleo.runtime.graph.PathElement;
 import com.liferay.portal.workflow.kaleo.runtime.node.BaseNodeExecutor;
 import com.liferay.portal.workflow.kaleo.runtime.node.NodeExecutor;
 
-import dev.langchain4j.agent.tool.P;
-import dev.langchain4j.agent.tool.Tool;
-import dev.langchain4j.data.image.Image;
 import dev.langchain4j.data.message.AiMessage;
 import dev.langchain4j.guardrail.InputGuardrail;
 import dev.langchain4j.guardrail.OutputGuardrail;
 import dev.langchain4j.invocation.InvocationParameters;
 import dev.langchain4j.model.chat.response.ChatResponse;
-import dev.langchain4j.model.output.Response;
 
 import java.io.Serializable;
 
@@ -87,69 +79,6 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 	@Override
 	public NodeType getNodeType() {
 		return NodeType.LLM;
-	}
-
-	public class Tools {
-
-		public Tools(String modelLocation, String modelName) {
-			_modelLocation = modelLocation;
-			_modelName = modelName;
-		}
-
-		@Tool(
-			"Generate an image from a natural language description and deliver it to the user"
-		)
-		public String generateImage(
-			InvocationParameters invocationParameters,
-			@P("A detailed description of the image to generate") String
-				description) {
-
-			try {
-				ExecutionContext executionContext = invocationParameters.get(
-					"executionContext");
-
-				GoogleGenAiImageModel googleGenAiImageModel =
-					GoogleGenAiUtil.createGoogleGenAiImageModel(
-						_modelLocation, _modelName, _quotaManager,
-						executionContext.getServiceContext());
-
-				Response<Image> response = googleGenAiImageModel.generate(
-					description);
-
-				Image image = response.content();
-
-				Map<String, Serializable> workflowContext =
-					executionContext.getWorkflowContext();
-
-				SseUtil.send(
-					new String[] {
-						GetterUtil.getString(
-							workflowContext.get(
-								"agentDefinitionExternalReferenceCode"))
-					},
-					StringPool.BLANK,
-					new String[] {
-						StringBundler.concat(
-							"data:", image.mimeType(), ";base64,",
-							image.base64Data())
-					},
-					"Chat Message Sent", null,
-					GetterUtil.getString(
-						workflowContext.get("sseEventSinkKey")));
-
-				return "The image was generated and delivered to the user.";
-			}
-			catch (Exception exception) {
-				_log.error("Unable to generate an image", exception);
-
-				return "The image could not be generated. Ask the user to " +
-					"rephrase the request or try again later.";
-			}
-		}
-
-		private final String _modelLocation;
-		private final String _modelName;
-
 	}
 
 	@Activate
@@ -205,8 +134,9 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 
 		if ((modelName != null) && _availableImageModels.contains(modelName)) {
 			tools = new Object[] {
-				new Tools(
-					kaleoNodeSettingValues.get("modelLocation"), modelName)
+				new ImageGenerationTools(
+					kaleoNodeSettingValues.get("modelLocation"), modelName,
+					_quotaManager)
 			};
 		}
 
@@ -371,9 +301,6 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			throw new RuntimeException(portalException);
 		}
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		LLMNodeExecutor.class);
 
 	private static final List<String> _availableImageModels = List.of(
 		"gemini-2.5-flash-image", "gemini-3.1-flash-image",
