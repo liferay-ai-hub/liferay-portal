@@ -347,6 +347,32 @@ describe('AIAssistantChat', () => {
 		(Liferay.on as jest.Mock).mockReset();
 	});
 
+	it('closes the chat when the categorization panel is opened', async () => {
+		const handlers: Record<string, (payload: unknown) => void> = {};
+
+		(Liferay.on as jest.Mock).mockImplementation(
+			(name: string, callback: (payload: unknown) => void) => {
+				handlers[name] = callback;
+			}
+		);
+
+		await renderAndOpen();
+
+		expect(
+			screen.getByRole('button', {name: 'ai-assistant'})
+		).toHaveAttribute('aria-expanded', 'true');
+
+		await act(async () => {
+			handlers['cms:aiAssistant:openCategorizationPanel']({});
+		});
+
+		expect(
+			screen.getByRole('button', {name: 'ai-assistant'})
+		).toHaveAttribute('aria-expanded', 'false');
+
+		(Liferay.on as jest.Mock).mockReset();
+	});
+
 	describe('free-form categorization', () => {
 		beforeEach(() => {
 			mockClassify.mockReset();
