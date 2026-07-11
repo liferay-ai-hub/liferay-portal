@@ -136,26 +136,27 @@ public class GoogleGenAiImageModel implements ImageModel {
 	private TokenUsage _toTokenUsage(
 		GenerateContentResponse generateContentResponse) {
 
-		GenerateContentResponseUsageMetadata usageMetadata =
-			generateContentResponse.usageMetadata(
-			).orElse(
-				null
-			);
+		GenerateContentResponseUsageMetadata
+			generateContentResponseUsageMetadata =
+				generateContentResponse.usageMetadata(
+				).orElse(
+					null
+				);
 
-		if (usageMetadata == null) {
+		if (generateContentResponseUsageMetadata == null) {
 			return null;
 		}
 
 		return new TokenUsage(
-			usageMetadata.promptTokenCount(
+			generateContentResponseUsageMetadata.promptTokenCount(
 			).orElse(
 				null
 			),
-			usageMetadata.candidatesTokenCount(
+			generateContentResponseUsageMetadata.candidatesTokenCount(
 			).orElse(
 				null
 			),
-			usageMetadata.totalTokenCount(
+			generateContentResponseUsageMetadata.totalTokenCount(
 			).orElse(
 				null
 			));
