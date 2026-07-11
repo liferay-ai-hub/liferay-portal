@@ -12,7 +12,7 @@ ViewAllRelatedAssetsSectionDisplayContext viewAllRelatedAssetsSectionDisplayCont
 %>
 
 <c:if test='<%= FeatureFlagManagerUtil.isEnabled(themeDisplay.getCompanyId(), "LPD-62272") %>'>
-	<div class="align-items-center d-flex justify-content-end mb-3">
+	<div class="cms-all-related-assets-ai-assistant">
 		<react:component
 			module="{AIAssistantChat} from ai-hub-cell-js-components-web"
 			props="<%= viewAllRelatedAssetsSectionDisplayContext.getAIAssistantChatProps() %>"
