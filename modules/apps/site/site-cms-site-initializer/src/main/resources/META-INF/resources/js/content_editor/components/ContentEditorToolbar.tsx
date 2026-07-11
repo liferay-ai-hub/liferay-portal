@@ -213,25 +213,13 @@ export default function ContentEditorToolbar({
 			title={headerTitle}
 		>
 			{Liferay.FeatureFlags['LPD-62272'] && (
-				<>
-					<Toolbar.Item>
-						<AIAssistantChat
-							hideTriggerLabel
-							instructionDefinitionScope="cms"
-							triggerRound
-						/>
-					</Toolbar.Item>
-
-					<div
-						className="align-self-center"
-						style={{
-							borderColor: '#A7A9BC',
-							borderStyle: 'solid',
-							borderWidth: 1,
-							height: 16,
-						}}
+				<Toolbar.Item className="nav-divider-end">
+					<AIAssistantChat
+						hideTriggerLabel
+						instructionDefinitionScope="cms"
+						triggerRound
 					/>
-				</>
+				</Toolbar.Item>
 			)}
 
 			<Toolbar.Item className="nav-divider-end">
