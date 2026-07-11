@@ -13,6 +13,8 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
+import com.liferay.portal.workflow.kaleo.model.KaleoNode;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
 
 import dev.langchain4j.agent.tool.P;
@@ -61,6 +63,11 @@ public class ImageGenerationTools {
 			Map<String, Serializable> workflowContext =
 				executionContext.getWorkflowContext();
 
+			KaleoInstanceToken kaleoInstanceToken =
+				executionContext.getKaleoInstanceToken();
+
+			KaleoNode kaleoNode = kaleoInstanceToken.getCurrentKaleoNode();
+
 			SseUtil.send(
 				new String[] {
 					GetterUtil.getString(
@@ -69,11 +76,11 @@ public class ImageGenerationTools {
 				},
 				image.base64Data(),
 				GetterUtil.getString(workflowContext.get("outBoundEventName")),
-				null, JSONUtil.put("mimeType", image.mimeType()),
+				kaleoNode.getName(), JSONUtil.put("mimeType", image.mimeType()),
 				GetterUtil.getString(workflowContext.get("sseEventSinkKey")),
 				"image");
 
-			return "The image was generated and delivered to the user.";
+			return "The image was generated.";
 		}
 		catch (Exception exception) {
 			_log.error(exception);
