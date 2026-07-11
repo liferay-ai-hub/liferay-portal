@@ -131,8 +131,7 @@ describe('CategorizationMessageBalloon', () => {
 
 	it('does not show a confirmation when no new categories are added', async () => {
 		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
-			key ===
-			'great-i-have-added-x-categories-to-your-content'
+			key === 'great-i-have-added-x-categories-to-your-content'
 				? 'Great! I have added {0} categories to your content.'
 				: key
 		);
@@ -180,8 +179,7 @@ describe('CategorizationMessageBalloon', () => {
 
 	it('excludes already-attached categories from the confirmation count', async () => {
 		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
-			key ===
-			'great-i-have-added-x-categories-to-your-content'
+			key === 'great-i-have-added-x-categories-to-your-content'
 				? 'Great! I have added {0} categories to your content.'
 				: key
 		);
@@ -333,8 +331,7 @@ describe('CategorizationMessageBalloon', () => {
 
 	it('shows a confirmation message with a link to open the categorization panel after committing', async () => {
 		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
-			key ===
-			'great-i-have-added-x-categories-to-your-content'
+			key === 'great-i-have-added-x-categories-to-your-content'
 				? 'Great! I have added {0} categories to your content.'
 				: key
 		);
@@ -375,7 +372,9 @@ describe('CategorizationMessageBalloon', () => {
 
 		expect(screen.getByText(/Great! I have added/)).toBeInTheDocument();
 
-		fireEvent.click(screen.getByRole('button', {name: 'click-here-to-see-them'}));
+		fireEvent.click(
+			screen.getByRole('button', {name: 'click-here-to-see-them'})
+		);
 
 		expect(mockFire).toHaveBeenCalledWith(
 			'cms:aiAssistant:openCategorizationPanel',
