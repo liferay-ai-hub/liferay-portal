@@ -127,24 +127,10 @@ export default function CategorizationMessageBalloon({
 	const confirmationMessage = sub(
 		isCategories
 			? Liferay.Language.get(
-					'great-i-have-added-x-categories-to-your-content-x-to-see-them'
+					'great-i-have-added-x-categories-to-your-content'
 				)
-			: Liferay.Language.get(
-					'great-i-have-added-x-tags-to-your-content-x-to-see-them'
-				),
-		[
-			`${committedCount}`,
-			<ClayButton
-				className="align-baseline border-0 p-0 text-decoration-underline"
-				displayType="link"
-				key="open-categorization-panel"
-				onClick={() =>
-					Liferay.fire(OPEN_CATEGORIZATION_PANEL_EVENT, {})
-				}
-			>
-				{Liferay.Language.get('click-here')}
-			</ClayButton>,
-		]
+			: Liferay.Language.get('great-i-have-added-x-tags-to-your-content'),
+		`${committedCount}`
 	);
 
 	return (
@@ -192,7 +178,21 @@ export default function CategorizationMessageBalloon({
 							/>
 						</div>
 
-						<div className="m-2">{confirmationMessage}</div>
+						<div className="m-2">
+							{confirmationMessage}{' '}
+							<ClayButton
+								className="align-baseline border-0 p-0 text-decoration-underline"
+								displayType="link"
+								onClick={() =>
+									Liferay.fire(
+										OPEN_CATEGORIZATION_PANEL_EVENT,
+										{}
+									)
+								}
+							>
+								{Liferay.Language.get('click-here-to-see-them')}
+							</ClayButton>
+						</div>
 					</div>
 				</div>
 			) : null}

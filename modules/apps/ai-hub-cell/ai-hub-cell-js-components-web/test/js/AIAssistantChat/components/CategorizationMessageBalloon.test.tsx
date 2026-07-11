@@ -141,8 +141,8 @@ describe('CategorizationMessageBalloon', () => {
 	it('shows a confirmation message with a link to open the categorization panel after committing', async () => {
 		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
 			key ===
-			'great-i-have-added-x-categories-to-your-content-x-to-see-them'
-				? 'Great! I have added {0} categories to your content. {1} to see them.'
+			'great-i-have-added-x-categories-to-your-content'
+				? 'Great! I have added {0} categories to your content.'
 				: key
 		);
 
@@ -182,7 +182,7 @@ describe('CategorizationMessageBalloon', () => {
 
 		expect(screen.getByText(/Great! I have added/)).toBeInTheDocument();
 
-		fireEvent.click(screen.getByRole('button', {name: 'click-here'}));
+		fireEvent.click(screen.getByRole('button', {name: 'click-here-to-see-them'}));
 
 		expect(mockFire).toHaveBeenCalledWith(
 			'cms:aiAssistant:openCategorizationPanel',
@@ -225,8 +225,8 @@ describe('CategorizationMessageBalloon', () => {
 
 	it('counts only the tags not already on the content in the confirmation', async () => {
 		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
-			key === 'great-i-have-added-x-tags-to-your-content-x-to-see-them'
-				? 'Great! I have added {0} tags to your content. {1} to see them.'
+			key === 'great-i-have-added-x-tags-to-your-content'
+				? 'Great! I have added {0} tags to your content.'
 				: key
 		);
 
@@ -272,8 +272,8 @@ describe('CategorizationMessageBalloon', () => {
 	it('excludes already-attached categories from the confirmation count', async () => {
 		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
 			key ===
-			'great-i-have-added-x-categories-to-your-content-x-to-see-them'
-				? 'Great! I have added {0} categories to your content. {1} to see them.'
+			'great-i-have-added-x-categories-to-your-content'
+				? 'Great! I have added {0} categories to your content.'
 				: key
 		);
 
@@ -321,8 +321,8 @@ describe('CategorizationMessageBalloon', () => {
 	it('does not show a confirmation when no new categories are added', async () => {
 		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
 			key ===
-			'great-i-have-added-x-categories-to-your-content-x-to-see-them'
-				? 'Great! I have added {0} categories to your content. {1} to see them.'
+			'great-i-have-added-x-categories-to-your-content'
+				? 'Great! I have added {0} categories to your content.'
 				: key
 		);
 
