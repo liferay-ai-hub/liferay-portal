@@ -248,7 +248,7 @@ Space id: {{spaceId}}]]>
 				]
 			]]>
 		</input-variables>
-		<java-delegate>javaDelegate#composeContentEntriesOutput</java-delegate>
+		<java-delegate>javaDelegate#GenerateContent#composeContentEntriesOutput</java-delegate>
 		<labels>
 			<label language-id="en_US">
 				Compose Content Entries Output

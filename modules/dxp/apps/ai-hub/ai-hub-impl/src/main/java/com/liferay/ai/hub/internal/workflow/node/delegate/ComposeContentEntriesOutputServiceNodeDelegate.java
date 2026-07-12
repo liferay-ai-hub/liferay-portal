@@ -89,7 +89,7 @@ public class ComposeContentEntriesOutputServiceNodeDelegate
 
 	@Override
 	public String getKey() {
-		return "javaDelegate#composeContentEntriesOutput";
+		return "javaDelegate#GenerateContent#composeContentEntriesOutput";
 	}
 
 	private String _getOutput(Map<String, String> inputVariables) {
