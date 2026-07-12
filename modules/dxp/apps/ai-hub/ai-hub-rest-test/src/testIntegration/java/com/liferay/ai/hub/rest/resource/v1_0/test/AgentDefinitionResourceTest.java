@@ -1123,6 +1123,31 @@ public class AgentDefinitionResourceTest
 			new AgentDefinition() {
 				{
 					active = true;
+					externalReferenceCode =
+						WorkflowDefinitionConstants.
+							EXTERNAL_REFERENCE_CODE_GENERATE_FIELD_VALUE;
+					inputVariables = new Variable[] {
+						new Variable() {
+							{
+								name = "instruction";
+								type = "string";
+							}
+						}
+					};
+					outputVariable = new Variable() {
+						{
+							name = "properties";
+							type = "string";
+						}
+					};
+					version = 1;
+					workflowDefinitionName =
+						WorkflowDefinitionConstants.NAME_GENERATE_FIELD_VALUE;
+				}
+			},
+			new AgentDefinition() {
+				{
+					active = true;
 					externalReferenceCode = "L_GENERATE_TAGS";
 					inputVariables = new Variable[] {
 						new Variable() {

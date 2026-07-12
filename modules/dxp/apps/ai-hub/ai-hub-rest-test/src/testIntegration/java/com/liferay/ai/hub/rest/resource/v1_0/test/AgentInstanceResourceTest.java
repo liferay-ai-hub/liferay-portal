@@ -321,6 +321,7 @@ public class AgentInstanceResourceTest
 			_testPostAgentInstanceWithTypeAutoCategorize();
 			_testPostAgentInstanceWithTypeFixSpellingAndGrammarWithInstruction();
 			_testPostAgentInstanceWithTypeGenerateContent();
+			_testPostAgentInstanceWithTypeGenerateFieldValue();
 			_testPostAgentInstanceWithTypeGenerateTags();
 			_testPostAgentInstanceWithTypeHTTPRequestNodeWithLLMNodeWorkflowDefinition();
 			_testPostAgentInstanceWithTypeLLMNodeWithRAGWorkflowDefinition();
@@ -854,6 +855,39 @@ public class AgentInstanceResourceTest
 			));
 
 		_assertContains(data, "AI-generated", "L_CONTENTS", "Liferay");
+	}
+
+	private void _testPostAgentInstanceWithTypeGenerateFieldValue()
+		throws Exception {
+
+		String data = _postAndAwaitAgentInstance(
+			"L_GENERATE_FIELD_VALUE",
+			JSONUtil.put(
+				"instruction", "Generate a title based on the description."
+			).put(
+				"objectFields",
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"label", "Description"
+					).put(
+						"name", "description"
+					),
+					JSONUtil.put(
+						"label", "Title"
+					).put(
+						"name", "title"
+					)
+				).toString()
+			).put(
+				"properties",
+				JSONUtil.put(
+					"description",
+					"Liferay DXP is a digital experience platform for " +
+						"building websites, portals, and content."
+				).toString()
+			));
+
+		_assertContains(data, "title");
 	}
 
 	private void _testPostAgentInstanceWithTypeGenerateTags() throws Exception {
