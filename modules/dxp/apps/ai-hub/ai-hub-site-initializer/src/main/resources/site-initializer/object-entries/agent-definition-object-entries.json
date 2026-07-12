@@ -80,7 +80,7 @@
 		},
 		{
 			"active": true,
-			"description": "This agent generates one or more CMS content entries (assets backed by a Content Structure) as drafts from a brief, decomposing it into distinct angles. Use it whenever the user asks to generate, write, draft, or create CMS content, blog posts, or web content. From the user request, extract brief (the topic or description) and count. Always pass count as an integer number of entries: use the quantity the user asks for, and default to 1 whenever no quantity is given, treating singular phrasing or an article such as \"a\", \"an\", or \"one\" as 1. Every other input is resolved automatically by the application, so always proceed and never ask the user for, infer, or wait on the content type, structure, fields, or destination space.",
+			"description": "This agent generates one or more CMS content entries (assets backed by a Content Structure) as drafts from a brief, decomposing it into distinct angles. Use it whenever the user asks to generate, write, draft, or create CMS content, blog posts, or web content. It needs a brief (the subject the content should be about) and a count (how many entries to generate). A content-type or structure name such as \"Basic Web Content\" or \"blog\" is NOT a brief, and an explicit number or an article such as \"a\", \"an\", or \"one\" is the count. When the brief or the count is missing, ask the user for whichever is missing and wait before generating; never invent a brief and never assume a count. The content type, structure, fields, and destination space are resolved automatically by the application, so never ask about those.",
 			"externalReferenceCode": "L_GENERATE_CONTENT",
 			"inputVariables": "brief,count",
 			"outputVariable": "output",
