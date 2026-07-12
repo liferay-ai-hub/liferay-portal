@@ -1,0 +1,11 @@
+{
+	"active": true,
+	"externalReferenceCode": "L_GENERATE_FIELD_VALUE",
+	"groupExternalReferenceCode": "[$ACCOUNT_ENTRY_GROUP_ERC:L_AI_HUB$]",
+	"name": "Generate Field Value",
+	"scope": "ai",
+	"title": "Generate Field Value",
+	"title_i18n": {
+		"en_US": "Generate Field Value"
+	}
+}

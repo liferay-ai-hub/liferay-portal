@@ -93,6 +93,19 @@
 		},
 		{
 			"active": true,
+			"description": "This agent generates the value of a single field of the content entry the user is currently editing, deriving it from the values already filled in the entry's other fields and/or a brief. Use it whenever the user asks to generate, write, or fill one field based on other fields or a description - for example \"generate a title based on the content\", \"write the body from the title\", or \"fill field C from field A and field B\". From the user request, extract instruction. The field definitions and the current field values of the open entry are resolved automatically by the application, so always proceed and never ask the user for them. It returns only the generated value and does not create fields, create content entries, or save anything.",
+			"externalReferenceCode": "L_GENERATE_FIELD_VALUE",
+			"inputVariables": "instruction",
+			"outputVariable": "properties",
+			"r_accountToAIHubAgentDefinitions_accountEntryERC": "L_AI_HUB",
+			"system": true,
+			"title_i18n": {
+				"en_US": "Generate Field Value"
+			},
+			"workflowDefinitionName": "Generate Field Value"
+		},
+		{
+			"active": true,
 			"description": "This agent analyzes content and proposes tags, prioritizing reuse of existing tags and proposing new tags only when needed.",
 			"externalReferenceCode": "L_GENERATE_TAGS",
 			"inputVariables": "content,count,existingTags",

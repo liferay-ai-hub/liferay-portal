@@ -1,0 +1,166 @@
+<?xml version="1.0"?>
+
+<workflow-definition
+	xmlns="urn:liferay.com:liferay-workflow_7.4.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="urn:liferay.com:liferay-workflow_7.4.0 http://www.liferay.com/dtd/liferay-workflow-definition_7_4_0.xsd"
+>
+	<name>Generate Field Value</name>
+	<version>1</version>
+	<llm>
+		<name>generateFieldValue</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						276,
+						242
+					]
+				}
+			]]>
+		</metadata>
+		<labels>
+			<label language-id="en_US">
+				Generate Field Value
+			</label>
+		</labels>
+		<input-variables>
+			<![CDATA[
+				[
+					{
+						"name": "instruction",
+						"type": "string"
+					},
+					{
+						"name": "objectFields",
+						"type": "string"
+					},
+					{
+						"name": "properties",
+						"type": "string"
+					}
+				]
+			]]>
+		</input-variables>
+		<output-variables>
+			<![CDATA[
+				[
+					{
+						"name": "properties",
+						"type": "string"
+					}
+				]
+			]]>
+		</output-variables>
+		<prompt>
+			<![CDATA[# Role
+
+You generate the value of a SINGLE field of the content entry the user is
+currently editing. You receive the entry's field definitions, its current field
+values, and a natural-language instruction naming which field to produce and
+what to base it on: the values already filled in other fields (for example "a
+title based on the content", "a body based on the title", "field C from field A
+and field B") and/or a brief the user provides.
+
+# Inputs
+
+- instruction: the user's request. It names the target field to generate and the
+source fields and/or brief to derive it from.
+- objectFields: a JSON array of the entry's field definitions. Each element has
+at least `name` and `label`. Match the fields the instruction refers to against
+their `label` or `name`.
+- properties: a JSON object mapping each field `name` to its current value
+(empty or absent when the field is not filled yet). Use these values as the
+source material.
+
+# Rules
+
+- Produce ONLY the value for the single target field named in the instruction.
+- Derive it from the referenced fields' values in `properties` and/or the brief
+in the instruction. Work from whatever context is available.
+- Never generate a value for any other field, and never return more than the
+single target field's value.
+- Write the value in the language of the source content.
+
+# Output policy
+
+- Output a SINGLE raw JSON object mapping the target field's `name` to its
+generated value, for example {"title": "..."}.
+- The object MUST contain exactly one entry: the single target field.
+- DO NOT wrap the JSON in markdown fences (no ```json, no ```).
+- DO NOT add prose, commentary, or trailing text.]]>
+		</prompt>
+		<tools>
+			<![CDATA[[]]]>
+		</tools>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						End
+					</label>
+				</labels>
+				<name>end</name>
+				<target>end</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+		<user-message>
+			<![CDATA[Instruction: {{instruction}}
+
+Field definitions: {{objectFields}}
+
+Current values: {{properties}}]]>
+		</user-message>
+	</llm>
+	<state>
+		<name>start</name>
+		<metadata>
+			<![CDATA[
+				{
+					"xy": [
+						273,
+						25
+					]
+				}
+			]]>
+		</metadata>
+		<initial>true</initial>
+		<labels>
+			<label language-id="en_US">
+				Start
+			</label>
+		</labels>
+		<transitions>
+			<transition>
+				<labels>
+					<label language-id="en_US">
+						Generate Field Value
+					</label>
+				</labels>
+				<name>generateFieldValue</name>
+				<target>generateFieldValue</target>
+				<default>true</default>
+			</transition>
+		</transitions>
+	</state>
+	<state>
+		<name>end</name>
+		<metadata>
+			<![CDATA[
+				{
+					"terminal": true,
+					"xy": [
+						277,
+						459
+					]
+				}
+			]]>
+		</metadata>
+		<labels>
+			<label language-id="en_US">
+				End
+			</label>
+		</labels>
+	</state>
+</workflow-definition>
