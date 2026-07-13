@@ -251,6 +251,11 @@ public class AgentInstanceResourceTest
 			"http-request-node-with-llm-node-workflow-definition.json",
 			"HTTP Request Node With LLM Node Workflow Definition");
 		_addAgentDefinitionObjectEntry(
+			"L_LLM_NODE_WITH_IMAGE_GENERATION_TOOL_WORKFLOW_DEFINITION",
+			"userMessage",
+			"llm-node-with-image-generation-tool-workflow-definition.json",
+			"LLM Node With Image Generation Tool Workflow Definition");
+		_addAgentDefinitionObjectEntry(
 			"L_LLM_NODE_WITH_RAG_WORKFLOW_DEFINITION", "userMessage",
 			"llm-node-with-rag-workflow-definition.json",
 			"LLM Node With RAG Workflow Definition");
@@ -306,6 +311,12 @@ public class AgentInstanceResourceTest
 						TestPropsValues.getCompanyId(),
 						VertexAIConfiguration.class.getName(),
 						HashMapDictionaryBuilder.<String, Object>put(
+							"imageModelLocation",
+							TestPropsUtil.get("vertex.ai.image.model.location")
+						).put(
+							"imageModelName",
+							TestPropsUtil.get("vertex.ai.image.model.name")
+						).put(
 							"projectId",
 							TestPropsUtil.get("vertex.ai.project.id")
 						).put(
@@ -324,6 +335,7 @@ public class AgentInstanceResourceTest
 			_testPostAgentInstanceWithTypeGenerateContent();
 			_testPostAgentInstanceWithTypeGenerateTags();
 			_testPostAgentInstanceWithTypeHTTPRequestNodeWithLLMNodeWorkflowDefinition();
+			_testPostAgentInstanceWithTypeLLMNodeWithImageGenerationToolWorkflowDefinition();
 			_testPostAgentInstanceWithTypeLLMNodeWithRAGWorkflowDefinition();
 			_testPostAgentInstanceWithTypeLLMNodeWithRAGWorkflowDefinitionWithRestrictedUser();
 			_testPostAgentInstanceWithTypeLLMNodeWithToolWorkflowDefinition();
@@ -933,6 +945,30 @@ public class AgentInstanceResourceTest
 
 		_assertContains(
 			StringUtil.toLowerCase(lines.get(3)), "\"nodename\":\"llm\"");
+
+		SseUtil.closeAll();
+	}
+
+	private void _testPostAgentInstanceWithTypeLLMNodeWithImageGenerationToolWorkflowDefinition()
+		throws Exception {
+
+		CountDownLatch countDownLatch = new CountDownLatch(4);
+		List<String> lines = new ArrayList<>();
+
+		String sseEventSinkKey = SseEventSourceTestUtil.open(
+			List.of(countDownLatch), lines, "agent-instances/subscribe");
+
+		_postAgentInstance(
+			"L_LLM_NODE_WITH_IMAGE_GENERATION_TOOL_WORKFLOW_DEFINITION",
+			"A cartoon dog wearing a red hat", "userMessage", sseEventSinkKey);
+
+		Assert.assertTrue(countDownLatch.await(60, TimeUnit.SECONDS));
+
+		Assert.assertEquals(lines.toString(), 4, lines.size());
+
+		_assertContains(
+			StringUtil.toLowerCase(lines.get(3)), "\"mimetype\":\"image/png\"",
+			"\"nodename\":\"llm\"", "\"type\":\"image\"");
 
 		SseUtil.closeAll();
 	}
