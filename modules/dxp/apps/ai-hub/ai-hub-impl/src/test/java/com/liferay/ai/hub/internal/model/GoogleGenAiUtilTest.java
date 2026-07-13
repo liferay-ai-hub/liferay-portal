@@ -55,21 +55,21 @@ public class GoogleGenAiUtilTest {
 	@Before
 	public void setUp() throws Exception {
 		Mockito.when(
-			_vertexAIConfiguration.location()
-		).thenReturn(
-			RandomTestUtil.randomString()
-		);
-
-		Mockito.when(
-			_vertexAIConfiguration.modelName()
-		).thenReturn(
-			_MODEL_NAME
-		);
-
-		Mockito.when(
 			_vertexAIConfiguration.projectId()
 		).thenReturn(
 			RandomTestUtil.randomString()
+		);
+
+		Mockito.when(
+			_vertexAIConfiguration.textModelLocation()
+		).thenReturn(
+			RandomTestUtil.randomString()
+		);
+
+		Mockito.when(
+			_vertexAIConfiguration.textModelName()
+		).thenReturn(
+			_MODEL_NAME
 		);
 
 		_configurationProviderUtilMockedStatic.when(

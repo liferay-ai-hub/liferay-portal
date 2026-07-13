@@ -42,15 +42,11 @@ public class ToolsUtil {
 			return new Object[] {new WorkflowNodeTools(workflowNodeManager)};
 		}
 
-		List<String> toolExternalReferenceCodes = _getExternalReferenceCodes(
+		List<String> externalReferenceCodes = _getExternalReferenceCodes(
 			jsonFactory, kaleoNodeSettingValues, "tool");
 
-		if (toolExternalReferenceCodes.contains("imageGeneration")) {
-			return new Object[] {
-				new ImageGenerationTools(
-					kaleoNodeSettingValues.get("modelLocation"),
-					kaleoNodeSettingValues.get("modelName"), quotaManager)
-			};
+		if (externalReferenceCodes.contains("imageGeneration")) {
+			return new Object[] {new ImageGenerationTools(quotaManager)};
 		}
 
 		return new Object[0];

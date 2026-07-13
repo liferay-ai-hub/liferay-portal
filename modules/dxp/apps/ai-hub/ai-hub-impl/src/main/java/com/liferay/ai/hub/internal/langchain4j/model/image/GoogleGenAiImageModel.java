@@ -25,6 +25,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
@@ -41,21 +42,22 @@ import java.util.List;
 public class GoogleGenAiImageModel implements ImageModel {
 
 	public GoogleGenAiImageModel(
-			String modelLocation, String modelName, QuotaManager quotaManager,
-			List<SafetySetting> safetySettings, ServiceContext serviceContext)
+			QuotaManager quotaManager, List<SafetySetting> safetySettings,
+			ServiceContext serviceContext)
 		throws ConfigurationException {
+
+		_companyId = serviceContext.getCompanyId();
 
 		VertexAIConfiguration vertexAIConfiguration =
 			ConfigurationProviderUtil.getCompanyConfiguration(
 				VertexAIConfiguration.class, serviceContext.getCompanyId());
 
-		_modelLocation = modelLocation;
-		_modelName = modelName;
+		_modelLocation = vertexAIConfiguration.imageModelLocation();
+		_modelName = vertexAIConfiguration.imageModelName();
+		_projectId = vertexAIConfiguration.projectId();
+
 		_quotaManager = quotaManager;
 		_safetySettings = safetySettings;
-
-		_companyId = serviceContext.getCompanyId();
-		_projectId = vertexAIConfiguration.projectId();
 		_userId = serviceContext.getUserId();
 	}
 

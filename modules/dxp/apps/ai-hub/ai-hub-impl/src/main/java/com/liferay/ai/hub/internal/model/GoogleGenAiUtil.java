@@ -44,9 +44,9 @@ public class GoogleGenAiUtil {
 			Collections.singletonList(
 				new AIHubChatModelListenerImpl(quotaManager, serviceContext))
 		).location(
-			vertexAIConfiguration.location()
+			vertexAIConfiguration.textModelLocation()
 		).modelName(
-			vertexAIConfiguration.modelName()
+			vertexAIConfiguration.textModelName()
 		).projectId(
 			vertexAIConfiguration.projectId()
 		).responseFormat(
@@ -57,13 +57,11 @@ public class GoogleGenAiUtil {
 	}
 
 	public static GoogleGenAiImageModel createGoogleGenAiImageModel(
-			String modelLocation, String modelName, QuotaManager quotaManager,
-			ServiceContext serviceContext)
+			QuotaManager quotaManager, ServiceContext serviceContext)
 		throws ConfigurationException {
 
 		return new GoogleGenAiImageModel(
-			modelLocation, modelName, quotaManager, _safetySettings,
-			serviceContext);
+			quotaManager, _safetySettings, serviceContext);
 	}
 
 	public static GoogleGenAiStreamingChatModel
@@ -83,9 +81,9 @@ public class GoogleGenAiUtil {
 			Collections.singletonList(
 				new AIHubChatModelListenerImpl(quotaManager, serviceContext))
 		).location(
-			vertexAIConfiguration.location()
+			vertexAIConfiguration.textModelLocation()
 		).modelName(
-			vertexAIConfiguration.modelName()
+			vertexAIConfiguration.textModelName()
 		).projectId(
 			vertexAIConfiguration.projectId()
 		).safetySettings(

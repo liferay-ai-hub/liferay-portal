@@ -555,7 +555,7 @@ public class AgentDefinitionResourceTest
 						TestPropsValues.getCompanyId(),
 						VertexAIConfiguration.class.getName(),
 						HashMapDictionaryBuilder.<String, Object>put(
-							"modelName", modelName
+							"textModelName", modelName
 						).build())) {
 
 			return agentDefinitionResource.getAgentDefinitionsPage(

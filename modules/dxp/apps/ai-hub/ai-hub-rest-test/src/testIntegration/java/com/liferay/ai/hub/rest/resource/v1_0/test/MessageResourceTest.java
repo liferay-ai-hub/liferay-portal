@@ -139,13 +139,14 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 						TestPropsValues.getCompanyId(),
 						VertexAIConfiguration.class.getName(),
 						HashMapDictionaryBuilder.<String, Object>put(
-							"location", TestPropsUtil.get("vertex.ai.location")
-						).put(
-							"modelName",
-							TestPropsUtil.get("vertex.ai.model.name")
-						).put(
 							"projectId",
 							TestPropsUtil.get("vertex.ai.project.id")
+						).put(
+							"textModelLocation",
+							TestPropsUtil.get("vertex.ai.location")
+						).put(
+							"textModelName",
+							TestPropsUtil.get("vertex.ai.model.name")
 						).build())) {
 
 			CountDownLatch countDownLatch1 = new CountDownLatch(4);
@@ -256,13 +257,14 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 						TestPropsValues.getCompanyId(),
 						VertexAIConfiguration.class.getName(),
 						HashMapDictionaryBuilder.<String, Object>put(
-							"location", TestPropsUtil.get("vertex.ai.location")
-						).put(
-							"modelName",
-							TestPropsUtil.get("vertex.ai.model.name")
-						).put(
 							"projectId",
 							TestPropsUtil.get("vertex.ai.project.id")
+						).put(
+							"textModelLocation",
+							TestPropsUtil.get("vertex.ai.location")
+						).put(
+							"textModelName",
+							TestPropsUtil.get("vertex.ai.model.name")
 						).build())) {
 
 			CountDownLatch countDownLatch1 = new CountDownLatch(4);

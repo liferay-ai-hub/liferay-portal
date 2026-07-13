@@ -33,11 +33,7 @@ import java.util.Map;
  */
 public class ImageGenerationTools {
 
-	public ImageGenerationTools(
-		String modelLocation, String modelName, QuotaManager quotaManager) {
-
-		_modelLocation = modelLocation;
-		_modelName = modelName;
+	public ImageGenerationTools(QuotaManager quotaManager) {
 		_quotaManager = quotaManager;
 	}
 
@@ -52,8 +48,7 @@ public class ImageGenerationTools {
 
 			GoogleGenAiImageModel googleGenAiImageModel =
 				GoogleGenAiUtil.createGoogleGenAiImageModel(
-					_modelLocation, _modelName, _quotaManager,
-					executionContext.getServiceContext());
+					_quotaManager, executionContext.getServiceContext());
 
 			Response<Image> response = googleGenAiImageModel.generate(
 				description);
@@ -93,8 +88,6 @@ public class ImageGenerationTools {
 	private static final Log _log = LogFactoryUtil.getLog(
 		ImageGenerationTools.class);
 
-	private final String _modelLocation;
-	private final String _modelName;
 	private final QuotaManager _quotaManager;
 
 }
