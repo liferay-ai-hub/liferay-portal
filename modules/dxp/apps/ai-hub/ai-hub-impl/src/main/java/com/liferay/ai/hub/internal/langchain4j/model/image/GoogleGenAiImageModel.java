@@ -25,7 +25,6 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
-import com.liferay.portal.kernel.util.Validator;
 
 import dev.langchain4j.data.image.Image;
 import dev.langchain4j.model.image.ImageModel;
@@ -58,6 +57,7 @@ public class GoogleGenAiImageModel implements ImageModel {
 
 		_quotaManager = quotaManager;
 		_safetySettings = safetySettings;
+
 		_userId = serviceContext.getUserId();
 	}
 
