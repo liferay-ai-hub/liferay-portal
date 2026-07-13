@@ -310,10 +310,10 @@ public class AgentInstanceResourceTest
 							TestPropsUtil.get("vertex.ai.project.id")
 						).put(
 							"textModelLocation",
-							TestPropsUtil.get("vertex.ai.location")
+							TestPropsUtil.get("vertex.ai.text.model.location")
 						).put(
 							"textModelName",
-							TestPropsUtil.get("vertex.ai.model.name")
+							TestPropsUtil.get("vertex.ai.text.model.name")
 						).build())) {
 
 			_testPostAgentInstance();

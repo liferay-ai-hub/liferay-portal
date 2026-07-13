@@ -143,10 +143,10 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 							TestPropsUtil.get("vertex.ai.project.id")
 						).put(
 							"textModelLocation",
-							TestPropsUtil.get("vertex.ai.location")
+							TestPropsUtil.get("vertex.ai.text.model.location")
 						).put(
 							"textModelName",
-							TestPropsUtil.get("vertex.ai.model.name")
+							TestPropsUtil.get("vertex.ai.text.model.name")
 						).build())) {
 
 			CountDownLatch countDownLatch1 = new CountDownLatch(4);
@@ -261,10 +261,10 @@ public class MessageResourceTest extends BaseMessageResourceTestCase {
 							TestPropsUtil.get("vertex.ai.project.id")
 						).put(
 							"textModelLocation",
-							TestPropsUtil.get("vertex.ai.location")
+							TestPropsUtil.get("vertex.ai.text.model.location")
 						).put(
 							"textModelName",
-							TestPropsUtil.get("vertex.ai.model.name")
+							TestPropsUtil.get("vertex.ai.text.model.name")
 						).build())) {
 
 			CountDownLatch countDownLatch1 = new CountDownLatch(4);
