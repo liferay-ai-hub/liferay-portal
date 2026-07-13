@@ -38,13 +38,11 @@
 				]
 			]]>
 		</input-variables>
-		<model-location>global</model-location>
-		<model-name>gemini-3.1-flash-image</model-name>
 		<output-variables>
 			<![CDATA[
 				[
 					{
-						"name": "imageBase64",
+						"name": "brief",
 						"type": "string"
 					}
 				]
@@ -54,7 +52,14 @@
 			<![CDATA[You are an image generation assistant. Generate a single image from the user's description in the requested artistic style. When the user has not specified an artistic style, ask them to choose one of the following before generating the image: Photorealistic, Illustration, Digital Art, or Watercolor. When the user has already specified a style, use it and do not ask.]]>
 		</prompt>
 		<tools>
-			<![CDATA[[]]]>
+			<![CDATA[
+				[
+					{
+						"externalReferenceCode": "L_IMAGE_GENERATION",
+						"type": "tool"
+					}
+				]
+			]]>
 		</tools>
 		<transitions>
 			<transition>

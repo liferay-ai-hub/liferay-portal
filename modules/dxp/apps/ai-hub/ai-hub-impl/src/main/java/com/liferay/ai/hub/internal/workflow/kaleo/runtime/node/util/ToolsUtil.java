@@ -45,7 +45,7 @@ public class ToolsUtil {
 		List<String> externalReferenceCodes = _getExternalReferenceCodes(
 			jsonFactory, kaleoNodeSettingValues, "tool");
 
-		if (externalReferenceCodes.contains("imageGeneration")) {
+		if (externalReferenceCodes.contains("L_IMAGE_GENERATION")) {
 			return new Object[] {new ImageGenerationTools(quotaManager)};
 		}
 
