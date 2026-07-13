@@ -13,7 +13,6 @@ import com.liferay.ai.hub.internal.langchain4j.observability.api.listener.InputG
 import com.liferay.ai.hub.internal.langchain4j.observability.api.listener.OutputGuardrailExecutedListenerImpl;
 import com.liferay.ai.hub.internal.mcp.tool.provider.MCPToolProviderUtil;
 import com.liferay.ai.hub.internal.model.GoogleGenAiUtil;
-import com.liferay.ai.hub.internal.tools.ImageGenerationTools;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.GuardrailsUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.KaleoNodeSettingUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.MessageUtil;
@@ -128,18 +127,6 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 		String userMessage = VariablesUtil.applyInputVariables(
 			executionContext, "userMessage", kaleoNodeSettingValues);
 
-		Object[] tools = new Object[0];
-
-		String modelName = kaleoNodeSettingValues.get("modelName");
-
-		if ((modelName != null) && _availableImageModels.contains(modelName)) {
-			tools = new Object[] {
-				new ImageGenerationTools(
-					kaleoNodeSettingValues.get("modelLocation"), modelName,
-					_quotaManager)
-			};
-		}
-
 		String prompt = PromptUtil.composePrompt(
 			kaleoInstanceToken.getCompanyId(), _dtoConverterRegistry,
 			executionContext, kaleoNodeSettingValues, _objectEntryManager);
@@ -218,7 +205,9 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			).systemMessageProviderFunction(
 				memoryId -> prompt
 			).tools(
-				tools
+				ToolsUtil.getTools(
+					_jsonFactory, kaleoNodeSettingValues, getNodeType(),
+					_quotaManager, _workflowNodeManager)
 			).toolProvider(
 				MCPToolProviderUtil.create(
 					kaleoInstanceToken.getCompanyId(), _dtoConverterRegistry,
@@ -301,10 +290,6 @@ public class LLMNodeExecutor extends BaseNodeExecutor {
 			throw new RuntimeException(portalException);
 		}
 	}
-
-	private static final List<String> _availableImageModels = List.of(
-		"gemini-2.5-flash-image", "gemini-3.1-flash-image",
-		"gemini-3.1-flash-lite-image", "gemini-3-pro-image");
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;

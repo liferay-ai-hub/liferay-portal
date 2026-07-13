@@ -13,7 +13,6 @@ import com.liferay.ai.hub.internal.langchain4j.observability.api.listener.InputG
 import com.liferay.ai.hub.internal.langchain4j.observability.api.listener.OutputGuardrailExecutedListenerImpl;
 import com.liferay.ai.hub.internal.mcp.tool.provider.MCPToolProviderUtil;
 import com.liferay.ai.hub.internal.model.GoogleGenAiUtil;
-import com.liferay.ai.hub.internal.tool.WorkflowNodeTools;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.GuardrailsUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.KaleoNodeSettingUtil;
 import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.MessageUtil;
@@ -179,7 +178,9 @@ public class AIDecisionNodeExecutor extends BaseNodeExecutor {
 			).systemMessageProviderFunction(
 				memoryId -> prompt
 			).tools(
-				new WorkflowNodeTools(_workflowNodeManager)
+				ToolsUtil.getTools(
+					_jsonFactory, kaleoNodeSettingValues, getNodeType(),
+					_quotaManager, _workflowNodeManager)
 			).toolProvider(
 				MCPToolProviderUtil.create(
 					kaleoInstanceToken.getCompanyId(), _dtoConverterRegistry,

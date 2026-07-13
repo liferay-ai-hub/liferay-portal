@@ -5,12 +5,17 @@
 
 package com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util;
 
+import com.liferay.ai.hub.internal.tools.ImageGenerationTools;
+import com.liferay.ai.hub.internal.tools.WorkflowNodeTools;
+import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.workflow.WorkflowNodeManager;
+import com.liferay.portal.workflow.kaleo.definition.NodeType;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,11 +33,27 @@ public class ToolsUtil {
 			jsonFactory, kaleoNodeSettingValues, "mcpServer");
 	}
 
-	public static List<String> getToolExternalReferenceCodes(
-		JSONFactory jsonFactory, Map<String, String> kaleoNodeSettingValues) {
+	public static Object[] getTools(
+		JSONFactory jsonFactory, Map<String, String> kaleoNodeSettingValues,
+		NodeType nodeType, QuotaManager quotaManager,
+		WorkflowNodeManager workflowNodeManager) {
 
-		return _getExternalReferenceCodes(
+		if (nodeType == NodeType.AI_DECISION) {
+			return new Object[] {new WorkflowNodeTools(workflowNodeManager)};
+		}
+
+		List<String> toolExternalReferenceCodes = _getExternalReferenceCodes(
 			jsonFactory, kaleoNodeSettingValues, "tool");
+
+		if (toolExternalReferenceCodes.contains("imageGeneration")) {
+			return new Object[] {
+				new ImageGenerationTools(
+					kaleoNodeSettingValues.get("modelLocation"),
+					kaleoNodeSettingValues.get("modelName"), quotaManager)
+			};
+		}
+
+		return new Object[0];
 	}
 
 	private static List<String> _getExternalReferenceCodes(
