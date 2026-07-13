@@ -280,6 +280,51 @@ describe('CategorizationMessageBalloon', () => {
 		});
 	});
 
+	it('ignores case when counting new tags in the confirmation', async () => {
+		(Liferay.Language.get as jest.Mock).mockImplementation((key: string) =>
+			key === 'great-i-have-added-x-tags-to-your-content'
+				? 'Great! I have added {0} tags to your content.'
+				: key
+		);
+
+		const fakeEventSource = createFakeEventSource();
+
+		mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+		mockGetExistingTags.mockResolvedValue(['japan']);
+
+		await act(async () => {
+			render(
+				<CategorizationMessageBalloon
+					agent={ECategorizationAgent.GENERATE_TAGS}
+					cmsGroupId={20124}
+					content="Japan"
+					currentTagNames={['japan']}
+					scopeId={555}
+				/>
+			);
+		});
+
+		await act(async () => {
+			fakeEventSource.emit('Subscribe', 'sink-6');
+		});
+
+		await act(async () => {
+			fakeEventSource.emit(
+				'L_GENERATE_TAGS',
+				JSON.stringify({
+					data: '{"suggestions":[{"name":"Japan","isNew":false},{"name":"Culture","isNew":true}]}',
+					nodeName: 'llm',
+				})
+			);
+		});
+
+		fireEvent.click(screen.getByRole('button', {name: 'add-tags'}));
+
+		expect(
+			screen.getByText(/Great! I have added 1 tags/)
+		).toBeInTheDocument();
+	});
+
 	it('marks unknown tag targets as new and known ones as existing', async () => {
 		mockGetExistingTags.mockResolvedValue(['japan']);
 

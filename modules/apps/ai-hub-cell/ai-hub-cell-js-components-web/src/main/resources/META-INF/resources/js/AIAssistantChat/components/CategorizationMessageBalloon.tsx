@@ -118,8 +118,13 @@ export default function CategorizationMessageBalloon({
 			!(currentCategoryIds ?? []).includes(suggestion.id)
 	).length;
 
+	const lowerCaseCurrentTagNames = (currentTagNames ?? []).map((name) =>
+		name.toLowerCase()
+	);
+
 	const newTagCount = visibleSuggestions.filter(
-		(suggestion) => !(currentTagNames ?? []).includes(suggestion.name)
+		(suggestion) =>
+			!lowerCaseCurrentTagNames.includes(suggestion.name.toLowerCase())
 	).length;
 
 	const committedCount = isCategories ? newCategoryCount : newTagCount;
