@@ -83,7 +83,6 @@ public class GoogleGenAiImageModel implements ImageModel {
 			).build()) {
 
 			List<Image> images = new ArrayList<>();
-			TokenUsage tokenUsage = null;
 
 			GenerateContentResponse generateContentResponse =
 				client.models.generateContent(
@@ -102,7 +101,7 @@ public class GoogleGenAiImageModel implements ImageModel {
 						_safetySettings
 					).build());
 
-			tokenUsage = _toTokenUsage(generateContentResponse);
+			TokenUsage tokenUsage = _toTokenUsage(generateContentResponse);
 
 			_updateUsage(tokenUsage);
 

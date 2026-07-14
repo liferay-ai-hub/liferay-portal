@@ -660,16 +660,11 @@ public class XMLWorkflowModelParser implements WorkflowModelParser {
 			settings.add(new Setting("inputVariables", inputVariables));
 		}
 
-		String modelLocation = llmElement.elementTextTrim("model-location");
+		String outBoundEventName = llmElement.elementTextTrim(
+			"out-bound-event-name");
 
-		if (modelLocation != null) {
-			settings.add(new Setting("modelLocation", modelLocation));
-		}
-
-		String modelName = llmElement.elementTextTrim("model-name");
-
-		if (modelName != null) {
-			settings.add(new Setting("modelName", modelName));
+		if (outBoundEventName != null) {
+			settings.add(new Setting("outBoundEventName", outBoundEventName));
 		}
 
 		String outputVariables = _normalizeJSONArrayJSON(

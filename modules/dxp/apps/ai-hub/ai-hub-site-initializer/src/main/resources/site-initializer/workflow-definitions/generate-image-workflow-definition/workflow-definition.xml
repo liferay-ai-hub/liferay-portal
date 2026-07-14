@@ -42,6 +42,7 @@
 				]
 			]]>
 		</input-variables>
+		<out-bound-event-name>Chat Message Sent</out-bound-event-name>
 		<output-variables>
 			<![CDATA[
 				[

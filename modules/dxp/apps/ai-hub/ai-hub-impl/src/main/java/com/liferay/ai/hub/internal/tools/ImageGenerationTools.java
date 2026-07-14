@@ -7,6 +7,7 @@ package com.liferay.ai.hub.internal.tools;
 
 import com.liferay.ai.hub.internal.langchain4j.model.image.GoogleGenAiImageModel;
 import com.liferay.ai.hub.internal.model.GoogleGenAiUtil;
+import com.liferay.ai.hub.internal.workflow.kaleo.runtime.node.util.KaleoNodeSettingUtil;
 import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -115,6 +116,14 @@ public class ImageGenerationTools {
 
 		KaleoNode kaleoNode = kaleoInstanceToken.getCurrentKaleoNode();
 
+		Map<String, String> kaleoNodeSettingValues =
+			KaleoNodeSettingUtil.getKaleoNodeSettingValuesMap(
+				kaleoNode.getKaleoNodeId());
+
+		String outBoundEventName = GetterUtil.getString(
+			workflowContext.get("outBoundEventName"),
+			kaleoNodeSettingValues.get("outBoundEventName"));
+
 		for (Image image : images) {
 			SseUtil.send(
 				new String[] {
@@ -122,11 +131,8 @@ public class ImageGenerationTools {
 						workflowContext.get(
 							"agentDefinitionExternalReferenceCode"))
 				},
-				image.base64Data(),
-				GetterUtil.getString(
-					workflowContext.get("outBoundEventName"),
-					"Chat Message Sent"),
-				kaleoNode.getName(), JSONUtil.put("mimeType", image.mimeType()),
+				image.base64Data(), outBoundEventName, kaleoNode.getName(),
+				JSONUtil.put("mimeType", image.mimeType()),
 				GetterUtil.getString(workflowContext.get("sseEventSinkKey")),
 				"image");
 		}
