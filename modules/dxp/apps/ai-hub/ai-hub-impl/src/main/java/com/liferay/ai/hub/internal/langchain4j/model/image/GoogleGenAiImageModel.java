@@ -31,6 +31,7 @@ import dev.langchain4j.model.image.ImageModel;
 import dev.langchain4j.model.output.Response;
 import dev.langchain4j.model.output.TokenUsage;
 
+import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 
@@ -63,6 +64,15 @@ public class GoogleGenAiImageModel implements ImageModel {
 
 	@Override
 	public Response<Image> generate(String prompt) {
+		Response<List<Image>> response = generate(prompt, 1);
+
+		List<Image> images = response.content();
+
+		return Response.from(images.get(0), response.tokenUsage());
+	}
+
+	@Override
+	public Response<List<Image>> generate(String prompt, int n) {
 		try (Client client = Client.builder(
 			).location(
 				_modelLocation
@@ -71,6 +81,9 @@ public class GoogleGenAiImageModel implements ImageModel {
 			).vertexAI(
 				true
 			).build()) {
+
+			List<Image> images = new ArrayList<>();
+			TokenUsage tokenUsage = null;
 
 			GenerateContentResponse generateContentResponse =
 				client.models.generateContent(
@@ -84,24 +97,43 @@ public class GoogleGenAiImageModel implements ImageModel {
 						).build()),
 					GenerateContentConfig.builder(
 					).responseModalities(
-						List.of("IMAGE")
+						List.of("IMAGE", "TEXT")
 					).safetySettings(
 						_safetySettings
 					).build());
 
-			TokenUsage tokenUsage = _toTokenUsage(generateContentResponse);
+			tokenUsage = _toTokenUsage(generateContentResponse);
 
 			_updateUsage(tokenUsage);
 
-			return Response.from(_toImage(generateContentResponse), tokenUsage);
+			images.addAll(_toImages(generateContentResponse, n));
+
+			return Response.from(images, tokenUsage);
 		}
 		catch (Exception exception) {
 			return ReflectionUtil.throwException(exception);
 		}
 	}
 
-	private Image _toImage(GenerateContentResponse generateContentResponse) {
+	private List<Image> _toImages(
+		GenerateContentResponse generateContentResponse, int n) {
+
+		List<Image> images = new ArrayList<>();
+
 		for (Part part : generateContentResponse.parts()) {
+			if (images.size() >= n) {
+				break;
+			}
+
+			if (GetterUtil.getBoolean(
+					part.thought(
+					).orElse(
+						false
+					))) {
+
+				continue;
+			}
+
 			Blob blob = part.inlineData(
 			).orElse(
 				null
@@ -122,18 +154,23 @@ public class GoogleGenAiImageModel implements ImageModel {
 
 			Base64.Encoder encoder = Base64.getEncoder();
 
-			return Image.builder(
-			).base64Data(
-				encoder.encodeToString(data)
-			).mimeType(
-				blob.mimeType(
-				).orElse(
-					"image/png"
-				)
-			).build();
+			images.add(
+				Image.builder(
+				).base64Data(
+					encoder.encodeToString(data)
+				).mimeType(
+					blob.mimeType(
+					).orElse(
+						"image/png"
+					)
+				).build());
 		}
 
-		throw new IllegalStateException("The model returned no image");
+		if (images.isEmpty()) {
+			throw new IllegalStateException("The model returned no image");
+		}
+
+		return images;
 	}
 
 	private TokenUsage _toTokenUsage(

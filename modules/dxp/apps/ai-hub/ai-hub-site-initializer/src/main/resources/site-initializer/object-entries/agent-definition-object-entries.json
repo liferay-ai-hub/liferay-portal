@@ -67,9 +67,9 @@
 		},
 		{
 			"active": false,
-			"description": "Generates an image from a natural-language description and style. When no style is given, ask the user to choose: Photorealistic, Illustration, Digital Art, or Watercolor.",
+			"description": "Generates one or more images from a natural-language description, style, and count. Always pass count as an integer number of images, between 1 and 4: use the quantity the user asks for, and default to 1 whenever no quantity is given, treating singular phrasing or an article such as \"a\", \"an\", or \"one\" as 1. When no style is given, ask the user to choose: Photorealistic, Illustration, Digital Art, or Watercolor.",
 			"externalReferenceCode": "L_GENERATE_IMAGE",
-			"inputVariables": "description,style",
+			"inputVariables": "count,description,style",
 			"outputVariable": "imageBase64",
 			"r_accountToAIHubAgentDefinitions_accountEntryERC": "L_AI_HUB",
 			"system": true,

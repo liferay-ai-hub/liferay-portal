@@ -9,6 +9,7 @@ import com.liferay.ai.hub.internal.langchain4j.model.image.GoogleGenAiImageModel
 import com.liferay.ai.hub.internal.model.GoogleGenAiUtil;
 import com.liferay.ai.hub.quota.QuotaManager;
 import com.liferay.ai.hub.rest.resource.v1_0.util.SseUtil;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -25,6 +26,7 @@ import dev.langchain4j.model.output.Response;
 
 import java.io.Serializable;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -37,10 +39,10 @@ public class ImageGenerationTools {
 		_quotaManager = quotaManager;
 	}
 
-	@Tool("Generate an image from a natural language description")
+	@Tool("Generate a single image based in a prompt")
 	public String generateImage(
 		InvocationParameters invocationParameters,
-		@P("Description of the image to be generate") String description) {
+		@P("All information you needed to generate a image") String prompt) {
 
 		try {
 			ExecutionContext executionContext = invocationParameters.get(
@@ -50,30 +52,9 @@ public class ImageGenerationTools {
 				GoogleGenAiUtil.createGoogleGenAiImageModel(
 					_quotaManager, executionContext.getServiceContext());
 
-			Response<Image> response = googleGenAiImageModel.generate(
-				description);
+			Response<Image> response = googleGenAiImageModel.generate(prompt);
 
-			Image image = response.content();
-
-			Map<String, Serializable> workflowContext =
-				executionContext.getWorkflowContext();
-
-			KaleoInstanceToken kaleoInstanceToken =
-				executionContext.getKaleoInstanceToken();
-
-			KaleoNode kaleoNode = kaleoInstanceToken.getCurrentKaleoNode();
-
-			SseUtil.send(
-				new String[] {
-					GetterUtil.getString(
-						workflowContext.get(
-							"agentDefinitionExternalReferenceCode"))
-				},
-				image.base64Data(),
-				GetterUtil.getString(workflowContext.get("outBoundEventName")),
-				kaleoNode.getName(), JSONUtil.put("mimeType", image.mimeType()),
-				GetterUtil.getString(workflowContext.get("sseEventSinkKey")),
-				"image");
+			_sendImages(executionContext, List.of(response.content()));
 
 			return "The image was generated.";
 		}
@@ -82,6 +63,72 @@ public class ImageGenerationTools {
 
 			return "The image could not be generated. Ask the user to " +
 				"rephrase the request or try again later.";
+		}
+	}
+
+	@Tool("Generate multiple images based in a prompt.")
+	public String generateImages(
+		InvocationParameters invocationParameters,
+		@P(
+			defaultValue = "2", required = true,
+			value = "The number of images to generate, between 2 and 4"
+		)
+		Integer count,
+		@P(
+			"All information you needed to generate multiple images, Each image must be its own standalone image output, not a collage and not a grid. Produce exactly the number of distinct images, one after another."
+		)
+		String prompt) {
+
+		try {
+			ExecutionContext executionContext = invocationParameters.get(
+				"executionContext");
+
+			GoogleGenAiImageModel googleGenAiImageModel =
+				GoogleGenAiUtil.createGoogleGenAiImageModel(
+					_quotaManager, executionContext.getServiceContext());
+
+			Response<List<Image>> response = googleGenAiImageModel.generate(
+				prompt,
+				Math.max(1, Math.min(4, GetterUtil.getInteger(count, 2))));
+
+			_sendImages(executionContext, response.content());
+
+			return "The images were generated.";
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+
+			return "The images could not be generated. Ask the user to " +
+				"rephrase the request or try again later.";
+		}
+	}
+
+	private void _sendImages(
+			ExecutionContext executionContext, List<Image> images)
+		throws PortalException {
+
+		Map<String, Serializable> workflowContext =
+			executionContext.getWorkflowContext();
+
+		KaleoInstanceToken kaleoInstanceToken =
+			executionContext.getKaleoInstanceToken();
+
+		KaleoNode kaleoNode = kaleoInstanceToken.getCurrentKaleoNode();
+
+		for (Image image : images) {
+			SseUtil.send(
+				new String[] {
+					GetterUtil.getString(
+						workflowContext.get(
+							"agentDefinitionExternalReferenceCode"))
+				},
+				image.base64Data(),
+				GetterUtil.getString(
+					workflowContext.get("outBoundEventName"),
+					"Chat Message Sent"),
+				kaleoNode.getName(), JSONUtil.put("mimeType", image.mimeType()),
+				GetterUtil.getString(workflowContext.get("sseEventSinkKey")),
+				"image");
 		}
 	}
 
