@@ -14,6 +14,7 @@
 		"@clayui/link": "^3.165.0",
 		"@clayui/loading-indicator": "^3.165.0",
 		"@clayui/modal": "^3.165.0",
+		"@clayui/multi-select": "^3.165.0",
 		"@clayui/panel": "^3.165.0",
 		"@clayui/provider": "^3.165.0",
 		"@clayui/toolbar": "^3.165.0",
