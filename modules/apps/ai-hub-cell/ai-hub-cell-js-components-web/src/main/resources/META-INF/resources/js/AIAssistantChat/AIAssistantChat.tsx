@@ -33,6 +33,7 @@ import ContentTypeSelectorMessageBalloon, {
 } from './components/ContentTypeSelectorMessageBalloon';
 import ContentsMessageBalloon from './components/ContentsMessageBalloon';
 import ImageMessageBalloon from './components/ImageMessageBalloon';
+import TranslateContentMessageBalloon from './components/TranslateContentMessageBalloon';
 import UserMessageBalloon from './components/UserMessageBalloon';
 import {ChatMessageSentData, Message} from './types';
 import buildAssistantMessage from './utils/buildAssistantMessage';
@@ -112,6 +113,9 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 		instructionDefinitionScope
 	);
 	const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+	const sourceLanguageIdRef = useRef<string>(
+		Liferay.ThemeDisplay.getLanguageId()
+	);
 	const triggerRef = useRef<HTMLButtonElement | null>(null);
 	const textAreaRef = useRef<HTMLTextAreaElement | null>(null);
 	const fileUploadSelectorRef = useRef<string | undefined>(undefined);
@@ -144,6 +148,18 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 			});
 		}, 0);
 	}, [messages]);
+
+	useEffect(() => {
+		const onLocaleChanged = ({languageId}: {languageId: string}) => {
+			sourceLanguageIdRef.current = languageId;
+		};
+
+		Liferay.on('localizationSelect:localeChanged', onLocaleChanged);
+
+		return () => {
+			Liferay.detach('localizationSelect:localeChanged', onLocaleChanged);
+		};
+	}, []);
 
 	const sendMessage = useCallback((text: string) => {
 		if (!text.trim()) {
@@ -511,6 +527,38 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 							/>
 						);
 					}
+
+					try {
+						const json = JSON.parse(
+							item.text
+								.trim()
+								.replace(/^```(?:json)?/i, '')
+								.replace(/```$/, '')
+								.trim()
+						);
+
+						if (json?.action === 'translate') {
+							const {
+								agentInstanceId,
+								availableLanguageIds,
+								results,
+								targetLanguageIds,
+							} = json;
+
+							return (
+								<TranslateContentMessageBalloon
+									agentInstanceId={agentInstanceId}
+									availableLanguageIds={availableLanguageIds}
+									key={index}
+									requestedLanguageIds={targetLanguageIds}
+									results={results}
+									setIsGenerating={setIsGenerating}
+									sourceLanguageIdRef={sourceLanguageIdRef}
+								/>
+							);
+						}
+					}
+					catch {}
 
 					return (
 						<AIAssistantMessageBalloon
