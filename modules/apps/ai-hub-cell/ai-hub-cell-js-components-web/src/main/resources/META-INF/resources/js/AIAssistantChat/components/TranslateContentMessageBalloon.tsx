@@ -135,69 +135,75 @@ const TranslateContentMessageBalloon: React.FC<
 	}
 
 	return (
-		<MessageBalloon>
-			<MessageHeader
-				message={Liferay.Language.get(
-					'which-languages-would-you-like-to-translate-into'
-				)}
-			/>
+		<>
+			<MessageBalloon>
+				<MessageHeader
+					message={Liferay.Language.get(
+						'which-languages-would-you-like-to-translate-into'
+					)}
+				/>
 
-			<div
-				className="ai-assistant-chat__language-select"
-				style={{maxWidth: '18rem'}}
-			>
-				<ClayMultiSelect
-					disabled={submitted}
-					items={selectedLanguageIds.map((languageId) => ({
-						label: languageId,
-						value: languageId,
-					}))}
-					onChange={setValue}
-					onItemsChange={(newItems) =>
-						setSelectedLanguageIds(
-							newItems.map((item) => item.value)
-						)
-					}
-					placeholder={Liferay.Language.get('select-languages')}
-					sourceItems={(availableLanguageIds ?? []).map(
-						(languageId) => ({
+				<div
+					className="ai-assistant-chat__language-select"
+					style={{maxWidth: '18rem'}}
+				>
+					<ClayMultiSelect
+						disabled={submitted}
+						items={selectedLanguageIds.map((languageId) => ({
 							label: languageId,
 							value: languageId,
-						})
-					)}
-					spritemap={Liferay.Icons.spritemap}
-					value={value}
-				>
-					{(item) => (
-						<ClayMultiSelect.Item
-							key={item.value}
-							onClick={(event) => {
-								event.preventDefault();
+						}))}
+						onChange={setValue}
+						onItemsChange={(newItems) =>
+							setSelectedLanguageIds(
+								newItems.map((item) => item.value)
+							)
+						}
+						placeholder={Liferay.Language.get('select-languages')}
+						sourceItems={(availableLanguageIds ?? []).map(
+							(languageId) => ({
+								label: languageId,
+								value: languageId,
+							})
+						)}
+						spritemap={Liferay.Icons.spritemap}
+						value={value}
+					>
+						{(item) => (
+							<ClayMultiSelect.Item
+								key={item.value}
+								onClick={(event) => {
+									event.preventDefault();
 
-								toggleSelectedLanguageId(item.value);
+									toggleSelectedLanguageId(item.value);
 
-								setValue('');
-							}}
-							style={{cursor: 'pointer'}}
-							textValue={item.label}
-						>
-							<LanguageIdIcon languageId={item.value} />
+									setValue('');
+								}}
+								style={{cursor: 'pointer'}}
+								textValue={item.label}
+							>
+								<LanguageIdIcon languageId={item.value} />
 
-							{item.label}
-						</ClayMultiSelect.Item>
-					)}
-				</ClayMultiSelect>
+								{item.label}
+							</ClayMultiSelect.Item>
+						)}
+					</ClayMultiSelect>
+				</div>
+			</MessageBalloon>
 
-				<ClayButton
-					disabled={!selectedLanguageIds.length || submitted}
-					displayType="primary"
-					onClick={onTranslate}
-					size="sm"
-				>
-					{Liferay.Language.get('translate')}
-				</ClayButton>
-			</div>
-		</MessageBalloon>
+			{!!selectedLanguageIds.length && (
+				<div className="ai-assistant-chat__user-action">
+					<ClayButton
+						disabled={submitted}
+						displayType="primary"
+						onClick={onTranslate}
+						size="sm"
+					>
+						{Liferay.Language.get('translate')}
+					</ClayButton>
+				</div>
+			)}
+		</>
 	);
 };
 

@@ -404,6 +404,12 @@ html#{$cadmin-selector} .cadmin {
 			gap: 0.375rem;
 		}
 
+		.ai-assistant-chat__user-action {
+			display: flex;
+			justify-content: flex-end;
+			margin-bottom: 0.5rem;
+		}
+
 		.ai-assistant-chat__user-image {
 			align-items: center;
 			border-radius: 50%;
