@@ -211,8 +211,6 @@ html#{$cadmin-selector} .cadmin {
 			background: $cadmin-danger-l2;
 		}
 		.ai-assistant-chat__ai-assistant-message-balloon {
-			background: $cadmin-gray-100;
-			border-radius: 0.25rem;
 			display: flex;
 			flex-direction: column;
 			margin-bottom: 0.5rem;
@@ -427,7 +425,23 @@ html#{$cadmin-selector} .cadmin {
 		}
 
 		.ai-assistant-chat__user-message {
-			max-width: 70%;
+			align-items: center;
+			display: flex;
+			justify-content: flex-end;
+			margin-bottom: 0.5rem;
+
+			&-avatar {
+				flex-shrink: 0;
+				margin-left: 0.5rem;
+			}
+
+			&-content {
+				background: $cadmin-gray-100;
+				border-radius: 0.5rem;
+				max-width: 70%;
+				overflow-wrap: break-word;
+				padding: 0.5rem;
+			}
 		}
 
 		.ai-assistant-chat__suggestion-hint {
