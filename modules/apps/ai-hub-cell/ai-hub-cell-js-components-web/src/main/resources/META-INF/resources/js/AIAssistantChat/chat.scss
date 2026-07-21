@@ -375,6 +375,10 @@ html#{$cadmin-selector} .cadmin {
 			flex-direction: row;
 			gap: 0.5rem;
 			margin: 0.5rem;
+
+			.btn {
+				border-radius: 0.5rem;
+			}
 		}
 
 		.ai-assistant-chat__translation-review {
@@ -382,6 +386,10 @@ html#{$cadmin-selector} .cadmin {
 			flex-direction: column;
 			gap: 0.5rem;
 			margin: 0.5rem;
+
+			.btn {
+				border-radius: 0.5rem;
+			}
 		}
 
 		.ai-feedback-actions-row {
@@ -392,6 +400,10 @@ html#{$cadmin-selector} .cadmin {
 			display: flex;
 			justify-content: flex-end;
 			margin-bottom: 0.5rem;
+
+			.btn {
+				border-radius: 0.5rem;
+			}
 		}
 
 		.ai-assistant-chat__user-image {
