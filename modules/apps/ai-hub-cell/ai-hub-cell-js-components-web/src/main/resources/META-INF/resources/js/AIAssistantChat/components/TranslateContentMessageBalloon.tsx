@@ -45,15 +45,15 @@ const TranslateContentMessageBalloon: React.FC<
 					)}
 				/>
 
-				<ul className="list-unstyled m-2">
+				<ul className="ai-assistant-chat__translation-results">
 					{results.map(({targetLanguageId}) => (
 						<li
-							className="align-items-center d-flex mb-1"
+							className="ai-assistant-chat__translation-result"
 							key={targetLanguageId}
 						>
 							<LanguageIdIcon languageId={targetLanguageId} />
 
-							<span className="flex-grow-1">
+							<span className="ai-assistant-chat__translation-result-language">
 								{targetLanguageId}
 							</span>
 
@@ -76,7 +76,7 @@ const TranslateContentMessageBalloon: React.FC<
 					)}
 				/>
 
-				<div className="c-gap-2 d-flex flex-row m-2">
+				<div className="ai-assistant-chat__translation-actions">
 					<ClayButton
 						disabled={submitted}
 						displayType="primary"
@@ -108,7 +108,7 @@ const TranslateContentMessageBalloon: React.FC<
 					)}
 				/>
 
-				<div className="c-gap-2 d-flex flex-column m-2">
+				<div className="ai-assistant-chat__translation-review">
 					{translatedLanguageIds.map((languageId) => (
 						<ClayCheckbox
 							checked={selectedLanguageIds.includes(languageId)}
@@ -143,7 +143,7 @@ const TranslateContentMessageBalloon: React.FC<
 			/>
 
 			<div
-				className="ai-assistant-chat__language-select align-items-start c-gap-2 d-flex flex-column m-2 w-100"
+				className="ai-assistant-chat__language-select"
 				style={{maxWidth: '18rem'}}
 			>
 				<ClayMultiSelect
