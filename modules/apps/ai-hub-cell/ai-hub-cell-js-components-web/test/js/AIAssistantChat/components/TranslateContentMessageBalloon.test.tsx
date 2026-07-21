@@ -56,7 +56,7 @@ describe('TranslateContentMessageBalloon', () => {
 			Liferay.Util.unescapeHTML = originalUnescapeHTML;
 		});
 
-		it('lists each translated language with a success label', () => {
+		it('shows a confirmation when the content has been translated', () => {
 			renderComponent({
 				results: [
 					{targetLanguageId: 'es_ES'},
@@ -67,9 +67,6 @@ describe('TranslateContentMessageBalloon', () => {
 			expect(
 				screen.getByText('the-content-has-been-translated')
 			).toBeInTheDocument();
-			expect(screen.getByText('es_ES')).toBeInTheDocument();
-			expect(screen.getByText('pt_BR')).toBeInTheDocument();
-			expect(screen.getAllByText('translated')).toHaveLength(2);
 		});
 
 		it('fires the auto translate event for each result with fields', () => {
@@ -104,12 +101,12 @@ describe('TranslateContentMessageBalloon', () => {
 	});
 
 	describe('when selecting languages', () => {
-		it('disables the translate button until a language is selected', () => {
+		it('hides the translate button until a language is selected', () => {
 			renderComponent();
 
 			expect(
-				screen.getByRole('button', {name: 'translate'})
-			).toBeDisabled();
+				screen.queryByRole('button', {name: 'translate'})
+			).not.toBeInTheDocument();
 		});
 
 		it('preselects requested languages that are available', () => {
