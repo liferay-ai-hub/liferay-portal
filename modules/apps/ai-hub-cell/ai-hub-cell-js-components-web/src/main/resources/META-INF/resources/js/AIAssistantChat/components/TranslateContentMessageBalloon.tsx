@@ -5,7 +5,6 @@
 
 import ClayButton from '@clayui/button';
 import {ClayCheckbox} from '@clayui/form';
-import ClayLabel from '@clayui/label';
 import ClayMultiSelect from '@clayui/multi-select';
 import React from 'react';
 
@@ -44,25 +43,6 @@ const TranslateContentMessageBalloon: React.FC<
 						'the-content-has-been-translated'
 					)}
 				/>
-
-				<ul className="ai-assistant-chat__translation-results">
-					{results.map(({targetLanguageId}) => (
-						<li
-							className="ai-assistant-chat__translation-result"
-							key={targetLanguageId}
-						>
-							<LanguageIdIcon languageId={targetLanguageId} />
-
-							<span className="ai-assistant-chat__translation-result-language">
-								{targetLanguageId}
-							</span>
-
-							<ClayLabel displayType="success">
-								{Liferay.Language.get('translated')}
-							</ClayLabel>
-						</li>
-					))}
-				</ul>
 			</MessageBalloon>
 		);
 	}

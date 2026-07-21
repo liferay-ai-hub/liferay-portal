@@ -377,22 +377,6 @@ html#{$cadmin-selector} .cadmin {
 			margin: 0.5rem;
 		}
 
-		.ai-assistant-chat__translation-results {
-			list-style: none;
-			margin: 0.5rem;
-			padding-left: 0;
-		}
-
-		.ai-assistant-chat__translation-result {
-			align-items: center;
-			display: flex;
-			margin-bottom: 0.25rem;
-
-			&-language {
-				flex-grow: 1;
-			}
-		}
-
 		.ai-assistant-chat__translation-review {
 			display: flex;
 			flex-direction: column;
