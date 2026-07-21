@@ -63,10 +63,7 @@ const TranslateContentMessageBalloon: React.FC<
 					)}
 				/>
 
-				<div
-					className="ai-assistant-chat__language-select"
-					style={{maxWidth: '18rem'}}
-				>
+				<div className="ai-assistant-chat__language-select">
 					<ClayMultiSelect
 						disabled={selectDisabled}
 						items={selectedLanguageIds.map((languageId) => ({

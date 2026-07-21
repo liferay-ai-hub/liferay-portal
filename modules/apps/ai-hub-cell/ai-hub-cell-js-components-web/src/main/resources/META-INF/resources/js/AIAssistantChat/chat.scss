@@ -339,12 +339,7 @@ html#{$cadmin-selector} .cadmin {
 		}
 
 		.ai-assistant-chat__language-select {
-			align-items: flex-start;
-			display: flex;
-			flex-direction: column;
-			gap: 0.5rem;
 			margin: 0.5rem;
-			width: 100%;
 
 			.form-control,
 			input {
