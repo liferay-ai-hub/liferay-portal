@@ -49,23 +49,16 @@ const TranslateContentMessageBalloon: React.FC<
 
 	if (step === 'confirm') {
 		return (
-			<MessageBalloon>
-				<MessageHeader
-					message={Liferay.Language.get(
-						'some-of-the-selected-languages-already-have-a-translation.-what-do-you-want-to-do'
-					)}
-				/>
+			<>
+				<MessageBalloon>
+					<MessageHeader
+						message={Liferay.Language.get(
+							'some-of-the-selected-languages-already-have-a-translation.-what-do-you-want-to-do'
+						)}
+					/>
+				</MessageBalloon>
 
-				<div className="ai-assistant-chat__translation-actions">
-					<ClayButton
-						disabled={submitted}
-						displayType="primary"
-						onClick={() => submit(selectedLanguageIds)}
-						size="sm"
-					>
-						{Liferay.Language.get('overwrite-all')}
-					</ClayButton>
-
+				<div className="ai-assistant-chat__user-action">
 					<ClayButton
 						disabled={submitted}
 						displayType="secondary"
@@ -74,33 +67,48 @@ const TranslateContentMessageBalloon: React.FC<
 					>
 						{Liferay.Language.get('review')}
 					</ClayButton>
+
+					<ClayButton
+						disabled={submitted}
+						displayType="primary"
+						onClick={() => submit(selectedLanguageIds)}
+						size="sm"
+					>
+						{Liferay.Language.get('overwrite-all')}
+					</ClayButton>
 				</div>
-			</MessageBalloon>
+			</>
 		);
 	}
 
 	if (step === 'review') {
 		return (
-			<MessageBalloon>
-				<MessageHeader
-					message={Liferay.Language.get(
-						'select-the-translations-you-want-to-overwrite'
-					)}
-				/>
+			<>
+				<MessageBalloon>
+					<MessageHeader
+						message={Liferay.Language.get(
+							'select-the-translations-you-want-to-overwrite'
+						)}
+					/>
 
-				<div className="ai-assistant-chat__translation-review">
-					{translatedLanguageIds.map((languageId) => (
-						<ClayCheckbox
-							checked={selectedLanguageIds.includes(languageId)}
-							disabled={submitted}
-							key={languageId}
-							label={languageId}
-							onChange={() =>
-								toggleSelectedLanguageId(languageId)
-							}
-						/>
-					))}
+					<div className="ai-assistant-chat__translation-review">
+						{translatedLanguageIds.map((languageId) => (
+							<ClayCheckbox
+								checked={selectedLanguageIds.includes(
+									languageId
+								)}
+								disabled={submitted}
+								key={languageId}
+								label={languageId}
+								onChange={() =>
+									toggleSelectedLanguageId(languageId)
+								}
+							/>
+						))}
+					</div>
+				</MessageBalloon>
 
+				<div className="ai-assistant-chat__user-action">
 					<ClayButton
 						disabled={submitted || !selectedLanguageIds.length}
 						displayType="primary"
@@ -110,7 +118,7 @@ const TranslateContentMessageBalloon: React.FC<
 						{Liferay.Language.get('overwrite')}
 					</ClayButton>
 				</div>
-			</MessageBalloon>
+			</>
 		);
 	}
 
