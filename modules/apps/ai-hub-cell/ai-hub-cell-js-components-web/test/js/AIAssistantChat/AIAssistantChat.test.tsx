@@ -296,4 +296,38 @@ describe('AIAssistantChat', () => {
 			'data:image/png;base64,CCC'
 		);
 	});
+
+	it('sends the open event message to the chat only once', async () => {
+		const fakeEventSource = createFakeEventSource();
+
+		mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+
+		const openHandlers: ((payload: unknown) => void)[] = [];
+
+		(Liferay.on as jest.Mock).mockImplementation(
+			(name: string, callback: (payload: unknown) => void) => {
+				if (name === 'openAIAssistantChat') {
+					openHandlers.push(callback);
+				}
+			}
+		);
+
+		await act(async () => {
+			render(<AIAssistantChat {...defaultProps} />);
+		});
+
+		await act(async () => {
+			fakeEventSource.emit('Subscribe', 'ref-1');
+		});
+
+		await act(async () => {
+			openHandlers.forEach((handler) =>
+				handler({message: 'generate an image of a cat'})
+			);
+		});
+
+		expect(mockPostChat).toHaveBeenCalledTimes(1);
+
+		(Liferay.on as jest.Mock).mockReset();
+	});
 });

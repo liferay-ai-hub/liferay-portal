@@ -358,6 +358,13 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 
 			runtimeContextRef.current = payload?.context ?? {};
 
+			if (payload?.context) {
+				contextRef.current = {
+					...contextRef.current,
+					...payload.context,
+				};
+			}
+
 			if (payload?.contentTypes?.length) {
 				setMessages((previousMessages) => [
 					...previousMessages,
@@ -409,32 +416,6 @@ const AIAssistantChat: React.FC<AIAssistantChatProps> = ({
 			Liferay.detach(CATEGORIZE_EVENT, handleCategorize);
 		};
 	}, []);
-
-	useEffect(() => {
-		const handleOpen = (payload: {
-			context?: ChatContext;
-			message?: string;
-		}) => {
-			setActive(true);
-
-			if (payload?.context) {
-				contextRef.current = {
-					...contextRef.current,
-					...payload.context,
-				};
-			}
-
-			if (payload?.message) {
-				sendMessage(payload.message);
-			}
-		};
-
-		Liferay.on('openAIAssistantChat', handleOpen);
-
-		return () => {
-			Liferay.detach('openAIAssistantChat', handleOpen);
-		};
-	}, [sendMessage]);
 
 	const chatSurface = (
 		<>
