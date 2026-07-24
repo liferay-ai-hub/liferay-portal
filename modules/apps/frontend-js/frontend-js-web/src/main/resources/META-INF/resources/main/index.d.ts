@@ -450,6 +450,8 @@ export class AutoSize {
 	handleInput(event: string): void;
 }
 
+export {AutoSize as autoSize};
+
 /**
  * Adds compatibility for YUI events, re-emitting events according to YUI naming
  * and adding the capability of adding targets to bubble events to them.
