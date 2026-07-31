@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {isAIHubDeployment} from '../util/isAIHubDeployment';
+
 const BUFFER_ATTR = [null, '="', null, '" '];
 const BUFFER_CLOSE_NODE = ['</', null, '>'];
 const BUFFER_OPEN_NODE = ['<', null, null, '>'];
@@ -18,22 +20,20 @@ const COL_TYPES_ASSIGNMENT = [
 	'user',
 	'userId',
 ];
+const aiHubEnabled = Liferay.FeatureFlags['LPD-62272'] === true;
+const aiHubDeployment = aiHubEnabled && isAIHubDeployment();
+
 const COL_TYPES_FIELD = [
+	...(aiHubEnabled ? ['ai-hub-agent'] : []),
+	...(aiHubDeployment ? ['ai-decision'] : []),
 	'condition',
 	'fork',
 	'join',
+	...(aiHubDeployment ? ['llm', 'http-request', 'service'] : []),
 	'join-xor',
 	'state',
 	'task',
 ];
-
-if (Liferay.FeatureFlags['LPD-62272'] === true) {
-	COL_TYPES_FIELD.splice(0, 0, 'ai-hub-agent');
-	COL_TYPES_FIELD.splice(1, 0, 'ai-decision');
-	COL_TYPES_FIELD.splice(5, 0, 'llm');
-	COL_TYPES_FIELD.splice(6, 0, 'http-request');
-	COL_TYPES_FIELD.splice(7, 0, 'service');
-}
 
 const DEFAULT_LANGUAGE = 'groovy';
 const STR_BLANK = '';
