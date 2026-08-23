@@ -82,11 +82,19 @@ export default function CategorizationMessageBalloon({
 				return;
 			}
 
+			const context = {
+				appliedCategoryIds: currentCategoryIds,
+				appliedTags: currentTagNames,
+				content,
+				count,
+				...data,
+			};
+
 			if (targets?.length) {
-				resolveTargets({content, count, ...data}, targets);
+				resolveTargets(context, targets);
 			}
 			else {
-				run({content, count, ...data});
+				run(context);
 			}
 		})();
 
@@ -99,6 +107,8 @@ export default function CategorizationMessageBalloon({
 		cmsGroupId,
 		content,
 		count,
+		currentCategoryIds,
+		currentTagNames,
 		resolveTargets,
 		run,
 		scopeId,

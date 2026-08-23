@@ -30,11 +30,19 @@ function toRequestContext(
 	};
 
 	if (agent === ECategorizationAgent.AUTO_CATEGORIZE) {
-		requestContext.candidateCategories = JSON.stringify(
-			context.candidateCategories ?? []
+		const appliedCategoryIds = new Set(context.appliedCategoryIds ?? []);
+		const candidateCategories = context.candidateCategories ?? [];
+
+		requestContext.appliedCategories = JSON.stringify(
+			candidateCategories.filter((candidateCategory) =>
+				appliedCategoryIds.has(candidateCategory.id)
+			)
 		);
+		requestContext.candidateCategories =
+			JSON.stringify(candidateCategories);
 	}
 	else {
+		requestContext.appliedTags = JSON.stringify(context.appliedTags ?? []);
 		requestContext.existingTags = JSON.stringify(
 			context.existingTags ?? []
 		);
@@ -51,6 +59,7 @@ function resolveTargetSuggestions(
 	const suggestions: Suggestion[] = [];
 
 	if (agent === ECategorizationAgent.AUTO_CATEGORIZE) {
+		const appliedCategoryIds = new Set(context.appliedCategoryIds ?? []);
 		const candidateCategories = context.candidateCategories ?? [];
 		const seen = new Set<number>();
 
@@ -61,7 +70,11 @@ function resolveTargetSuggestions(
 				(candidate) => candidate.name.trim().toLowerCase() === name
 			);
 
-			if (candidateCategory && !seen.has(candidateCategory.id)) {
+			if (
+				candidateCategory &&
+				!appliedCategoryIds.has(candidateCategory.id) &&
+				!seen.has(candidateCategory.id)
+			) {
 				seen.add(candidateCategory.id);
 
 				suggestions.push({
@@ -73,6 +86,12 @@ function resolveTargetSuggestions(
 
 		return suggestions;
 	}
+
+	const appliedTags = new Set(
+		(context.appliedTags ?? []).map((appliedTag) =>
+			appliedTag.toLowerCase()
+		)
+	);
 
 	const existingTagsByLowerCase = new Map<string, string>();
 
@@ -86,7 +105,11 @@ function resolveTargetSuggestions(
 		const name = target.trim();
 		const lowerCaseName = name.toLowerCase();
 
-		if (!name || seen.has(lowerCaseName)) {
+		if (
+			!name ||
+			appliedTags.has(lowerCaseName) ||
+			seen.has(lowerCaseName)
+		) {
 			return;
 		}
 
