@@ -247,6 +247,7 @@ describe('AssetTags', () => {
 		renderComponent({
 			cmsGroupId: 456,
 			contentRawText: 'persisted content',
+			keywords: ['tag1', 'tag2'],
 			scopeId: 123,
 		});
 
@@ -260,6 +261,7 @@ describe('AssetTags', () => {
 				expect.objectContaining({
 					agent: 'L_GENERATE_TAGS',
 					cmsGroupId: 456,
+					currentTagNames: ['tag1', 'tag2'],
 					scopeId: 123,
 				})
 			)
