@@ -340,6 +340,7 @@ const AssetCategories = ({
 					Liferay.FeatureFlags?.['LPD-62272'] &&
 					hasUpdatePermission ? (
 						<AIAssistantTriggerButton
+							agentERC={AUTO_CATEGORIZE_AGENT}
 							anchorId={AI_ASSISTANT_TOOLBAR_TRIGGER_ID}
 							className="ml-2"
 							hideLabel

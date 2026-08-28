@@ -25,6 +25,7 @@ export interface AIAssistantOpenCommand {
 }
 
 interface AIAssistantState {
+	agentRuns: ReadonlyMap<string, string>;
 	command: AIAssistantOpenCommand | null;
 }
 
@@ -60,7 +61,7 @@ function getSingleton(): AIAssistantSingleton {
 			eventBound: false,
 			hostMounted: false,
 			listeners: new Set(),
-			state: {command: null},
+			state: {agentRuns: new Map(), command: null},
 		};
 
 		globalScope[GLOBAL_KEY] = singleton;
@@ -101,7 +102,7 @@ export function releaseHost(): void {
 	const singleton = getSingleton();
 
 	singleton.hostMounted = false;
-	singleton.state = {command: null};
+	singleton.state = {agentRuns: new Map(), command: null};
 }
 
 export function close(): void {
@@ -111,7 +112,23 @@ export function close(): void {
 		return;
 	}
 
-	singleton.state = {command: null};
+	singleton.state = {...singleton.state, command: null};
+
+	emit();
+}
+
+export function endAgentRun(runId: string): void {
+	const singleton = getSingleton();
+
+	if (!singleton.state.agentRuns.has(runId)) {
+		return;
+	}
+
+	const agentRuns = new Map(singleton.state.agentRuns);
+
+	agentRuns.delete(runId);
+
+	singleton.state = {...singleton.state, agentRuns};
 
 	emit();
 }
@@ -120,12 +137,31 @@ export function getState(): AIAssistantState {
 	return getSingleton().state;
 }
 
+export function isAgentRunning(
+	state: AIAssistantState,
+	agentERC: string
+): boolean {
+	return Array.from(state.agentRuns.values()).includes(agentERC);
+}
+
 export function open(command: AIAssistantOpenCommand): void {
 	const singleton = getSingleton();
 
-	singleton.state = {command};
+	singleton.state = {...singleton.state, command};
 
 	ensureHost();
+
+	emit();
+}
+
+export function startAgentRun(runId: string, agentERC: string): void {
+	const singleton = getSingleton();
+
+	const agentRuns = new Map(singleton.state.agentRuns);
+
+	agentRuns.set(runId, agentERC);
+
+	singleton.state = {...singleton.state, agentRuns};
 
 	emit();
 }

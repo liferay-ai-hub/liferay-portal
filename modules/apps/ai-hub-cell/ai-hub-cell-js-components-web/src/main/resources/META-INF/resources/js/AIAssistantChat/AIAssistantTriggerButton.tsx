@@ -10,6 +10,7 @@ import {
 	close,
 	ensureHost,
 	getState,
+	isAgentRunning,
 	open,
 	subscribe,
 } from './AIAssistant';
@@ -19,6 +20,7 @@ type AIAssistantTriggerButtonProps = Omit<
 	AIAssistantOpenCommand,
 	'anchorId' | 'triggerId'
 > & {
+	agentERC?: string;
 	anchorId?: string;
 	className?: string;
 	hideLabel?: boolean;
@@ -29,6 +31,7 @@ type AIAssistantTriggerButtonProps = Omit<
 };
 
 const AIAssistantTriggerButton: React.FC<AIAssistantTriggerButtonProps> = ({
+	agentERC,
 	anchorId,
 	className,
 	hideLabel,
@@ -41,8 +44,10 @@ const AIAssistantTriggerButton: React.FC<AIAssistantTriggerButtonProps> = ({
 	const generatedId = useId();
 	const id = triggerId ?? generatedId;
 
-	const {command: activeCommand} = useSyncExternalStore(subscribe, getState);
-	const active = activeCommand?.triggerId === id;
+	const state = useSyncExternalStore(subscribe, getState);
+	const active = state.command?.triggerId === id;
+
+	const busy = !!agentERC && isAgentRunning(state, agentERC);
 
 	useEffect(() => {
 		ensureHost();
@@ -71,6 +76,7 @@ const AIAssistantTriggerButton: React.FC<AIAssistantTriggerButtonProps> = ({
 			aria-controls="ai-assistant-host-root"
 			aria-expanded={active}
 			className={className}
+			disabled={busy}
 			hideLabel={hideLabel}
 			id={id}
 			label={label}

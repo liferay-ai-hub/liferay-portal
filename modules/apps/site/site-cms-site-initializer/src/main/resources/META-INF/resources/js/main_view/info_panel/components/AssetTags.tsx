@@ -235,6 +235,7 @@ const AssetTags = ({
 					(getContent ||
 						(objectEntry as IAssetObjectEntry).contentRawText) ? (
 						<AIAssistantTriggerButton
+							agentERC={GENERATE_TAGS_AGENT}
 							anchorId={AI_ASSISTANT_TOOLBAR_TRIGGER_ID}
 							className="ml-2"
 							hideLabel

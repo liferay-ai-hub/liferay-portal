@@ -4,16 +4,23 @@
  */
 
 import {render} from '@liferay/frontend-js-react-web';
-import {fireEvent, render as renderTL, screen} from '@testing-library/react';
+import {
+	act,
+	fireEvent,
+	render as renderTL,
+	screen,
+} from '@testing-library/react';
 import React from 'react';
 
 import '@testing-library/jest-dom';
 
 import AIAssistant, {
 	close,
+	endAgentRun,
 	getState,
 	open,
 	releaseHost,
+	startAgentRun,
 } from '../../../src/main/resources/META-INF/resources/js/AIAssistantChat/AIAssistant';
 import AIAssistantTriggerButton from '../../../src/main/resources/META-INF/resources/js/AIAssistantChat/AIAssistantTriggerButton';
 
@@ -167,6 +174,107 @@ describe('AIAssistantTriggerButton', () => {
 
 		expect(onOpen).toHaveBeenCalledTimes(1);
 		expect(getState().command).toBeNull();
+	});
+
+	it('keeps the trigger disabled for its whole run, even while closed', () => {
+		renderTL(
+			<AIAssistantTriggerButton
+				agentERC="L_AUTO_CATEGORIZE"
+				instructionDefinitionScope="cms"
+				label="Categories"
+				triggerId="categories"
+			/>
+		);
+
+		const categories = screen.getByRole('button', {name: 'Categories'});
+
+		fireEvent.click(categories);
+
+		act(() => {
+			startAgentRun('run-1', 'L_AUTO_CATEGORIZE');
+		});
+
+		expect(categories).toBeDisabled();
+
+		act(() => {
+			close();
+		});
+
+		expect(categories).toBeDisabled();
+
+		act(() => {
+			endAgentRun('run-1');
+		});
+
+		expect(categories).toBeEnabled();
+	});
+
+	it('disables only the triggers that opted into the running agent', () => {
+		renderTL(
+			<>
+				<AIAssistantTriggerButton
+					agentERC="L_AUTO_CATEGORIZE"
+					instructionDefinitionScope="cms"
+					label="Categories"
+					triggerId="categories"
+				/>
+				<AIAssistantTriggerButton
+					agentERC="L_GENERATE_TAGS"
+					instructionDefinitionScope="cms"
+					label="Tags"
+					triggerId="tags"
+				/>
+				<AIAssistantTriggerButton
+					instructionDefinitionScope="cms"
+					label="Chat"
+					triggerId="chat"
+				/>
+			</>
+		);
+
+		act(() => {
+			startAgentRun('run-1', 'L_AUTO_CATEGORIZE');
+		});
+
+		expect(screen.getByRole('button', {name: 'Categories'})).toBeDisabled();
+		expect(screen.getByRole('button', {name: 'Tags'})).toBeEnabled();
+		expect(screen.getByRole('button', {name: 'Chat'})).toBeEnabled();
+
+		act(() => {
+			endAgentRun('run-1');
+		});
+	});
+
+	it('keeps the trigger disabled until the last run of its agent ends', () => {
+		renderTL(
+			<AIAssistantTriggerButton
+				agentERC="L_AUTO_CATEGORIZE"
+				instructionDefinitionScope="cms"
+				label="Categories"
+				triggerId="categories"
+			/>
+		);
+
+		const categories = screen.getByRole('button', {name: 'Categories'});
+
+		act(() => {
+			startAgentRun('run-1', 'L_AUTO_CATEGORIZE');
+			startAgentRun('run-2', 'L_AUTO_CATEGORIZE');
+		});
+
+		expect(categories).toBeDisabled();
+
+		act(() => {
+			endAgentRun('run-1');
+		});
+
+		expect(categories).toBeDisabled();
+
+		act(() => {
+			endAgentRun('run-2');
+		});
+
+		expect(categories).toBeEnabled();
 	});
 
 	it('marks only the trigger that is driving the host as expanded', () => {

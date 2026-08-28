@@ -8,6 +8,11 @@ import React from 'react';
 
 import '@testing-library/jest-dom';
 
+import {
+	getState,
+	isAgentRunning,
+} from '../../../../src/main/resources/META-INF/resources/js/AIAssistantChat/AIAssistant';
+import AIAssistantTriggerButton from '../../../../src/main/resources/META-INF/resources/js/AIAssistantChat/AIAssistantTriggerButton';
 import CategorizationMessageBalloon from '../../../../src/main/resources/META-INF/resources/js/AIAssistantChat/components/CategorizationMessageBalloon';
 import {
 	createCategorizationEventSource,
@@ -16,6 +21,10 @@ import {
 import {getCandidateCategories} from '../../../../src/main/resources/META-INF/resources/js/Categorization/services/getCandidateCategories';
 import {getExistingTags} from '../../../../src/main/resources/META-INF/resources/js/Categorization/services/getExistingTags';
 import {ECategorizationAgent} from '../../../../src/main/resources/META-INF/resources/js/Categorization/types';
+
+jest.mock('@liferay/frontend-js-react-web', () => ({
+	render: jest.fn(),
+}));
 
 jest.mock(
 	'../../../../src/main/resources/META-INF/resources/js/Categorization/api'
@@ -281,6 +290,146 @@ describe('CategorizationMessageBalloon', () => {
 				suggestions: [{id: 39001, name: 'International'}],
 			})
 		);
+	});
+
+	it('disables the matching trigger for the length of the run', async () => {
+		const fakeEventSource = createFakeEventSource();
+
+		mockCreateEventSource.mockResolvedValue(fakeEventSource as never);
+		mockGetCandidateCategories.mockResolvedValue([
+			{id: 39001, name: 'International', vocabulary: 'Travel'},
+		]);
+
+		await act(async () => {
+			render(
+				<>
+					<AIAssistantTriggerButton
+						agentERC="L_AUTO_CATEGORIZE"
+						instructionDefinitionScope="cms"
+						label="Categories"
+						triggerId="categories"
+					/>
+					<AIAssistantTriggerButton
+						agentERC="L_GENERATE_TAGS"
+						instructionDefinitionScope="cms"
+						label="Tags"
+						triggerId="tags"
+					/>
+					<CategorizationMessageBalloon
+						agent={ECategorizationAgent.AUTO_CATEGORIZE}
+						cmsGroupId={20124}
+						content="Japan"
+						scopeId={555}
+					/>
+				</>
+			);
+		});
+
+		expect(screen.getByRole('button', {name: 'Categories'})).toBeDisabled();
+		expect(screen.getByRole('button', {name: 'Tags'})).toBeEnabled();
+
+		await act(async () => {
+			fakeEventSource.emit('Subscribe', 'sink-7');
+		});
+
+		expect(screen.getByRole('button', {name: 'Categories'})).toBeDisabled();
+
+		await act(async () => {
+			fakeEventSource.emit(
+				'L_AUTO_CATEGORIZE',
+				JSON.stringify({
+					data: '{"suggestions":[{"id":39001,"confidence":0.9}]}',
+					nodeName: 'llm',
+				})
+			);
+		});
+
+		expect(screen.getByRole('button', {name: 'Categories'})).toBeEnabled();
+	});
+
+	it('keeps the trigger disabled until both overlapping runs finish', async () => {
+		const firstEventSource = createFakeEventSource();
+		const secondEventSource = createFakeEventSource();
+
+		mockCreateEventSource
+			.mockResolvedValueOnce(firstEventSource as never)
+			.mockResolvedValueOnce(secondEventSource as never);
+		mockGetCandidateCategories.mockResolvedValue([
+			{id: 39001, name: 'International', vocabulary: 'Travel'},
+		]);
+
+		await act(async () => {
+			render(
+				<>
+					<AIAssistantTriggerButton
+						agentERC="L_AUTO_CATEGORIZE"
+						instructionDefinitionScope="cms"
+						label="Categories"
+						triggerId="categories"
+					/>
+					<CategorizationMessageBalloon
+						agent={ECategorizationAgent.AUTO_CATEGORIZE}
+						cmsGroupId={20124}
+						content="Japan"
+						scopeId={555}
+					/>
+					<CategorizationMessageBalloon
+						agent={ECategorizationAgent.AUTO_CATEGORIZE}
+						cmsGroupId={20124}
+						content="Brazil"
+						scopeId={555}
+					/>
+				</>
+			);
+		});
+
+		expect(screen.getByRole('button', {name: 'Categories'})).toBeDisabled();
+
+		await act(async () => {
+			firstEventSource.emit('Subscribe', 'sink-1');
+			firstEventSource.emit(
+				'L_AUTO_CATEGORIZE',
+				JSON.stringify({
+					data: '{"suggestions":[{"id":39001,"confidence":0.9}]}',
+					nodeName: 'llm',
+				})
+			);
+		});
+
+		expect(screen.getByRole('button', {name: 'Categories'})).toBeDisabled();
+
+		await act(async () => {
+			secondEventSource.emit('Subscribe', 'sink-2');
+			secondEventSource.emit(
+				'L_AUTO_CATEGORIZE',
+				JSON.stringify({
+					data: '{"suggestions":[{"id":39001,"confidence":0.9}]}',
+					nodeName: 'llm',
+				})
+			);
+		});
+
+		expect(screen.getByRole('button', {name: 'Categories'})).toBeEnabled();
+	});
+
+	it('ends the run when the event source never opens', async () => {
+		mockCreateEventSource.mockResolvedValue(undefined as never);
+		mockGetCandidateCategories.mockResolvedValue([
+			{id: 39001, name: 'International', vocabulary: 'Travel'},
+		]);
+
+		await act(async () => {
+			render(
+				<CategorizationMessageBalloon
+					agent={ECategorizationAgent.AUTO_CATEGORIZE}
+					cmsGroupId={20124}
+					content="Japan"
+					scopeId={555}
+				/>
+			);
+		});
+
+		expect(isAgentRunning(getState(), 'L_AUTO_CATEGORIZE')).toBe(false);
 	});
 
 	it('ignores case when counting new tags in the confirmation', async () => {
