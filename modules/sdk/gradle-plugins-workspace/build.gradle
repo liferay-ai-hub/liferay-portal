@@ -81,6 +81,10 @@ liferayOSGi {
 
 processResources {
 	from downloadNodeInfo
+
+	from("../../../lib/portal/dependencies.properties") {
+		into "com/liferay/gradle/plugins/workspace/internal/test"
+	}
 }
 
 updateFileVersions {
