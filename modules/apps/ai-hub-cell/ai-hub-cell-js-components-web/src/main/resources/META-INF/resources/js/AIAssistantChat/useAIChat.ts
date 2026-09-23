@@ -67,6 +67,7 @@ interface UseAIChatProps {
 	onAction?: (outcome: AIAssistantActionOutcome) => void;
 	onCloseRequested?: () => void;
 	onOpenRequested?: (options?: {expanded?: boolean}) => void;
+	sessionKey?: number;
 	triggerRef?: React.RefObject<HTMLButtonElement | null>;
 }
 
@@ -80,6 +81,7 @@ export default function useAIChat({
 	onAction: onActionProp,
 	onCloseRequested,
 	onOpenRequested,
+	sessionKey,
 	triggerRef,
 }: UseAIChatProps): AIChat {
 	const [feedbackGiven, setFeedbackGiven] = useState<Record<number, boolean>>(
@@ -92,6 +94,7 @@ export default function useAIChat({
 	const [reportContext, setReportContext] =
 		useState<AIChatReportContext | null>(null);
 
+	const firstRenderRef = useRef<boolean>(true);
 	const enableFreeFormCategorizationRef = useRef<boolean>(
 		enableFreeFormCategorization
 	);
@@ -447,6 +450,29 @@ export default function useAIChat({
 			closeAIAssistantChatConnection();
 		};
 	}, [closeAIAssistantChatConnection, openAIAssistantChatConnection]);
+
+	useEffect(() => {
+		if (firstRenderRef.current) {
+			firstRenderRef.current = false;
+
+			return;
+		}
+
+		setMessages([]);
+		setFeedbackGiven({});
+		setGeneratingBalloons([]);
+		setMessage('');
+		setReportContext(null);
+		setIsGenerating(false);
+		initialMessageSentRef.current = false;
+		eventSourceReference.current = null;
+		closeAIAssistantChatConnection();
+		openAIAssistantChatConnection();
+	}, [
+		closeAIAssistantChatConnection,
+		openAIAssistantChatConnection,
+		sessionKey,
+	]);
 
 	useEffect(() => {
 		const handleOpen = (payload: {
