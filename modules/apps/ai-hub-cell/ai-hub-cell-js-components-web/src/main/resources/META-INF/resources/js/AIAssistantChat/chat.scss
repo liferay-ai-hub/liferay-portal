@@ -179,6 +179,13 @@ html#{$cadmin-selector} .cadmin {
 			overflow: auto;
 		}
 
+		.ai-assistant-chat__scroll-to-bottom {
+			bottom: 0;
+			display: block;
+			margin: 0 auto;
+			position: sticky;
+		}
+
 		.ai-assistant-chat__generating-balloon {
 			border-radius: 0.25rem;
 			display: flex;
