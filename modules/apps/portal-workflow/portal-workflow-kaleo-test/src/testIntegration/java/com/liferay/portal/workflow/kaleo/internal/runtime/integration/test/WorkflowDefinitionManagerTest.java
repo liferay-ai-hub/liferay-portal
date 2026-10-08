@@ -6,14 +6,21 @@
 package com.liferay.portal.workflow.kaleo.internal.runtime.integration.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -611,6 +618,54 @@ public class WorkflowDefinitionManagerTest extends BaseWorkflowManagerTestCase {
 	}
 
 	@Test
+	public void testUpdateActiveAndUndeployWorkflowDefinition()
+		throws Exception {
+
+		WorkflowDefinition workflowDefinition = _saveWorkflowDefinition();
+
+		User user = UserTestUtil.addUser();
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(user));
+
+		try {
+			_assertAddDefinitionPermissionRequired(
+				() -> _workflowDefinitionManager.updateActive(
+					false, TestPropsValues.getCompanyId(),
+					workflowDefinition.getName(), user.getUserId(),
+					workflowDefinition.getVersion()));
+			_assertAddDefinitionPermissionRequired(
+				() -> _workflowDefinitionManager.updateActive(
+					true, TestPropsValues.getCompanyId(),
+					workflowDefinition.getName(), user.getUserId(),
+					workflowDefinition.getVersion()));
+			_assertAddDefinitionPermissionRequired(
+				() -> _workflowDefinitionManager.undeployWorkflowDefinition(
+					TestPropsValues.getCompanyId(),
+					workflowDefinition.getName(), user.getUserId(),
+					workflowDefinition.getVersion()));
+		}
+		finally {
+			PermissionThreadLocal.setPermissionChecker(permissionChecker);
+		}
+
+		_workflowDefinitionManager.updateActive(
+			true, TestPropsValues.getCompanyId(),
+			workflowDefinition.getName(), TestPropsValues.getUserId(),
+			workflowDefinition.getVersion());
+		_workflowDefinitionManager.updateActive(
+			false, TestPropsValues.getCompanyId(),
+			workflowDefinition.getName(), TestPropsValues.getUserId(),
+			workflowDefinition.getVersion());
+		_workflowDefinitionManager.undeployWorkflowDefinition(
+			TestPropsValues.getCompanyId(), workflowDefinition.getName(),
+			TestPropsValues.getUserId(), workflowDefinition.getVersion());
+	}
+
+	@Test
 	public void testValidateEmptyNotificationTemplateDefinition()
 		throws Exception {
 
@@ -957,6 +1012,22 @@ public class WorkflowDefinitionManagerTest extends BaseWorkflowManagerTestCase {
 			"valid-workflow-definition.xml");
 
 		_assertValid(inputStream);
+	}
+
+	private void _assertAddDefinitionPermissionRequired(
+			UnsafeRunnable<Exception> unsafeRunnable)
+		throws Exception {
+
+		try {
+			unsafeRunnable.run();
+
+			Assert.fail();
+		}
+		catch (WorkflowException workflowException) {
+			Assert.assertTrue(
+				workflowException.getCause() instanceof
+					PrincipalException.MustHavePermission);
+		}
 	}
 
 	private void _assertEquals(
