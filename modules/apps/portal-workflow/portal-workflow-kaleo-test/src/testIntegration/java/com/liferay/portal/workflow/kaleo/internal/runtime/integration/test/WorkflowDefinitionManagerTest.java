@@ -653,13 +653,11 @@ public class WorkflowDefinitionManagerTest extends BaseWorkflowManagerTestCase {
 		}
 
 		_workflowDefinitionManager.updateActive(
-			true, TestPropsValues.getCompanyId(),
-			workflowDefinition.getName(), TestPropsValues.getUserId(),
-			workflowDefinition.getVersion());
+			true, TestPropsValues.getCompanyId(), workflowDefinition.getName(),
+			TestPropsValues.getUserId(), workflowDefinition.getVersion());
 		_workflowDefinitionManager.updateActive(
-			false, TestPropsValues.getCompanyId(),
-			workflowDefinition.getName(), TestPropsValues.getUserId(),
-			workflowDefinition.getVersion());
+			false, TestPropsValues.getCompanyId(), workflowDefinition.getName(),
+			TestPropsValues.getUserId(), workflowDefinition.getVersion());
 		_workflowDefinitionManager.undeployWorkflowDefinition(
 			TestPropsValues.getCompanyId(), workflowDefinition.getName(),
 			TestPropsValues.getUserId(), workflowDefinition.getVersion());

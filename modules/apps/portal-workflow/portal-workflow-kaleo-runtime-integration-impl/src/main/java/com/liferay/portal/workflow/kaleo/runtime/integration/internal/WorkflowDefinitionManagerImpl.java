@@ -445,19 +445,6 @@ public class WorkflowDefinitionManagerImpl
 		return version + StringPool.PERIOD + 0;
 	}
 
-	private <T> T _get(
-			boolean liberal,
-			UnsafeSupplier<T, PortalException> localServiceUnsafeSupplier,
-			UnsafeSupplier<T, PortalException> serviceUnsafeSupplier)
-		throws PortalException {
-
-		if (liberal) {
-			return localServiceUnsafeSupplier.get();
-		}
-
-		return serviceUnsafeSupplier.get();
-	}
-
 	private void _checkAddDefinitionPermission(
 			String name, ServiceContext serviceContext)
 		throws PortalException {
@@ -488,6 +475,19 @@ public class WorkflowDefinitionManagerImpl
 
 		_workflowPortletResourcePermission.check(
 			permissionChecker, groupId, ActionKeys.ADD_DEFINITION);
+	}
+
+	private <T> T _get(
+			boolean liberal,
+			UnsafeSupplier<T, PortalException> localServiceUnsafeSupplier,
+			UnsafeSupplier<T, PortalException> serviceUnsafeSupplier)
+		throws PortalException {
+
+		if (liberal) {
+			return localServiceUnsafeSupplier.get();
+		}
+
+		return serviceUnsafeSupplier.get();
 	}
 
 	private List<WorkflowDefinition> _getActiveWorkflowDefinitions(
