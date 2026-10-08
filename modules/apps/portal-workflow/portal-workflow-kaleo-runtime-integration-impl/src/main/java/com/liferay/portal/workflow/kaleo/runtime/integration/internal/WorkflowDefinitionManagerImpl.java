@@ -12,6 +12,10 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
@@ -19,6 +23,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.workflow.NoSuchWorkflowDefinitionException;
 import com.liferay.portal.kernel.workflow.RequiredWorkflowDefinitionException;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowException;
 import com.liferay.portal.lock.service.LockLocalService;
@@ -370,6 +375,8 @@ public class WorkflowDefinitionManagerImpl
 			serviceContext.setCompanyId(companyId);
 			serviceContext.setUserId(userId);
 
+			_checkAddDefinitionPermission(name, serviceContext);
+
 			_workflowEngine.deleteWorkflowDefinition(
 				name, version, serviceContext);
 		}
@@ -395,6 +402,8 @@ public class WorkflowDefinitionManagerImpl
 
 			serviceContext.setCompanyId(companyId);
 			serviceContext.setUserId(userId);
+
+			_checkAddDefinitionPermission(name, serviceContext);
 
 			if (active) {
 				_kaleoDefinitionLocalService.activateKaleoDefinition(
@@ -447,6 +456,38 @@ public class WorkflowDefinitionManagerImpl
 		}
 
 		return serviceUnsafeSupplier.get();
+	}
+
+	private void _checkAddDefinitionPermission(
+			String name, ServiceContext serviceContext)
+		throws PortalException {
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if (permissionChecker == null) {
+			return;
+		}
+
+		KaleoDefinition kaleoDefinition =
+			_kaleoDefinitionLocalService.fetchKaleoDefinition(
+				name, serviceContext);
+
+		if (kaleoDefinition == null) {
+			return;
+		}
+
+		long groupId = WorkflowConstants.DEFAULT_GROUP_ID;
+
+		if (Objects.equals(
+				kaleoDefinition.getScope(),
+				WorkflowDefinitionConstants.SCOPE_AI)) {
+
+			groupId = kaleoDefinition.getGroupId();
+		}
+
+		_workflowPortletResourcePermission.check(
+			permissionChecker, groupId, ActionKeys.ADD_DEFINITION);
 	}
 
 	private List<WorkflowDefinition> _getActiveWorkflowDefinitions(
@@ -721,5 +762,10 @@ public class WorkflowDefinitionManagerImpl
 
 	@Reference
 	private WorkflowEngine _workflowEngine;
+
+	@Reference(
+		target = "(resource.name=" + WorkflowConstants.RESOURCE_NAME + ")"
+	)
+	private PortletResourcePermission _workflowPortletResourcePermission;
 
 }
