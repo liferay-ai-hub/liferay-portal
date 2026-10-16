@@ -5,10 +5,10 @@
 
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
+import DOMPurify from 'dompurify';
 import React, {useState} from 'react';
 
 import '../chat.scss';
-import renderAIAssistantMessageMarkdown from '../utils/renderAIAssistantMessageMarkdown';
 import AIAssistantMessageBalloonIcon from './AIAssistantMessageBalloonIcon';
 
 interface FieldValueMessageBalloonProps {
@@ -29,14 +29,20 @@ const FieldValueMessageBalloon: React.FC<FieldValueMessageBalloonProps> = ({
 			<div className="d-flex flex-row font-weight-semi-bold">
 				<AIAssistantMessageBalloonIcon />
 
-				<div
-					className="m-2"
-					dangerouslySetInnerHTML={{
-						__html: renderAIAssistantMessageMarkdown(
-							Object.values(values).join('\n\n')
-						),
-					}}
-				/>
+				<div className="m-2">
+					{Object.values(values).map((value, index) => (
+						<div
+
+							// XSS: value is sanitized by DOMPurify, since rich
+							// text values are HTML by design
+
+							dangerouslySetInnerHTML={{
+								__html: DOMPurify.sanitize(value),
+							}}
+							key={index}
+						/>
+					))}
+				</div>
 			</div>
 
 			<div className="d-flex justify-content-end mb-2 mr-2">
