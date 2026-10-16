@@ -148,7 +148,6 @@ export default function useCategorizationAgent(agent: ECategorizationAgent) {
 	const connectingRef = useRef<boolean>(false);
 	const eventSourceRef = useRef<EventSource | null>(null);
 	const lastContextRef = useRef<CategorizationContext | null>(null);
-	const lastTargetsRef = useRef<string[] | null>(null);
 	const mountedRef = useRef<boolean>(true);
 	const pendingRef = useRef<boolean>(false);
 	const sseEventSinkKeyRef = useRef<string | null>(null);
@@ -292,7 +291,6 @@ export default function useCategorizationAgent(agent: ECategorizationAgent) {
 			}
 
 			lastContextRef.current = context;
-			lastTargetsRef.current = null;
 
 			setError(undefined);
 			setSuggestions([]);
@@ -317,7 +315,6 @@ export default function useCategorizationAgent(agent: ECategorizationAgent) {
 			}
 
 			lastContextRef.current = context;
-			lastTargetsRef.current = targets;
 
 			setError(undefined);
 
@@ -329,18 +326,43 @@ export default function useCategorizationAgent(agent: ECategorizationAgent) {
 		[agent]
 	);
 
-	const regenerate = useCallback(() => {
-		if (!lastContextRef.current) {
-			return;
-		}
+	const regenerate = useCallback(
+		(excludedSuggestions: Suggestion[]) => {
+			const context = lastContextRef.current;
 
-		if (lastTargetsRef.current) {
-			resolveTargets(lastContextRef.current, lastTargetsRef.current);
-		}
-		else {
-			run(lastContextRef.current);
-		}
-	}, [resolveTargets, run]);
+			if (!context) {
+				return;
+			}
+
+			if (agent === ECategorizationAgent.AUTO_CATEGORIZE) {
+				const excludedCategoryIds = new Set(
+					excludedSuggestions.map((suggestion) => suggestion.id)
+				);
+
+				run({
+					...context,
+					candidateCategories: (
+						context.candidateCategories ?? []
+					).filter(
+						(candidateCategory) =>
+							!excludedCategoryIds.has(candidateCategory.id)
+					),
+				});
+			}
+			else {
+				run({
+					...context,
+					appliedTags: [
+						...(context.appliedTags ?? []),
+						...excludedSuggestions.map(
+							(suggestion) => suggestion.name
+						),
+					],
+				});
+			}
+		},
+		[agent, run]
+	);
 
 	const stop = useCallback(() => {
 		stoppedRef.current = true;
