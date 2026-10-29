@@ -1384,6 +1384,28 @@ describe('AIAssistantHost', () => {
 			expect(mockPostChat).toHaveBeenCalledTimes(1);
 		});
 
+		it('shows the greeting of the first command', async () => {
+			mockCreateEventSource.mockResolvedValue(
+				createFakeEventSource() as never
+			);
+
+			await act(async () => {
+				renderHost();
+			});
+
+			await act(async () => {
+				open({
+					greeting: 'Hi! Describe the fragment you need.',
+					instructionDefinitionScope: 'test-scope',
+					triggerId: 'trigger-1',
+				});
+			});
+
+			expect(
+				screen.getByText('Hi! Describe the fragment you need.')
+			).toBeInTheDocument();
+		});
+
 		it('keeps the greeting of the first command when a later command omits newSession', async () => {
 			const fakeEventSource = createFakeEventSource();
 
