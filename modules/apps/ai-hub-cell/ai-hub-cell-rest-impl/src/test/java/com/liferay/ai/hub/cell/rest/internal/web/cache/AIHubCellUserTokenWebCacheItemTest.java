@@ -60,11 +60,11 @@ public class AIHubCellUserTokenWebCacheItemTest {
 			long userId = RandomTestUtil.randomLong();
 
 			AIHubCellUserTokenWebCacheItem.get(
-				localOAuthClient, _getOAuth2Application(1), userId);
+				localOAuthClient, _createOAuth2Application(1), userId);
 			AIHubCellUserTokenWebCacheItem.get(
-				localOAuthClient, _getOAuth2Application(1), userId);
+				localOAuthClient, _createOAuth2Application(1), userId);
 			AIHubCellUserTokenWebCacheItem.get(
-				localOAuthClient, _getOAuth2Application(2), userId);
+				localOAuthClient, _createOAuth2Application(2), userId);
 
 			List<String> keys = keyArgumentCaptor.getAllValues();
 
@@ -87,7 +87,7 @@ public class AIHubCellUserTokenWebCacheItemTest {
 		return signedJWT.serialize();
 	}
 
-	private OAuth2Application _getOAuth2Application(
+	private OAuth2Application _createOAuth2Application(
 		long oAuth2ApplicationScopeAliasesId) {
 
 		OAuth2Application oAuth2Application = Mockito.mock(

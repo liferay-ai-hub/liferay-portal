@@ -112,8 +112,6 @@ public class AIHubCellConfigurationModelListenerTest {
 					"Liferay.Portal.Search.REST.everything.read"),
 				false, new ServiceContext());
 
-		String homePageURL = oAuth2Application.getHomePageURL();
-
 		SAPEntry sapEntry = _sapEntryLocalService.addSAPEntry(
 			user.getUserId(),
 			StringBundler.concat(
@@ -131,6 +129,8 @@ public class AIHubCellConfigurationModelListenerTest {
 			).put(
 				"serviceURL", "https://" + RandomTestUtil.randomString()
 			).build();
+
+		String homePageURL = oAuth2Application.getHomePageURL();
 
 		_configurationModelListener.onAfterSave(
 			AIHubCellConfiguration.class.getName(), properties);
