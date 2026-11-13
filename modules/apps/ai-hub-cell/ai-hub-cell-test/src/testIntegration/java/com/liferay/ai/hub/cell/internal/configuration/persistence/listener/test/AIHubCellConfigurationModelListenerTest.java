@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -85,6 +86,13 @@ public class AIHubCellConfigurationModelListenerTest {
 		if (_configurationSaved) {
 			ConfigurationTestUtil.deleteConfiguration(
 				AIHubCellConfiguration.class.getName());
+		}
+
+		OAuth2Application mcpOAuth2Application = _fetchMCPOAuth2Application();
+
+		if (mcpOAuth2Application != null) {
+			_oAuth2ApplicationLocalService.deleteOAuth2Application(
+				mcpOAuth2Application);
 		}
 
 		_deleteOAuth2ApplicationAndSAPEntry();
@@ -178,6 +186,59 @@ public class AIHubCellConfigurationModelListenerTest {
 		Assert.assertEquals(
 			oAuth2ApplicationScopeAliasesId,
 			oAuth2Application.getOAuth2ApplicationScopeAliasesId());
+	}
+
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-63311"), @FeatureFlag("LPD-65213")}
+	)
+	@Test
+	public void testOnAfterSaveMCPOAuth2Application() throws Exception {
+		_configurationSaved = true;
+
+		_saveConfiguration("https://ai-hub.example.com");
+
+		OAuth2Application mcpOAuth2Application = _fetchMCPOAuth2Application();
+
+		Assert.assertEquals(
+			Arrays.asList(GrantType.AUTHORIZATION_CODE_PKCE),
+			mcpOAuth2Application.getAllowedGrantTypesList());
+		Assert.assertEquals(
+			"none", mcpOAuth2Application.getClientAuthenticationMethod());
+		Assert.assertEquals("ai-hub-mcp", mcpOAuth2Application.getClientId());
+		Assert.assertEquals("AI Hub MCP", mcpOAuth2Application.getName());
+		Assert.assertEquals(
+			Arrays.asList("https://ai-hub.example.com/o/ai-hub-mcp/oauth2"),
+			mcpOAuth2Application.getRedirectURIsList());
+		Assert.assertFalse(mcpOAuth2Application.isTrustedApplication());
+
+		_saveConfiguration("https://ai-hub-2.example.com");
+
+		OAuth2Application updatedMCPOAuth2Application =
+			_fetchMCPOAuth2Application();
+
+		Assert.assertEquals(
+			mcpOAuth2Application.getOAuth2ApplicationId(),
+			updatedMCPOAuth2Application.getOAuth2ApplicationId());
+		Assert.assertEquals(
+			Arrays.asList("https://ai-hub-2.example.com/o/ai-hub-mcp/oauth2"),
+			updatedMCPOAuth2Application.getRedirectURIsList());
+	}
+
+	@FeatureFlags(
+		featureFlags = {
+			@FeatureFlag("LPD-63311"),
+			@FeatureFlag(enable = false, value = "LPD-65213")
+		}
+	)
+	@Test
+	public void testOnAfterSaveMCPOAuth2ApplicationWithoutFeatureFlag()
+		throws Exception {
+
+		_configurationSaved = true;
+
+		_saveConfiguration("https://" + RandomTestUtil.randomString());
+
+		Assert.assertNull(_fetchMCPOAuth2Application());
 	}
 
 	@Test
@@ -312,6 +373,12 @@ public class AIHubCellConfigurationModelListenerTest {
 		if (sapEntry != null) {
 			_sapEntryLocalService.deleteSAPEntry(sapEntry);
 		}
+	}
+
+	private OAuth2Application _fetchMCPOAuth2Application() throws Exception {
+		return _oAuth2ApplicationLocalService.
+			fetchOAuth2ApplicationByExternalReferenceCode(
+				"AI-HUB-MCP", TestPropsValues.getCompanyId());
 	}
 
 	private OAuth2Application _fetchOAuth2Application() throws Exception {
