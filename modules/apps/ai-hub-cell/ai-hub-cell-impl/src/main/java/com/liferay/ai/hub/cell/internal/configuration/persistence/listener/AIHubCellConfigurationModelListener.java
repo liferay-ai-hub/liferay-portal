@@ -6,6 +6,7 @@
 package com.liferay.ai.hub.cell.internal.configuration.persistence.listener;
 
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
+import com.liferay.ai.hub.cell.internal.oauth2.AIHubCellMCPOAuth2ApplicationUtil;
 import com.liferay.oauth2.provider.constants.ClientProfile;
 import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.model.OAuth2Application;
@@ -30,7 +31,6 @@ import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.service.access.policy.model.SAPEntry;
 import com.liferay.portal.security.service.access.policy.service.SAPEntryLocalService;
 
@@ -38,7 +38,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Dictionary;
-import java.util.List;
 import java.util.Objects;
 import java.util.ResourceBundle;
 import java.util.Set;
@@ -77,8 +76,9 @@ public class AIHubCellConfigurationModelListener
 		if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-63311") &&
 			FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
 
-			_addOrUpdateMCPOAuth2Application(
-				company, GetterUtil.getString(properties.get("serviceURL")));
+			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
+				companyId, GetterUtil.getString(properties.get("serviceURL")),
+				_oAuth2ApplicationLocalService, _userLocalService);
 		}
 	}
 
@@ -94,60 +94,6 @@ public class AIHubCellConfigurationModelListener
 					"please-enter-a-service-url-that-does-not-end-with-a-" +
 						"slash"),
 				AIHubCellConfiguration.class, getClass(), properties);
-		}
-	}
-
-	private void _addOrUpdateMCPOAuth2Application(
-		Company company, String serviceURL) {
-
-		if (Validator.isNull(serviceURL)) {
-			return;
-		}
-
-		List<String> redirectURIsList = Arrays.asList(
-			serviceURL + "/o/ai-hub-mcp/oauth2");
-
-		try {
-			OAuth2Application oAuth2Application =
-				_oAuth2ApplicationLocalService.
-					fetchOAuth2ApplicationByExternalReferenceCode(
-						"AI-HUB-MCP", company.getCompanyId());
-
-			if (oAuth2Application != null) {
-				if (!Objects.equals(
-						oAuth2Application.getRedirectURIsList(),
-						redirectURIsList)) {
-
-					oAuth2Application.setRedirectURIsList(redirectURIsList);
-
-					_oAuth2ApplicationLocalService.updateOAuth2Application(
-						oAuth2Application);
-				}
-
-				return;
-			}
-
-			User user = _userLocalService.fetchUserByScreenName(
-				company.getCompanyId(), "default-service-account");
-
-			if (user == null) {
-				return;
-			}
-
-			_oAuth2ApplicationLocalService.addOrUpdateOAuth2Application(
-				"AI-HUB-MCP", user.getUserId(), user.getScreenName(),
-				Arrays.asList(GrantType.AUTHORIZATION_CODE_PKCE), "none",
-				user.getUserId(), "ai-hub-mcp",
-				ClientProfile.USER_AGENT_APPLICATION.id(), null, null, null,
-				null, 0, null, "AI Hub MCP", null, redirectURIsList, false,
-				Arrays.asList("Liferay.MCP.Server.everything"), false,
-				new ServiceContext());
-		}
-		catch (PortalException portalException) {
-			_log.error(
-				"Unable to add or update MCP OAuth2 application for company " +
-					company.getCompanyId(),
-				portalException);
 		}
 	}
 
