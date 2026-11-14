@@ -7,6 +7,7 @@ package com.liferay.ai.hub.cell.internal.configuration.persistence.listener.test
 
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.petra.string.StringBundler;
@@ -30,9 +31,11 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TreeMapBuilder;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.util.Arrays;
 import java.util.Locale;
 
 import org.junit.After;
@@ -71,6 +74,13 @@ public class AIHubCellConfigurationModelListenerTest {
 
 		ConfigurationTestUtil.deleteConfiguration(
 			AIHubCellConfiguration.class.getName());
+
+		OAuth2Application mcpOAuth2Application = _fetchMCPOAuth2Application();
+
+		if (mcpOAuth2Application != null) {
+			_oAuth2ApplicationLocalService.deleteOAuth2Application(
+				mcpOAuth2Application);
+		}
 
 		OAuth2Application oAuth2Application = _fetchOAuth2Application();
 
@@ -146,6 +156,74 @@ public class AIHubCellConfigurationModelListenerTest {
 			serviceURL2, updatedOAuth2Application.getHomePageURL());
 	}
 
+	@FeatureFlags(
+		featureFlags = {
+			@FeatureFlag("LPD-62272"), @FeatureFlag("LPD-63311"),
+			@FeatureFlag("LPD-65213")
+		}
+	)
+	@Test
+	public void testOnAfterSaveMCPOAuth2Application() throws Exception {
+		OAuth2Application oAuth2Application = _fetchOAuth2Application();
+
+		if (oAuth2Application != null) {
+			_homePageURL = oAuth2Application.getHomePageURL();
+		}
+
+		_configurationSaved = true;
+
+		_saveConfiguration("https://ai-hub.example.com");
+
+		OAuth2Application mcpOAuth2Application = _fetchMCPOAuth2Application();
+
+		Assert.assertEquals(
+			Arrays.asList(GrantType.AUTHORIZATION_CODE_PKCE),
+			mcpOAuth2Application.getAllowedGrantTypesList());
+		Assert.assertEquals(
+			"none", mcpOAuth2Application.getClientAuthenticationMethod());
+		Assert.assertEquals("ai-hub-mcp", mcpOAuth2Application.getClientId());
+		Assert.assertEquals("AI Hub MCP", mcpOAuth2Application.getName());
+		Assert.assertEquals(
+			Arrays.asList("https://ai-hub.example.com/o/ai-hub-mcp/oauth2"),
+			mcpOAuth2Application.getRedirectURIsList());
+		Assert.assertFalse(mcpOAuth2Application.isTrustedApplication());
+
+		_saveConfiguration("https://ai-hub-2.example.com");
+
+		OAuth2Application updatedMCPOAuth2Application =
+			_fetchMCPOAuth2Application();
+
+		Assert.assertEquals(
+			mcpOAuth2Application.getOAuth2ApplicationId(),
+			updatedMCPOAuth2Application.getOAuth2ApplicationId());
+		Assert.assertEquals(
+			Arrays.asList("https://ai-hub-2.example.com/o/ai-hub-mcp/oauth2"),
+			updatedMCPOAuth2Application.getRedirectURIsList());
+	}
+
+	@FeatureFlags(
+		featureFlags = {
+			@FeatureFlag("LPD-62272"), @FeatureFlag("LPD-63311"),
+			@FeatureFlag(enable = false, value = "LPD-65213")
+		}
+	)
+	@Test
+	public void testOnAfterSaveMCPOAuth2ApplicationWithoutFeatureFlag()
+		throws Exception {
+
+		OAuth2Application oAuth2Application = _fetchOAuth2Application();
+
+		if (oAuth2Application != null) {
+			_homePageURL = oAuth2Application.getHomePageURL();
+		}
+
+		_configurationSaved = true;
+
+		_saveConfiguration("https://" + RandomTestUtil.randomString());
+
+		Assert.assertNull(_fetchMCPOAuth2Application());
+	}
+
 	@Test
 	public void testOnBeforeSave() throws Exception {
 		AssertUtils.assertFailure(
@@ -165,6 +243,12 @@ public class AIHubCellConfigurationModelListenerTest {
 				HashMapDictionaryBuilder.<String, Object>put(
 					"serviceURL", "https://example.com/"
 				).build()));
+	}
+
+	private OAuth2Application _fetchMCPOAuth2Application() throws Exception {
+		return _oAuth2ApplicationLocalService.
+			fetchOAuth2ApplicationByExternalReferenceCode(
+				"AI-HUB-MCP", TestPropsValues.getCompanyId());
 	}
 
 	private OAuth2Application _fetchOAuth2Application() throws Exception {

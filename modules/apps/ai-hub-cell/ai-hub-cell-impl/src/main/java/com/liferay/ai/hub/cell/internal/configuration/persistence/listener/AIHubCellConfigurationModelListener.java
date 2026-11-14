@@ -6,6 +6,7 @@
 package com.liferay.ai.hub.cell.internal.configuration.persistence.listener;
 
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
+import com.liferay.ai.hub.cell.internal.oauth2.AIHubCellMCPOAuth2ApplicationUtil;
 import com.liferay.oauth2.provider.constants.ClientProfile;
 import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.model.OAuth2Application;
@@ -71,6 +72,14 @@ public class AIHubCellConfigurationModelListener
 		_addOrUpdateOAuth2Application(
 			company, GetterUtil.getString(properties.get("serviceURL")));
 		_addSAPEntry(company);
+
+		if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-63311") &&
+			FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
+
+			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
+				companyId, GetterUtil.getString(properties.get("serviceURL")),
+				_oAuth2ApplicationLocalService, _userLocalService);
+		}
 	}
 
 	@Override
