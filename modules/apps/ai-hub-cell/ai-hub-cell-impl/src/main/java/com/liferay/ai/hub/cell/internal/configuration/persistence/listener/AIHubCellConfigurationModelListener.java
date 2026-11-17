@@ -58,10 +58,7 @@ public class AIHubCellConfigurationModelListener
 		_aiHubCellProvisioner.provision(
 			companyId, GetterUtil.getString(properties.get("serviceURL")));
 
-		if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-62272") &&
-			FeatureFlagManagerUtil.isEnabled(companyId, "LPD-63311") &&
-			FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
-
+		if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
 			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
 				companyId, GetterUtil.getString(properties.get("serviceURL")),
 				_oAuth2ApplicationLocalService, _userLocalService);
