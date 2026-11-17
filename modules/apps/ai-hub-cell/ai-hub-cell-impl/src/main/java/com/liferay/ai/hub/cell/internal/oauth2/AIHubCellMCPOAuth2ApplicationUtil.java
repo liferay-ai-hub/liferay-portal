@@ -41,13 +41,13 @@ public class AIHubCellMCPOAuth2ApplicationUtil {
 		}
 
 		try {
-			List<String> redirectURIsList = Arrays.asList(
-				serviceURL + "/o/ai-hub-mcp/oauth2");
-
 			OAuth2Application oAuth2Application =
 				oAuth2ApplicationLocalService.
 					fetchOAuth2ApplicationByExternalReferenceCode(
 						"AI-HUB-MCP", companyId);
+
+			List<String> redirectURIsList = Arrays.asList(
+				serviceURL + "/o/ai-hub-mcp/oauth2");
 
 			if (oAuth2Application != null) {
 				if (!Objects.equals(
