@@ -231,7 +231,7 @@ public class AIHubCellConfigurationModelListenerTest {
 		}
 	)
 	@Test
-	public void testOnAfterSaveMCPOAuth2ApplicationWithoutFeatureFlag()
+	public void testOnAfterSaveMCPOAuth2ApplicationWhenFeatureFlagIsDisabled()
 		throws Exception {
 
 		_configurationSaved = true;
