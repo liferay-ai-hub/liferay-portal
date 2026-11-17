@@ -16,8 +16,6 @@ import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
-import java.lang.reflect.Method;
-
 import java.util.Arrays;
 import java.util.List;
 
@@ -37,9 +35,21 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
-	public void testAddOrUpdateMCPOAuth2ApplicationAddedByAnotherNode() {
+	public void testAddOrUpdateMCPOAuth2ApplicationAddedByAnotherNode()
+		throws Exception {
+
+		OAuth2ApplicationLocalService oAuth2ApplicationLocalService =
+			_getOAuth2ApplicationLocalService();
+
 		OAuth2Application oAuth2Application = Mockito.mock(
 			OAuth2Application.class);
+
+		Mockito.when(
+			oAuth2ApplicationLocalService.
+				fetchOAuth2ApplicationByExternalReferenceCode("AI-HUB-MCP", 1)
+		).thenReturn(
+			null, oAuth2Application
+		);
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				AIHubCellMCPOAuth2ApplicationUtil.class.getName(),
@@ -47,8 +57,7 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 
 			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
 				1, "https://" + RandomTestUtil.randomString(),
-				_getOAuth2ApplicationLocalService(null, oAuth2Application),
-				_getUserLocalService());
+				oAuth2ApplicationLocalService, _getUserLocalService());
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -61,8 +70,7 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 
 			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
 				1, "https://" + RandomTestUtil.randomString(),
-				_getOAuth2ApplicationLocalService(null, null),
-				_getUserLocalService());
+				_getOAuth2ApplicationLocalService(), _getUserLocalService());
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -79,21 +87,22 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 
 	@Test
 	public void testAddOrUpdateMCPOAuth2ApplicationWithTrailingSlash() {
+		OAuth2ApplicationLocalService oAuth2ApplicationLocalService =
+			Mockito.mock(OAuth2ApplicationLocalService.class);
+
 		OAuth2Application oAuth2Application = Mockito.mock(
 			OAuth2Application.class);
 
 		Mockito.when(
-			oAuth2Application.getRedirectURIsList()
+			oAuth2ApplicationLocalService.
+				fetchOAuth2ApplicationByExternalReferenceCode("AI-HUB-MCP", 1)
 		).thenReturn(
-			Arrays.asList(
-				"https://" + RandomTestUtil.randomString() +
-					"/o/ai-hub-mcp/oauth2")
+			oAuth2Application
 		);
 
 		AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
-			1, "https://ai-hub.example.com/",
-			_getOAuth2ApplicationLocalService(oAuth2Application, null),
-			_getUserLocalService());
+			1, "https://ai-hub.example.com/", oAuth2ApplicationLocalService,
+			Mockito.mock(UserLocalService.class));
 
 		Mockito.verify(
 			oAuth2Application
@@ -102,37 +111,25 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 		);
 	}
 
-	private OAuth2ApplicationLocalService _getOAuth2ApplicationLocalService(
-		OAuth2Application oAuth2Application,
-		OAuth2Application oAuth2ApplicationAfterFailure) {
+	private OAuth2ApplicationLocalService _getOAuth2ApplicationLocalService()
+		throws PortalException {
 
-		boolean[] failed = {false};
+		OAuth2ApplicationLocalService oAuth2ApplicationLocalService =
+			Mockito.mock(OAuth2ApplicationLocalService.class);
 
-		return Mockito.mock(
-			OAuth2ApplicationLocalService.class,
-			invocation -> {
-				Method method = invocation.getMethod();
+		Mockito.when(
+			oAuth2ApplicationLocalService.addOrUpdateOAuth2Application(
+				Mockito.any(), Mockito.anyLong(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.anyLong(), Mockito.any(),
+				Mockito.anyInt(), Mockito.any(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.anyLong(), Mockito.any(), Mockito.any(),
+				Mockito.any(), Mockito.any(), Mockito.anyBoolean(),
+				Mockito.anyList(), Mockito.anyBoolean(), Mockito.any())
+		).thenThrow(
+			new PortalException()
+		);
 
-				String methodName = method.getName();
-
-				if (methodName.equals("addOrUpdateOAuth2Application")) {
-					failed[0] = true;
-
-					throw new PortalException();
-				}
-
-				if (methodName.equals(
-						"fetchOAuth2ApplicationByExternalReferenceCode")) {
-
-					if (failed[0]) {
-						return oAuth2ApplicationAfterFailure;
-					}
-
-					return oAuth2Application;
-				}
-
-				return null;
-			});
+		return oAuth2ApplicationLocalService;
 	}
 
 	private UserLocalService _getUserLocalService() {
