@@ -9,19 +9,16 @@ import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
 import com.liferay.ai.hub.cell.internal.oauth2.AIHubCellMCPOAuth2ApplicationUtil;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
-import com.liferay.portal.kernel.feature.flag.FeatureFlag;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagListener;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManager;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.MapUtil;
-
-import java.util.List;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceRegistration;
@@ -89,15 +86,7 @@ public class AIHubCellFeatureFlagListenerRegistrar {
 				return;
 			}
 
-			List<FeatureFlag> featureFlags =
-				_featureFlagManager.getFeatureFlags(
-					companyId,
-					featureFlag ->
-						featureFlag.isEnabled() &&
-						ArrayUtil.contains(
-							_FEATURE_FLAG_KEYS, featureFlag.getKey()));
-
-			if (featureFlags.size() != _FEATURE_FLAG_KEYS.length) {
+			if (!FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
 				return;
 			}
 
