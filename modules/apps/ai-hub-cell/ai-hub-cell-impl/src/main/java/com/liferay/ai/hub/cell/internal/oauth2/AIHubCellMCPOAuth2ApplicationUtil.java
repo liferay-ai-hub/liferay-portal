@@ -28,9 +28,9 @@ import java.util.Objects;
 public class AIHubCellMCPOAuth2ApplicationUtil {
 
 	public static void addOrUpdateMCPOAuth2Application(
-		long companyId, String serviceURL,
+		long companyId,
 		OAuth2ApplicationLocalService oAuth2ApplicationLocalService,
-		UserLocalService userLocalService) {
+		String serviceURL, UserLocalService userLocalService) {
 
 		if (Validator.isNull(serviceURL)) {
 			return;

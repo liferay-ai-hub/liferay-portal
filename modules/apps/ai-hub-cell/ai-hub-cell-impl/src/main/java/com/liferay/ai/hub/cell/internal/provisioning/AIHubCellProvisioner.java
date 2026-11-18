@@ -292,7 +292,7 @@ public class AIHubCellProvisioner {
 			if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
 				AIHubCellMCPOAuth2ApplicationUtil.
 					addOrUpdateMCPOAuth2Application(
-						companyId, serviceURL, _oAuth2ApplicationLocalService,
+						companyId, _oAuth2ApplicationLocalService, serviceURL,
 						_userLocalService);
 			}
 		}

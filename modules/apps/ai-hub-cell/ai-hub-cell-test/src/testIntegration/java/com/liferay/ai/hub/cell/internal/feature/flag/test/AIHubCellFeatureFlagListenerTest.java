@@ -519,7 +519,6 @@ public class AIHubCellFeatureFlagListenerTest {
 	)
 	private FeatureFlagListener _featureFlagListener;
 
-
 	@Inject
 	private OAuth2ApplicationLocalService _oAuth2ApplicationLocalService;
 
