@@ -245,12 +245,12 @@ public class AIHubCellFeatureFlagListenerTest {
 
 			_deleteMCPOAuth2Application();
 
-			_mcpFeatureFlagListener.onValue(
+			_featureFlagListener.onValue(
 				TestPropsValues.getCompanyId(), "LPD-65213", false);
 
 			Assert.assertNull(_fetchMCPOAuth2Application());
 
-			_mcpFeatureFlagListener.onValue(
+			_featureFlagListener.onValue(
 				TestPropsValues.getCompanyId(), "LPD-65213", true);
 
 			OAuth2Application mcpOAuth2Application =
@@ -271,7 +271,7 @@ public class AIHubCellFeatureFlagListenerTest {
 				_oAuth2ApplicationLocalService.updateOAuth2Application(
 					mcpOAuth2Application);
 
-			_mcpFeatureFlagListener.onValue(
+			_featureFlagListener.onValue(
 				TestPropsValues.getCompanyId(), "LPD-63311", true);
 
 			OAuth2Application updatedMCPOAuth2Application =
@@ -490,8 +490,6 @@ public class AIHubCellFeatureFlagListenerTest {
 	)
 	private FeatureFlagListener _featureFlagListener;
 
-	@Inject(filter = "feature.flag.key=LPD-65213")
-	private FeatureFlagListener _mcpFeatureFlagListener;
 
 	@Inject
 	private OAuth2ApplicationLocalService _oAuth2ApplicationLocalService;

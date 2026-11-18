@@ -6,7 +6,6 @@
 package com.liferay.ai.hub.cell.internal.configuration.persistence.listener;
 
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
-import com.liferay.ai.hub.cell.internal.oauth2.AIHubCellMCPOAuth2ApplicationUtil;
 import com.liferay.ai.hub.cell.internal.provisioning.AIHubCellProvisioner;
 import com.liferay.oauth2.provider.scope.liferay.ScopeLocator;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
@@ -15,7 +14,6 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListener;
 import com.liferay.portal.configuration.persistence.listener.ConfigurationModelListenerException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -57,12 +55,6 @@ public class AIHubCellConfigurationModelListener
 
 		_aiHubCellProvisioner.provision(
 			companyId, GetterUtil.getString(properties.get("serviceURL")));
-
-		if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
-			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
-				companyId, GetterUtil.getString(properties.get("serviceURL")),
-				_oAuth2ApplicationLocalService, _userLocalService);
-		}
 	}
 
 	@Override
