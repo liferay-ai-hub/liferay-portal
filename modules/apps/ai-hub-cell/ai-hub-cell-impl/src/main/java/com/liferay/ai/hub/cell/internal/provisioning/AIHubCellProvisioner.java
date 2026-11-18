@@ -6,6 +6,7 @@
 package com.liferay.ai.hub.cell.internal.provisioning;
 
 import com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration;
+import com.liferay.ai.hub.cell.internal.oauth2.AIHubCellMCPOAuth2ApplicationUtil;
 import com.liferay.oauth2.provider.constants.ClientProfile;
 import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.oauth2.provider.model.OAuth2Application;
@@ -287,6 +288,13 @@ public class AIHubCellProvisioner {
 		synchronized (AIHubCellProvisioner.class) {
 			_addOrUpdateOAuth2Application(companyId, serviceURL);
 			_addOrUpdateSAPEntry(companyId);
+
+			if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-65213")) {
+				AIHubCellMCPOAuth2ApplicationUtil.
+					addOrUpdateMCPOAuth2Application(
+						companyId, serviceURL, _oAuth2ApplicationLocalService,
+						_userLocalService);
+			}
 		}
 	}
 
