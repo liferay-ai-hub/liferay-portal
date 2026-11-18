@@ -56,8 +56,9 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 				LoggerTestUtil.ERROR)) {
 
 			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
-				1, "https://" + RandomTestUtil.randomString(),
-				oAuth2ApplicationLocalService, _getUserLocalService());
+				1, oAuth2ApplicationLocalService,
+				"https://" + RandomTestUtil.randomString(),
+				_getUserLocalService());
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -69,8 +70,9 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 				LoggerTestUtil.ERROR)) {
 
 			AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
-				1, "https://" + RandomTestUtil.randomString(),
-				_getOAuth2ApplicationLocalService(), _getUserLocalService());
+				1, _getOAuth2ApplicationLocalService(),
+				"https://" + RandomTestUtil.randomString(),
+				_getUserLocalService());
 
 			List<LogEntry> logEntries = logCapture.getLogEntries();
 
@@ -101,7 +103,7 @@ public class AIHubCellMCPOAuth2ApplicationUtilTest {
 		);
 
 		AIHubCellMCPOAuth2ApplicationUtil.addOrUpdateMCPOAuth2Application(
-			1, "https://ai-hub.example.com/", oAuth2ApplicationLocalService,
+			1, oAuth2ApplicationLocalService, "https://ai-hub.example.com/",
 			Mockito.mock(UserLocalService.class));
 
 		Mockito.verify(
