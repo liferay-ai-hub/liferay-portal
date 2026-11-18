@@ -286,6 +286,35 @@ public class AIHubCellFeatureFlagListenerTest {
 		}
 	}
 
+	@FeatureFlags(
+		featureFlags = {
+			@FeatureFlag("LPD-63311"),
+			@FeatureFlag(enable = false, value = "LPD-65213")
+		}
+	)
+	@Test
+	public void testOnValueMCPOAuth2ApplicationWhenFeatureFlagIsDisabled()
+		throws Exception {
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						AIHubCellConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"serviceURL",
+							"https://" + RandomTestUtil.randomString()
+						).build())) {
+
+			_deleteMCPOAuth2Application();
+
+			_featureFlagListener.onValue(
+				TestPropsValues.getCompanyId(), "LPD-63311", true);
+
+			Assert.assertNull(_fetchMCPOAuth2Application());
+		}
+	}
+
 	@Test
 	public void testOnValueWithLateScopeAliases() throws Exception {
 		Bundle bundle = FrameworkUtil.getBundle(
