@@ -16,8 +16,10 @@ import ConnectionTimeout from './http-request/ConnectionTimeout';
 import HTTPEndpoint from './http-request/HTTPEndpoint';
 import Payload from './http-request/Payload';
 import Variables from './http-request/Variables';
+import ModelSummary from './model/ModelSummary';
 import Notifications from './notifications/Notifications';
 import NotificationsSummary from './notifications/NotificationsSummary';
+import ParametersSummary from './parameters/ParametersSummary';
 import PromptSummary from './prompt/PromptSummary';
 import RAGSummary from './rag/RAGSummary';
 import ServiceConfiguration from './service/ServiceConfiguration';
@@ -36,9 +38,11 @@ const sectionComponents = {
 	connectionTimeout: ConnectionTimeout,
 	edgeInformation: EdgeInformation,
 	httpEndpoint: HTTPEndpoint,
+	modelSummary: ModelSummary,
 	nodeInformation: NodeInformation,
 	notifications: Notifications,
 	notificationsSummary: NotificationsSummary,
+	parametersSummary: ParametersSummary,
 	payload: Payload,
 	promptSummary: PromptSummary,
 	ragSummary: RAGSummary,

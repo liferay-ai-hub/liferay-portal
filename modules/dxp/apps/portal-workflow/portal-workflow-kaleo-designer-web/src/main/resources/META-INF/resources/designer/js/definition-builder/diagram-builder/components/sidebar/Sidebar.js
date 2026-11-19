@@ -154,6 +154,9 @@ if (Liferay.FeatureFlags['LPD-62272']) {
 			sections: [
 				'nodeInformation',
 				'promptSummary',
+				...(Liferay.FeatureFlags['LPD-69628']
+					? ['modelSummary', 'parametersSummary']
+					: []),
 				'ragSummary',
 				'toolsSummary',
 			],
@@ -176,6 +179,9 @@ if (Liferay.FeatureFlags['LPD-62272']) {
 			sections: [
 				'nodeInformation',
 				'promptSummary',
+				...(Liferay.FeatureFlags['LPD-69628']
+					? ['modelSummary', 'parametersSummary']
+					: []),
 				'ragSummary',
 				'toolsSummary',
 			],

@@ -328,11 +328,31 @@ public class XMLWorkflowModelParser implements WorkflowModelParser {
 			settings.add(new Setting("inputVariables", inputVariables));
 		}
 
+		String modelName = aiDecisionElement.elementTextTrim("model-name");
+
+		if (modelName != null) {
+			settings.add(new Setting("modelName", modelName));
+		}
+
+		String modelProvider = aiDecisionElement.elementTextTrim(
+			"model-provider");
+
+		if (modelProvider != null) {
+			settings.add(new Setting("modelProvider", modelProvider));
+		}
+
 		String outputVariables = _normalizeJSONArrayJSON(
 			aiDecisionElement.elementTextTrim("output-variables"));
 
 		if (outputVariables != null) {
 			settings.add(new Setting("outputVariables", outputVariables));
+		}
+
+		String parameters = _normalizeJSONArrayJSON(
+			aiDecisionElement.elementTextTrim("parameters"));
+
+		if (parameters != null) {
+			settings.add(new Setting("parameters", parameters));
 		}
 
 		settings.add(
@@ -759,11 +779,24 @@ public class XMLWorkflowModelParser implements WorkflowModelParser {
 			settings.add(new Setting("modelName", modelName));
 		}
 
+		String modelProvider = llmElement.elementTextTrim("model-provider");
+
+		if (modelProvider != null) {
+			settings.add(new Setting("modelProvider", modelProvider));
+		}
+
 		String outputVariables = _normalizeJSONArrayJSON(
 			llmElement.elementTextTrim("output-variables"));
 
 		if (outputVariables != null) {
 			settings.add(new Setting("outputVariables", outputVariables));
+		}
+
+		String parameters = _normalizeJSONArrayJSON(
+			llmElement.elementTextTrim("parameters"));
+
+		if (parameters != null) {
+			settings.add(new Setting("parameters", parameters));
 		}
 
 		settings.add(

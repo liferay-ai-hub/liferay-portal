@@ -289,12 +289,25 @@ public class WorkflowDefinitionManagerTest extends BaseWorkflowManagerTestCase {
 						)
 					).toString()),
 				_createWorkflowNodeSetting(
+					"modelName", "anthropic.claude-sonnet-4-5"),
+				_createWorkflowNodeSetting(
+					"modelProvider", "AMAZON_BEDROCK_PROVIDER"),
+				_createWorkflowNodeSetting(
 					"outputVariables",
 					JSONUtil.put(
 						JSONUtil.put(
 							"name", "outputVariable"
 						).put(
 							"type", "string"
+						)
+					).toString()),
+				_createWorkflowNodeSetting(
+					"parameters",
+					JSONUtil.put(
+						JSONUtil.put(
+							"name", "maxOutputTokens"
+						).put(
+							"value", "512"
 						)
 					).toString()),
 				_createWorkflowNodeSetting("prompt", "Prompt"),
@@ -470,12 +483,25 @@ public class WorkflowDefinitionManagerTest extends BaseWorkflowManagerTestCase {
 						)
 					).toString()),
 				_createWorkflowNodeSetting(
+					"modelName", "anthropic.claude-sonnet-4-5"),
+				_createWorkflowNodeSetting(
+					"modelProvider", "AMAZON_BEDROCK_PROVIDER"),
+				_createWorkflowNodeSetting(
 					"outputVariables",
 					JSONUtil.put(
 						JSONUtil.put(
 							"name", "outputVariable"
 						).put(
 							"type", "string"
+						)
+					).toString()),
+				_createWorkflowNodeSetting(
+					"parameters",
+					JSONUtil.put(
+						JSONUtil.put(
+							"name", "maxOutputTokens"
+						).put(
+							"value", "512"
 						)
 					).toString()),
 				_createWorkflowNodeSetting("prompt", "Prompt"),

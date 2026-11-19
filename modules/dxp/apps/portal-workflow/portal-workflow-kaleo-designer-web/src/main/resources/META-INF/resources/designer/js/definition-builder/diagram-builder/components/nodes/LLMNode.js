@@ -14,8 +14,11 @@ export default function LLMNode({
 		description,
 		inputVariables,
 		label,
+		modelName,
+		modelProvider,
 		newNode,
 		outputVariables,
+		parameters,
 		prompt,
 		rag,
 		tools,
@@ -39,9 +42,12 @@ export default function LLMNode({
 			id={id}
 			inputVariables={inputVariables}
 			label={label}
+			modelName={modelName}
+			modelProvider={modelProvider}
 			newNode={newNode}
 			nodeTypeClassName="llm-node"
 			outputVariables={outputVariables}
+			parameters={parameters}
 			prompt={prompt}
 			rag={rag}
 			tools={tools}
