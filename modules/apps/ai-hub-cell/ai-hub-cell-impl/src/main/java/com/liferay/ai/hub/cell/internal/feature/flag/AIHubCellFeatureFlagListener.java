@@ -25,7 +25,11 @@ import org.osgi.service.component.annotations.Reference;
  * @author Joao Victor
  */
 @Component(
-	property = "feature.flag.key=LPD-62272", service = FeatureFlagListener.class
+	property = {
+		"feature.flag.key=LPD-62272", "feature.flag.key=LPD-63311",
+		"feature.flag.key=LPD-65213"
+	},
+	service = FeatureFlagListener.class
 )
 public class AIHubCellFeatureFlagListener implements FeatureFlagListener {
 
